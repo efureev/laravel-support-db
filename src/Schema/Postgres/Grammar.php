@@ -6,6 +6,9 @@ namespace Php\Support\Laravel\Database\Schema\Postgres;
 
 use Illuminate\Database\Schema\Grammars\PostgresGrammar;
 use Illuminate\Support\Fluent;
+use Php\Support\Laravel\Database\Schema\Postgres\Builders\Indexes\Unique\UniqueBuilder;
+use Php\Support\Laravel\Database\Schema\Postgres\Builders\Indexes\Unique\UniquePartialBuilder;
+use Php\Support\Laravel\Database\Schema\Postgres\Compilers\UniqueCompiler;
 use Php\Support\Laravel\Database\Schema\Postgres\Types\NumericType;
 use Php\Support\Laravel\Database\Schema\Postgres\Types\TsRangeType;
 
@@ -75,5 +78,14 @@ class Grammar extends PostgresGrammar
     public function compileViewDefinition(): string
     {
         return 'select view_definition from information_schema.views where table_schema = ? and table_name = ?';
+    }
+
+    public function compileUniquePartial(Blueprint $blueprint, UniqueBuilder $command): string
+    {
+        $constraints = $command->get('constraints');
+        if ($constraints instanceof UniquePartialBuilder) {
+            return UniqueCompiler::compile($this, $blueprint, $command, $constraints);
+        }
+        return $this->compileUnique($blueprint, $command);
     }
 }

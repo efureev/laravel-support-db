@@ -9,7 +9,11 @@ use Illuminate\Database\Query\Expression;
 use Illuminate\Database\Schema\Blueprint as BaseBlueprint;
 use Illuminate\Database\Schema\ColumnDefinition;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Fluent;
+use Php\Support\Laravel\Database\Schema\Definitions\UniqueDefinition;
+use Php\Support\Laravel\Database\Schema\Definitions\ViewDefinition;
+use Php\Support\Laravel\Database\Schema\Postgres\Builders\Indexes\Unique\UniqueBuilder;
 
 class Blueprint extends BaseBlueprint
 {
@@ -95,7 +99,7 @@ class Blueprint extends BaseBlueprint
      * @param string $select
      * @param bool $materialize
      *
-     * @return Fluent
+     * @return ViewDefinition|Fluent
      */
     public function createView(string $view, string $select, bool $materialize = false): Fluent
     {
@@ -110,5 +114,52 @@ class Blueprint extends BaseBlueprint
     public function ifNotExists(): Fluent
     {
         return $this->addCommand('ifNotExists');
+    }
+
+    public function hasIndex($index, bool $unique = false): bool
+    {
+        if (is_array($index)) {
+            $index = $this->createIndexName($unique === false ? 'index' : 'unique', $index);
+        }
+
+        return array_key_exists($index, $this->getSchemaManager()->listTableIndexes($this->getTable()));
+    }
+
+    /**
+     * @param array|string $columns
+     * @param string|null $index
+     * @param string|null $algorithm
+     *
+     * @return UniqueDefinition|UniqueBuilder
+     */
+    public function uniquePartial($columns, ?string $index = null, ?string $algorithm = null): Fluent
+    {
+        $columns = (array)$columns;
+
+        $index = $index ?: $this->createIndexName('unique', $columns);
+
+        return $this->addExtendedCommand(
+            UniqueBuilder::class,
+            'uniquePartial',
+            compact('columns', 'index', 'algorithm')
+        );
+    }
+
+    public function dropUniquePartial($index): Fluent
+    {
+        return $this->dropIndexCommand('dropIndex', 'unique', $index);
+    }
+
+    protected function getSchemaManager()
+    {
+        return Schema::getConnection()->getDoctrineSchemaManager();
+    }
+
+    private function addExtendedCommand(string $fluent, string $name, array $parameters = []): Fluent
+    {
+        $command          = new $fluent(array_merge(compact('name'), $parameters));
+        $this->commands[] = $command;
+
+        return $command;
     }
 }
