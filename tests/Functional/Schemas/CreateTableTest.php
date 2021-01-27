@@ -2,17 +2,15 @@
 
 declare(strict_types=1);
 
-namespace Php\Support\Laravel\Tests\Functional\Schemas;
+namespace Php\Support\Laravel\Database\Tests\Functional\Schema;
 
-use Illuminate\Support\Facades\Facade;
 use Illuminate\Support\Facades\Schema;
-use Php\Support\Laravel\ExtendedPostgresProvider;
-use Php\Support\Laravel\Schemas\Blueprints\ExtendedBlueprint;
-use Php\Support\Laravel\Schemas\Helpers\ColumnAssertions;
-use Php\Support\Laravel\Schemas\Helpers\TableAssertions;
-use Php\Support\Laravel\Tests\Functional\AbstractFunctionalTestCase;
+use Php\Support\Laravel\Database\Schema\Helpers\ColumnAssertions;
+use Php\Support\Laravel\Database\Schema\Helpers\TableAssertions;
+use Php\Support\Laravel\Database\Schema\Postgres\Blueprint;
+use Php\Support\Laravel\Database\Tests\AbstractTestCase;
 
-class CreateTableTest extends AbstractFunctionalTestCase
+class CreateTableTest extends AbstractTestCase
 {
     use ColumnAssertions;
     use TableAssertions;
@@ -24,7 +22,7 @@ class CreateTableTest extends AbstractFunctionalTestCase
     {
         Schema::create(
             'test_table',
-            static function (ExtendedBlueprint $table) {
+            static function (Blueprint $table) {
                 $table->increments('id');
                 $table->string('name');
                 $table->string('field_comment')
@@ -44,7 +42,7 @@ class CreateTableTest extends AbstractFunctionalTestCase
     {
         Schema::create(
             'test_table',
-            static function (ExtendedBlueprint $table) {
+            static function (Blueprint $table) {
                 $table->increments('id');
                 $table->string('name');
                 $table->string('field_comment')
@@ -66,23 +64,5 @@ class CreateTableTest extends AbstractFunctionalTestCase
         $this->assertDefaultOnColumn('test_table', 'name');
         $this->assertCommentOnColumn('test_table', 'name');
     }
-
-    /**
-     * @return void
-     */
-    protected function setUp(): void
-    {
-        parent::setUp();
-
-        Facade::clearResolvedInstances();
-    }
-
-    protected function getPackageProviders($app): array
-    {
-        return [
-            ExtendedPostgresProvider::class,
-        ];
-    }
-
 
 }

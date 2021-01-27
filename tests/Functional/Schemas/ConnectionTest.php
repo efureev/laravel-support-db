@@ -2,19 +2,18 @@
 
 declare(strict_types=1);
 
-namespace Php\Support\Laravel\Tests\Functional\Schemas;
+namespace Php\Support\Laravel\Database\Tests\Functional\Schema;
 
 use Illuminate\Database\SQLiteConnection;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Facade;
 use Illuminate\Support\Facades\Schema;
-use Php\Support\Laravel\ExtendedPostgresProvider;
-use Php\Support\Laravel\Schemas\Blueprints\ExtendedBlueprint;
-use Php\Support\Laravel\Schemas\ConnectionFactory;
-use Php\Support\Laravel\Tests\Functional\AbstractFunctionalTestCase;
+use Php\Support\Laravel\Database\Schema\ConnectionFactory;
+use Php\Support\Laravel\Database\Schema\Postgres\Blueprint;
+use Php\Support\Laravel\Database\Schema\Postgres\Connection;
+use Php\Support\Laravel\Database\Tests\AbstractTestCase;
 
-class ConnectionTest extends AbstractFunctionalTestCase
+class ConnectionTest extends AbstractTestCase
 {
     /**
      * @test
@@ -26,13 +25,12 @@ class ConnectionTest extends AbstractFunctionalTestCase
         static::assertInstanceOf(SQLiteConnection::class, $factory->make(config('database.connections.sqlite')));
     }
 
-
     /**
      * @test
      */
     public function checkConnection(): void
     {
-        static::assertInstanceOf(\Php\Support\Laravel\Schemas\PostgresConnection::class, $this->app['db.connection']);
+        static::assertInstanceOf(Connection::class, $this->app['db.connection']);
     }
 
 
@@ -51,7 +49,7 @@ class ConnectionTest extends AbstractFunctionalTestCase
 
         Schema::create(
             $table,
-            static function (ExtendedBlueprint $table) {
+            static function (Blueprint $table) {
                 $table->increments('id');
                 $table->boolean('field');
             }
@@ -77,7 +75,7 @@ class ConnectionTest extends AbstractFunctionalTestCase
         ];
         Schema::create(
             $table,
-            static function (ExtendedBlueprint $table) {
+            static function (Blueprint $table) {
                 $table->increments('id');
                 $table->integer('field');
             }
@@ -99,7 +97,7 @@ class ConnectionTest extends AbstractFunctionalTestCase
         ];
         Schema::create(
             $table,
-            function (ExtendedBlueprint $table) {
+            static function (Blueprint $table) {
                 $table->increments('id');
                 $table->string('field');
             }
@@ -120,7 +118,7 @@ class ConnectionTest extends AbstractFunctionalTestCase
         ];
         Schema::create(
             $table,
-            static function (ExtendedBlueprint $table) {
+            static function (Blueprint $table) {
                 $table->increments('id');
                 $table->string('field')
                     ->nullable();
@@ -145,7 +143,7 @@ class ConnectionTest extends AbstractFunctionalTestCase
         ];
         Schema::create(
             $table,
-            static function (ExtendedBlueprint $table) {
+            static function (Blueprint $table) {
                 $table->increments('id');
                 $table->dateTime('field');
             }
@@ -159,19 +157,12 @@ class ConnectionTest extends AbstractFunctionalTestCase
     /**
      * @return void
      */
-    protected function setUp(): void
+    /*protected function setUp(): void
     {
         parent::setUp();
 
         Facade::clearResolvedInstances();
-    }
-
-    protected function getPackageProviders($app): array
-    {
-        return [
-            ExtendedPostgresProvider::class,
-        ];
-    }
+    }*/
 
 
     public function boolDataProvider(): ?\Generator

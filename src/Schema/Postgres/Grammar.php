@@ -2,24 +2,19 @@
 
 declare(strict_types=1);
 
-namespace Php\Support\Laravel\Schemas\Grammars;
+namespace Php\Support\Laravel\Database\Schema\Postgres;
 
-use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Database\Schema\Grammars\PostgresGrammar;
 use Illuminate\Support\Fluent;
-use Php\Support\Laravel\Schemas\Types\NumericType;
-use Php\Support\Laravel\Schemas\Types\TsRangeType;
+use Php\Support\Laravel\DB\Schema\Postgres\Types\NumericType;
+use Php\Support\Laravel\DB\Schema\Postgres\Types\TsRangeType;
 
-/**
- * Class ExtendedPostgresGrammar
- * @package Php\Support\Laravel
- */
-class ExtendedPostgresGrammar extends PostgresGrammar
+class Grammar extends PostgresGrammar
 {
     /**
      * Create the column definition for a 'bit' type.
      *
-     * @param \Illuminate\Support\Fluent $column
+     * @param Fluent $column
      *
      * @return string
      */

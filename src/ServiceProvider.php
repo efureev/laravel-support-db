@@ -2,13 +2,13 @@
 
 declare(strict_types=1);
 
-namespace Php\Support\Laravel;
+namespace Php\Support\Laravel\Database;
 
 use Illuminate\Database\DatabaseManager;
 use Illuminate\Database\DatabaseServiceProvider;
-use Php\Support\Laravel\Schemas\ConnectionFactory;
+use Php\Support\Laravel\Database\Schema\ConnectionFactory;
 
-class ExtendedPostgresProvider extends DatabaseServiceProvider
+class ServiceProvider extends DatabaseServiceProvider
 {
     protected function registerConnectionServices(): void
     {

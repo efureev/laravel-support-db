@@ -2,14 +2,10 @@
 
 declare(strict_types=1);
 
-namespace Php\Support\Laravel\Schemas\Helpers;
+namespace Php\Support\Laravel\Database\Schema\Helpers;
 
 use Illuminate\Support\Facades\Schema;
 
-/**
- * Trait TableAssertions
- * @package Php\Support\Laravel\Schemas\Helpers
- */
 trait ViewAssertions
 {
     abstract public static function assertSame($expected, $actual, string $message = ''): void;
@@ -22,17 +18,17 @@ trait ViewAssertions
     {
         $definition = $this->getViewDefinition($view);
 
-        $this->assertSame($expectedDef, $definition);
+        static::assertSame($expectedDef, $definition);
     }
 
     protected function seeView(string $view): void
     {
-        $this->assertTrue(Schema::hasView($view));
+        static::assertTrue(Schema::hasView($view));
     }
 
     protected function notSeeView(string $view): void
     {
-        $this->assertFalse(Schema::hasView($view));
+        static::assertFalse(Schema::hasView($view));
     }
 
     private function getViewDefinition(string $view): string

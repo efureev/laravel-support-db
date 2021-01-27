@@ -2,15 +2,11 @@
 
 declare(strict_types=1);
 
-namespace Php\Support\Laravel\Schemas\Helpers;
+namespace Php\Support\Laravel\Database\Schema\Helpers;
 
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 
-/**
- * Trait ColumnAssertions
- * @package Php\Support\Laravel\Schemas\Helpers
- */
 trait ColumnAssertions
 {
     abstract public static function assertNull($actual, string $message = ''): void;
@@ -22,10 +18,10 @@ trait ColumnAssertions
         $comment = $this->getCommentListing($table, $column);
 
         if ($expected === null) {
-            $this->assertNull($comment);
+            static::assertNull($comment);
         }
 
-        $this->assertSame($expected, $comment);
+        static::assertSame($expected, $comment);
     }
 
     protected function assertDefaultOnColumn(string $table, string $column, ?string $expected = null): void
@@ -33,20 +29,20 @@ trait ColumnAssertions
         $defaultValue = $this->getDefaultListing($table, $column);
 
         if ($expected === null) {
-            $this->assertNull($defaultValue);
+            static::assertNull($defaultValue);
         }
 
-        $this->assertSame($expected, $defaultValue);
+        static::assertSame($expected, $defaultValue);
     }
 
     protected function assertLaravelTypeColumn(string $table, string $column, string $expected): void
     {
-        $this->assertSame($expected, Schema::getColumnType($table, $column));
+        static::assertSame($expected, Schema::getColumnType($table, $column));
     }
 
     protected function assertPostgresTypeColumn(string $table, string $column, string $expected): void
     {
-        $this->assertSame($expected, $this->getTypeListing($table, $column));
+        static::assertSame($expected, $this->getTypeListing($table, $column));
     }
 
     private function getCommentListing(string $table, string $column)

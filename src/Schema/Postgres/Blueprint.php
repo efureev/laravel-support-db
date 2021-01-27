@@ -2,21 +2,17 @@
 
 declare(strict_types=1);
 
-namespace Php\Support\Laravel\Schemas\Blueprints;
+namespace Php\Support\Laravel\Database\Schema\Postgres;
 
 use Exception;
 use Illuminate\Database\Query\Expression;
-use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Database\Schema\Blueprint as BaseBlueprint;
 use Illuminate\Database\Schema\ColumnDefinition;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Fluent;
 
 
-/**
- * Class ExtendedBlueprint
- * @package Php\Support\Laravel
- */
-class ExtendedBlueprint extends Blueprint
+class Blueprint extends BaseBlueprint
 {
     /**
      * @param string $column

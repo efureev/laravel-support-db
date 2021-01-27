@@ -2,28 +2,24 @@
 
 declare(strict_types=1);
 
-namespace Php\Support\Laravel\Schemas;
+namespace Php\Support\Laravel\Database\Schema\Postgres;
 
 use Illuminate\Database\PostgresConnection as BasePostgresConnection;
-use Illuminate\Database\Query\Processors\PostgresProcessor;
 use PDO;
-use Php\Support\Laravel\Schemas\Grammars\ExtendedPostgresGrammar;
-use Php\Support\Laravel\Schemas\Types\NumericType;
-use Php\Support\Laravel\Schemas\Types\TsRangeType;
+use Php\Support\Laravel\Database\Schema\Postgres\Types\NumericType;
+use Php\Support\Laravel\Database\Schema\Postgres\Types\TsRangeType;
 
 
-class PostgresConnection extends BasePostgresConnection
+class Connection extends BasePostgresConnection
 {
-    public $name;
-
-    private $initialTypes = [
+    private array $initialTypes = [
         TsRangeType::TYPE_NAME => TsRangeType::class,
         NumericType::TYPE_NAME => NumericType::class,
     ];
 
     protected function getDefaultSchemaGrammar()
     {
-        return $this->withTablePrefix(new ExtendedPostgresGrammar());
+        return $this->withTablePrefix(new Grammar());
     }
 
 
@@ -42,7 +38,7 @@ class PostgresConnection extends BasePostgresConnection
         $this->registerInitialTypes();
     }
 
-    public function bindValues($statement, $bindings)
+    public function bindValues($statement, $bindings): void
     {
         if ($this->getPdo()->getAttribute(PDO::ATTR_EMULATE_PREPARES)) {
             foreach ($bindings as $key => $value) {

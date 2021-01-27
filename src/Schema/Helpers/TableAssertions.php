@@ -2,14 +2,10 @@
 
 declare(strict_types=1);
 
-namespace Php\Support\Laravel\Schemas\Helpers;
+namespace Php\Support\Laravel\Database\Schema\Helpers;
 
 use Illuminate\Support\Facades\Schema;
 
-/**
- * Trait TableAssertions
- * @package Php\Support\Laravel\Schemas\Helpers
- */
 trait TableAssertions
 {
     abstract public static function assertSame($expected, $actual, string $message = ''): void;
@@ -18,19 +14,19 @@ trait TableAssertions
 
     protected function assertCompareTables(string $sourceTable, string $destinationTable): void
     {
-        $this->assertSame($this->getTableDefinition($sourceTable), $this->getTableDefinition($destinationTable));
+        static::assertSame($this->getTableDefinition($sourceTable), $this->getTableDefinition($destinationTable));
     }
 
     protected function assertSameTable(array $expectedDef, string $table): void
     {
         $definition = $this->getTableDefinition($table);
 
-        $this->assertSame($expectedDef, $definition);
+        static::assertSame($expectedDef, $definition);
     }
 
     protected function seeTable(string $table): void
     {
-        $this->assertTrue(Schema::hasTable($table));
+        static::assertTrue(Schema::hasTable($table));
     }
 
     private function getTableDefinition(string $table): array

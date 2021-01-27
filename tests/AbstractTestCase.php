@@ -2,12 +2,12 @@
 
 declare(strict_types=1);
 
-namespace Php\Support\Laravel\DB\Tests;
+namespace Php\Support\Laravel\Database\Tests;
 
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Testing\Concerns\InteractsWithDatabase;
 use Orchestra\Testbench\TestCase;
-use Php\Support\Laravel\ServiceProvider;
+use Php\Support\Laravel\Database\ServiceProvider;
 
 /**
  * Class AbstractTestCase
@@ -16,7 +16,7 @@ abstract class AbstractTestCase extends TestCase
 {
     use InteractsWithDatabase;
 
-    protected $migrations = [];
+    protected array $migrations = [];
 
     /**
      * Define environment setup.
@@ -65,6 +65,7 @@ abstract class AbstractTestCase extends TestCase
         ];
     }
 
+
     protected static function databasePath(string $path = null): string
     {
         return __DIR__ . '/database' . ($path ? "/$path" : '');
@@ -81,6 +82,8 @@ abstract class AbstractTestCase extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
+
+        // Facade::clearResolvedInstances();
 
         $this->artisan('db:wipe');
 

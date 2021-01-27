@@ -2,17 +2,15 @@
 
 declare(strict_types=1);
 
-namespace Php\Support\Laravel\Tests\Functional\Schemas;
+namespace Php\Support\Laravel\Database\Tests\Functional\Schema;
 
-use Illuminate\Support\Facades\Facade;
 use Illuminate\Support\Facades\Schema;
-use Php\Support\Laravel\ExtendedPostgresProvider;
-use Php\Support\Laravel\Schemas\Blueprints\ExtendedBlueprint;
-use Php\Support\Laravel\Schemas\Helpers\ViewAssertions;
-use Php\Support\Laravel\Tests\Functional\AbstractFunctionalTestCase;
+use Php\Support\Laravel\Database\Schema\Helpers\ViewAssertions;
+use Php\Support\Laravel\Database\Schema\Postgres\Blueprint;
+use Php\Support\Laravel\Database\Tests\AbstractTestCase;
 
 
-class CreateViewTest extends AbstractFunctionalTestCase
+class CreateViewTest extends AbstractTestCase
 {
     use ViewAssertions;
 
@@ -47,7 +45,7 @@ class CreateViewTest extends AbstractFunctionalTestCase
     {
         Schema::table(
             'test_table',
-            static function (ExtendedBlueprint $table) {
+            static function (Blueprint $table) {
                 $table->createView('test_view', 'select * from test_table where name is not null');
             }
         );
@@ -60,7 +58,7 @@ class CreateViewTest extends AbstractFunctionalTestCase
 
         Schema::table(
             'users',
-            static function (ExtendedBlueprint $table) {
+            static function (Blueprint $table) {
                 $table->dropView('test_view');
             }
         );
@@ -77,20 +75,13 @@ class CreateViewTest extends AbstractFunctionalTestCase
 
         Schema::create(
             'test_table',
-            static function (ExtendedBlueprint $table) {
+            static function (Blueprint $table) {
                 $table->increments('id');
                 $table->string('name');
             }
         );
-
-        Facade::clearResolvedInstances();
+        //        Facade::clearResolvedInstances();
     }
 
-    protected function getPackageProviders($app): array
-    {
-        return [
-            ExtendedPostgresProvider::class,
-        ];
-    }
 
 }

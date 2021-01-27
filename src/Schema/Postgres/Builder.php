@@ -2,17 +2,15 @@
 
 declare(strict_types=1);
 
-namespace Php\Support\Laravel\Schemas;
+namespace Php\Support\Laravel\Database\Schema\Postgres;
 
 use Illuminate\Database\Schema\PostgresBuilder;
-use Php\Support\Laravel\Schemas\Blueprints\ExtendedBlueprint;
-
 
 class Builder extends PostgresBuilder
 {
     protected function createBlueprint($table, \Closure $callback = null)
     {
-        return new ExtendedBlueprint($table, $callback);
+        return new Blueprint($table, $callback);
     }
 
     public function createView(string $view, string $select, $materialize = false): void
@@ -44,10 +42,13 @@ class Builder extends PostgresBuilder
 
     public function getViewDefinition($view): string
     {
-        $results = $this->connection->selectFromWriteConnection($this->grammar->compileViewDefinition(), [
-            $this->connection->getConfig()['schema'],
-            $this->connection->getTablePrefix() . $view,
-        ]);
+        $results = $this->connection->selectFromWriteConnection(
+            $this->grammar->compileViewDefinition(),
+            [
+                $this->connection->getConfig()['schema'],
+                $this->connection->getTablePrefix() . $view,
+            ]
+        );
         return count($results) > 0 ? $results[0]->view_definition : '';
     }
 
