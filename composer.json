@@ -1,0 +1,62 @@
+{
+  "name": "efureev/laravel-support-db",
+  "description": "PHP Support Package for Laravel DB",
+  "license": "MIT",
+  "type": "library",
+  "keywords": [
+    "php",
+    "support",
+    "helpers",
+    "laravel",
+    "db"
+  ],
+  "authors": [
+    {
+      "name": "Eugene Fureev",
+      "homepage": "https://github.com/efureev"
+    }
+  ],
+  "require": {
+    "php": "^7.4|^8.0",
+    "ext-json": "*",
+    "ext-pdo": "*",
+    "illuminate/database": "^7.30.3|^8.22.1",
+    "doctrine/dbal": "^2.6"
+  },
+  "require-dev": {
+    "phpunit/phpunit": "^9.5",
+    "orchestra/testbench": "^5.14",
+    "squizlabs/php_codesniffer": "^3.5"
+  },
+  "autoload": {
+    "psr-4": {
+      "Php\\Support\\Laravel\\Database\\": "src/"
+    }
+  },
+  "autoload-dev": {
+    "psr-4": {
+      "Php\\Support\\Laravel\\Database\\Tests\\": "tests/"
+    }
+  },
+  "extra": {
+    "laravel": {
+      "providers": [
+        "Php\\Support\\Laravel\\Database\\ServiceProvider"
+      ]
+    }
+  },
+  "scripts": {
+    "phpcs": "@php ./vendor/bin/phpcs",
+    "cs-fix": "@php ./vendor/bin/phpcbf",
+    "phpunit": "@php ./vendor/bin/phpunit --no-coverage --testdox --colors=always",
+    "phpunit-cover": "@php ./vendor/bin/phpunit --coverage-text",
+    "test": [
+      "@phpcs",
+      "@phpunit"
+    ],
+    "test-cover": [
+      "@phpcs",
+      "@phpunit-cover"
+    ]
+  }
+}

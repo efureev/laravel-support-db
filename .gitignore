@@ -1,0 +1,14 @@
+.php_cs.cache
+.DS_Store
+.phpunit.result.cache
+
+composer.lock
+
+/.idea
+/storage
+/vendor
+clover.xml
+
+/.git-hooks
+phpunit.xml.dist
+/coverage
