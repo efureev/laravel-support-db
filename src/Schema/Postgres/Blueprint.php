@@ -44,7 +44,7 @@ class Blueprint extends BaseBlueprint
 
     /**
      * @param string $column
-     * @param bool|callable|Expression $generate
+     * @param bool|callable|Expression|null $generate
      *
      * @return ColumnDefinition
      * @throws Exception
@@ -67,6 +67,10 @@ class Blueprint extends BaseBlueprint
                 $defaultExpression = new Expression($generate($column));
                 break;
 
+            case $generate === null:
+                $defaultExpression = $generate;
+                $defCol->nullable();
+                break;
             case $generate instanceof Expression:
                 $defaultExpression = $generate;
                 break;
