@@ -56,7 +56,10 @@ trait ColumnAssertions
                    AND c.table_schema = st.schemaname AND c.table_name = st.relname
                 WHERE c.table_name = ? AND c.column_name = ?
             ',
-            [$table, $column]
+            [
+                $table,
+                $column,
+            ]
         );
 
         return $definition ? $definition->description : null;
@@ -70,7 +73,10 @@ trait ColumnAssertions
                 FROM information_schema.columns
                 WHERE table_name = ? AND column_name = ?
             ',
-            [$table, $column]
+            [
+                $table,
+                $column,
+            ]
         );
 
         return $definition ? $definition->data_type : null;
@@ -84,7 +90,10 @@ trait ColumnAssertions
                 FROM information_schema.columns c
                 WHERE c.table_name = ? and c.column_name = ?
             ',
-            [$table, $column]
+            [
+                $table,
+                $column,
+            ]
         );
 
         return $definition ? $definition->column_default : null;

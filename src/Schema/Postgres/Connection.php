@@ -9,7 +9,6 @@ use PDO;
 use Php\Support\Laravel\Database\Schema\Postgres\Types\NumericType;
 use Php\Support\Laravel\Database\Schema\Postgres\Types\TsRangeType;
 
-
 class Connection extends BasePostgresConnection
 {
     private array $initialTypes = [

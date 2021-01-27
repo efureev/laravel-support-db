@@ -11,7 +11,6 @@ use Illuminate\Database\Schema\ColumnDefinition;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Fluent;
 
-
 class Blueprint extends BaseBlueprint
 {
     /**

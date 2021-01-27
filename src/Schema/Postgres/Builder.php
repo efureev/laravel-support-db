@@ -30,14 +30,14 @@ class Builder extends PostgresBuilder
     public function hasView(string $view): bool
     {
         return count(
-                $this->connection->selectFromWriteConnection(
-                    $this->grammar->compileViewExists(),
-                    [
-                        $this->connection->getConfig()['schema'],
-                        $this->connection->getTablePrefix() . $view,
-                    ]
-                )
-            ) > 0;
+            $this->connection->selectFromWriteConnection(
+                $this->grammar->compileViewExists(),
+                [
+                    $this->connection->getConfig()['schema'],
+                    $this->connection->getTablePrefix() . $view,
+                ]
+            )
+        ) > 0;
     }
 
     public function getViewDefinition($view): string
@@ -51,5 +51,4 @@ class Builder extends PostgresBuilder
         );
         return count($results) > 0 ? $results[0]->view_definition : '';
     }
-
 }
