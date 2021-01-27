@@ -63,7 +63,7 @@ class Connection extends BasePostgresConnection
         }
     }
 
-    private function registerInitialTypes(): void
+    public function registerInitialTypes(): void
     {
         $builder = $this->getSchemaBuilder();
         foreach ($this->initialTypes as $type => $typeClass) {

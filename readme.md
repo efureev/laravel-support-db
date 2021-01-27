@@ -10,13 +10,42 @@
 [![Maintainability](https://api.codeclimate.com/v1/badges/5c2f433a24871b1f12e3/maintainability)](https://codeclimate.com/github/efureev/laravel-support-db/maintainability)
 [![Test Coverage](https://api.codeclimate.com/v1/badges/5c2f433a24871b1f12e3/test_coverage)](https://codeclimate.com/github/efureev/laravel-support-db/test_coverage)
 
+Extending base types of Schemas for following DB:
+- Postgres
+    - numeric
+    - tsRange
+    - auto-generated UUID
+- nothing...
+
 ## Install
+
 ```bash
 composer require efureev/laravel-support-db "^0.0.1"
 ```
 
+## Usage
+
+```php
+<?php
+
+use Illuminate\Support\Facades\Schema;
+use Php\Support\Laravel\Database\Schema\Postgres\Blueprint;
+
+Schema::create(
+    'test_table',
+    static function (Blueprint $table) {
+        $table->primaryUUID();
+        $table->generateUUID('id', null);
+        $table->tsRange('range');
+        $table->numeric('num');
+        
+    }
+);
+```
+
 
 ## Test
+
 ```bash
 composer test
 composer test-cover # with coverage

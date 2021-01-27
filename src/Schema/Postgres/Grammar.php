@@ -6,8 +6,8 @@ namespace Php\Support\Laravel\Database\Schema\Postgres;
 
 use Illuminate\Database\Schema\Grammars\PostgresGrammar;
 use Illuminate\Support\Fluent;
-use Php\Support\Laravel\DB\Schema\Postgres\Types\NumericType;
-use Php\Support\Laravel\DB\Schema\Postgres\Types\TsRangeType;
+use Php\Support\Laravel\Database\Schema\Postgres\Types\NumericType;
+use Php\Support\Laravel\Database\Schema\Postgres\Types\TsRangeType;
 
 class Grammar extends PostgresGrammar
 {

@@ -6,6 +6,7 @@ namespace Php\Support\Laravel\Database\Tests;
 
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Testing\Concerns\InteractsWithDatabase;
+use Illuminate\Support\Facades\Facade;
 use Orchestra\Testbench\TestCase;
 use Php\Support\Laravel\Database\ServiceProvider;
 
@@ -83,7 +84,7 @@ abstract class AbstractTestCase extends TestCase
     {
         parent::setUp();
 
-        // Facade::clearResolvedInstances();
+        Facade::clearResolvedInstances();
 
         $this->artisan('db:wipe');
 
@@ -95,14 +96,5 @@ abstract class AbstractTestCase extends TestCase
         foreach ($this->migrations as $migration) {
             $this->loadMigrationsFrom(self::migrationsPath($migration));
         }
-    }
-
-    protected static function getProtectedMethod(string $class, string $name): \ReflectionMethod
-    {
-        $class  = new \ReflectionClass($class);
-        $method = $class->getMethod($name);
-        $method->setAccessible(true);
-
-        return $method;
     }
 }

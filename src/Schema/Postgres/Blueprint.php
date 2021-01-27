@@ -42,38 +42,42 @@ class Blueprint extends BaseBlueprint
      * @param string $column
      * @param bool|callable|Expression $generate
      *
-     * @return Fluent
+     * @return ColumnDefinition
      * @throws Exception
      */
-    public function generateUUID(string $column = 'id', $generate = true): Fluent
+    public function generateUUID(string $column = 'id', $generate = true): ColumnDefinition
     {
-        if (!$defCol = $this->addColumn('uuid', $column)) {
+        $defCol = $this->addColumn('uuid', $column);
+        if ($generate === false) {
             return $defCol;
         }
 
-        switch ($driverName = DB::getDriverName()) {
-            case 'pgsql':
-                DB::statement('CREATE EXTENSION IF NOT EXISTS "uuid-ossp";');
-                $expression = 'uuid_generate_v4()';
+        DB::statement('CREATE EXTENSION IF NOT EXISTS "uuid-ossp";');
+
+        switch (true) {
+            case is_bool($generate):
+                $defaultExpression = new Expression('uuid_generate_v4()');
                 break;
-            case 'mysql':
-                $expression = 'UUID()';
+
+            case is_callable($generate):
+                $defaultExpression = new Expression($generate($column));
+                break;
+
+            case $generate instanceof Expression:
+                $defaultExpression = $generate;
                 break;
             default:
-                throw new Exception('Your DB driver [' . $driverName . '] does not supported');
+                $defaultExpression = new Expression($generate);
         }
 
-        if ($generate === true) {
-            $defaultExpression = new Expression($expression);
-        } elseif (is_callable($generate)) {
-            $defaultExpression = new Expression($generate($driverName));
-        } elseif ($generate instanceof Expression) {
-            $defaultExpression = $generate;
-        } else {
-            $defaultExpression = new Expression($generate);
-        }
 
         return $defCol->default($defaultExpression);
+    }
+
+
+    public function primaryUUID(string $column = 'id', $generate = true): ColumnDefinition
+    {
+        return $this->generateUUID($column, $generate)->primary();
     }
 
     /**
