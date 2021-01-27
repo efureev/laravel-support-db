@@ -28,8 +28,8 @@ class NumericTest extends AbstractTestCase
 
         static::assertTrue(Schema::hasTable('test_table'));
 
-//                $this->assertLaravelTypeColumn('test_table', 'num', 'numeric');
-        //        $this->assertPostgresTypeColumn('test_table', 'num', 'numeric');
+        $this->assertLaravelTypeColumn('test_table', 'num', 'numeric');
+        $this->assertPostgresTypeColumn('test_table', 'num', 'numeric');
     }
 
 }
