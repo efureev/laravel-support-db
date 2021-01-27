@@ -38,7 +38,7 @@ Extending base types of Schemas for following DB:
 ## Install
 
 ```bash
-composer require efureev/laravel-support-db "^0.0.1"
+composer require efureev/laravel-support-db "^0.0.2"
 ```
 
 ## Usage
