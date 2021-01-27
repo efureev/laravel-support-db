@@ -3,7 +3,7 @@
 ![](https://img.shields.io/badge/php->=7.4-blue.svg)
 ![](https://img.shields.io/badge/Laravel->=7.30.3-red.svg)
 [![Codacy Badge](https://api.codacy.com/project/badge/Grade/5c8b9e85897f4c65b5a017d16f6af6cb)](https://app.codacy.com/manual/efureev/laravel-support-db)
-[![Build Status](https://travis-ci.com/efureev/laravel-support-db.svg?branch=master)](https://travis-ci.com/efureev/laravel-support-db)
+[![Build Status](https://www.travis-ci.com/efureev/laravel-support-db.svg?branch=master)](https://www.travis-ci.com/efureev/laravel-support-db)
 ![PHP Database Laravel Package](https://github.com/efureev/laravel-support-db/workflows/PHP%20Database%20Laravel%20Package/badge.svg)
 [![Latest Stable Version](https://poser.pugx.org/efureev/laravel-support-db/v/stable?format=flat)](https://packagist.org/packages/efureev/laravel-support-db)
 [![Total Downloads](https://poser.pugx.org/efureev/laravel-support-db/downloads)](https://packagist.org/packages/efureev/laravel-support-db)
