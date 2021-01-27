@@ -6,6 +6,7 @@ namespace Php\Support\Laravel\Database\Schema;
 
 use Illuminate\Database\Connection;
 use Illuminate\Database\Connectors\ConnectionFactory as ConnectionFactoryBase;
+use Php\Support\Laravel\Database\Schema\Postgres\Connection as PostgresConnection;
 
 class ConnectionFactory extends ConnectionFactoryBase
 {
@@ -16,7 +17,7 @@ class ConnectionFactory extends ConnectionFactoryBase
         }
 
         if ($driver === 'pgsql') {
-            return new Postgres\Connection($connection, $database, $prefix, $config);
+            return new PostgresConnection($connection, $database, $prefix, $config);
         }
 
         return parent::createConnection($driver, $connection, $database, $prefix, $config);
