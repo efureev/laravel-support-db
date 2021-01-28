@@ -128,22 +128,22 @@ jobs:
           MATRIX_CONTEXT: ${{ toJSON(matrix) }}
         run: echo "$MATRIX_CONTEXT"
 
-  release:
-    name: Create Release
-    needs: [testing]
-    runs-on: ubuntu-latest
-    if: ${{ /v[1-9].[0-9]+.0/i.test(github.ref) }}
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v2
-
-      - name: Create Release
-        id: create_release
-        uses: actions/create-release@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          tag_name: ${{ github.ref }}
-          release_name: Release ${{ github.ref }}
-          draft: false
-          prerelease: false
+#  release:
+#    name: Create Release
+#    needs: [testing]
+#    runs-on: ubuntu-latest
+#       error here ->> if: ${{ /v[1-9].[0-9]+.0/i.test(github.ref) }}
+#    steps:
+#      - name: Checkout code
+#        uses: actions/checkout@v2
+#
+#      - name: Create Release
+#        id: create_release
+#        uses: actions/create-release@v1
+#        env:
+#          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+#        with:
+#          tag_name: ${{ github.ref }}
+#          release_name: Release ${{ github.ref }}
+#          draft: false
+#          prerelease: false
