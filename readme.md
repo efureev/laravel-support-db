@@ -16,9 +16,10 @@
 
 Extending base types of Schemas for following DB:
 - Postgres
-    - numeric
-    - tsRange
-    - auto-generated UUID
+    - [x] numeric
+    - [x] tsRange
+    - [x] auto-generated UUID
+    - [ ] all array types: varchar(255)[], int[]...
 - nothing...
 
 ### Custom action of Blueprint
