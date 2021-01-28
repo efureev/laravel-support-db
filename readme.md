@@ -19,7 +19,8 @@ Extending base types of Schemas for following DB:
     - [x] numeric
     - [x] tsRange
     - [x] auto-generated UUID
-    - [ ] all array types: varchar(255)[], int[]...
+    - [ ] all array types: varchar(255)[], int[]... / Collection
+    - [ ] daterange
 - nothing...
 
 ### Custom action of Blueprint
