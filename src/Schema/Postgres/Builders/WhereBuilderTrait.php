@@ -23,6 +23,21 @@ trait WhereBuilderTrait
         return $this->compileWhere('Basic', $boolean, compact('column', 'operator', 'value'));
     }
 
+    public function whereBool(string $column, bool $value, string $boolean = 'and'): self
+    {
+        return $this->compileWhere('Boolean', $boolean, compact('column', 'value'));
+    }
+
+    public function whereTrue(string $column, string $boolean = 'and'): self
+    {
+        return $this->whereBool($column, true, $boolean);
+    }
+
+    public function whereFalse(string $column, string $boolean = 'and'): self
+    {
+        return $this->whereBool($column, false, $boolean);
+    }
+
     public function whereColumn(string $first, string $operator, string $second, string $boolean = 'and'): self
     {
         return $this->compileWhere('Column', $boolean, compact('first', 'operator', 'second'));

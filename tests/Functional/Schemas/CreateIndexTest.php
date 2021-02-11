@@ -200,6 +200,22 @@ class CreateIndexTest extends AbstractTestCase
             fn(Blueprint $table) => $table->uniquePartial('name')
                 ->whereNotIn('phone', []),
         ];
+        yield [
+            ' WHERE \(enabled IS TRUE\)',
+            fn(Blueprint $table) => $table->uniquePartial('name')
+                ->whereBool('enabled', true),
+        ];
+        /*
+        yield [
+            ' WHERE \(enabled IS TRUE\)',
+            fn(Blueprint $table) => $table->uniquePartial('name')
+                ->whereTrue('enabled'),
+        ];
+        yield [
+            ' WHERE \(enabled IS FALSE\)',
+            fn(Blueprint $table) => $table->uniquePartial('name')
+                ->whereFalse('enabled'),
+        ];*/
     }
 
 

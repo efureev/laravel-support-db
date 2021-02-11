@@ -9,13 +9,21 @@ Check MD [online][check-online].
 
 ## [unreleased]
 
+## [0.0.3] - 2021-02-11
+
+### Added
+
+- Add Bool `wheres` on Partial index
+
 ## [0.0.1] - 2021-01-27
 
 ### Added
 
 - Create the package
 
-[unreleased]: https://github.com/efureev/laravel-support-db/compare/v0.0.1...HEAD
+[unreleased]: https://github.com/efureev/laravel-support-db/compare/v0.0.3...HEAD
+[0.0.3]: https://github.com/efureev/laravel-support-db/releases/tag/v0.0.3
+[0.0.2]: https://github.com/efureev/laravel-support-db/releases/tag/v0.0.2
 [0.0.1]: https://github.com/efureev/laravel-support-db/releases/tag/v0.0.1
 
 [keepachangelog]:https://keepachangelog.com/en/1.1.0/

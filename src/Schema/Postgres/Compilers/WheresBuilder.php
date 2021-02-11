@@ -75,6 +75,11 @@ trait WheresBuilder
         return '1 = 1';
     }
 
+    protected static function whereBoolean(Grammar $grammar, Blueprint $blueprint, array $where): string
+    {
+        return implode(' ', [$grammar->wrap($where['column']), 'is ' . static::wrapValueForBool($where['value'])]);
+    }
+
     protected static function whereNull(Grammar $grammar, Blueprint $blueprint, array $where): string
     {
         return implode(' ', [$grammar->wrap($where['column']), 'is null']);
@@ -114,6 +119,11 @@ trait WheresBuilder
             return "'{$value}'";
         }
         return (int)$value;
+    }
+
+    protected static function wrapValueForBool(bool $value): string
+    {
+        return $value ? 'TRUE' : 'FALSE';
     }
 
     protected static function removeLeadingBoolean(string $value): string
