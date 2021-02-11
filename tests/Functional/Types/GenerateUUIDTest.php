@@ -56,6 +56,46 @@ class GenerateUUIDTest extends AbstractTestCase
     /**
      * @test
      */
+    public function uuidWithNull(): void
+    {
+        Schema::create(
+            'test_table',
+            static function (Blueprint $table) {
+                $table->generateUUID('fk_id', null);
+                $table->string('title');
+            }
+        );
+
+        static::assertTrue(Schema::hasTable('test_table'));
+        $this->notSeeIndex('test_table_pkey');
+        $this->assertLaravelTypeColumn('test_table', 'fk_id', 'guid');
+        $this->assertPostgresTypeColumn('test_table', 'fk_id', 'uuid');
+    }
+
+    /**
+     * @test
+     */
+    public function uuidIndexedWithNull(): void
+    {
+        Schema::create(
+            'test_table',
+            static function (Blueprint $table) {
+                $table->generateUUID('fk_id', null)->index();
+                $table->string('title');
+            }
+        );
+
+        static::assertTrue(Schema::hasTable('test_table'));
+        $this->notSeeIndex('test_table_pkey');
+        $this->seeIndex('test_table_fk_id_index');
+
+        $this->assertLaravelTypeColumn('test_table', 'fk_id', 'guid');
+        $this->assertPostgresTypeColumn('test_table', 'fk_id', 'uuid');
+    }
+
+    /**
+     * @test
+     */
     public function primaryUUID(): void
     {
         Schema::create(
