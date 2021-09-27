@@ -20,16 +20,16 @@ composer require efureev/laravel-support-db "^0.0.2"
 
 ## Contents
 
-- [Ext Column Types](#Ext Column Types)
-  - [Bit](#Bit)
-  - [IP Network](#IP Network)
-  - [Ranges](#Ranges)
-  - [UUID](#UUID)
-  - [XML](#XML)
-- [Views](#Views)
-- [Indexes](#Indexes)
-  - [Unique Partial indexes](#Unique Partial indexes)
-- [Extensions](#Extensions)
+- [Ext Column Types](#ext-column-types)
+  - [Bit](#bit)
+  - [IP Network](#ip-network)
+  - [Ranges](#ranges)
+  - [UUID](#uuid)
+  - [XML](#xml)
+- [Views](#views)
+- [Indexes](#indexes)
+  - [Unique Partial indexes](#unique-partial-indexes)
+- [Extensions](#extensions)
 
 ### Ext Column Types
 
