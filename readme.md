@@ -1,6 +1,6 @@
 # PHP Laravel Database Support
 
-![](https://img.shields.io/badge/php->=7.4-blue.svg)
+![](https://img.shields.io/badge/php->=8.0-blue.svg)
 ![](https://img.shields.io/badge/Laravel->=7.30.3-red.svg)
 [![Codacy Badge](https://api.codacy.com/project/badge/Grade/5c8b9e85897f4c65b5a017d16f6af6cb)](https://app.codacy.com/manual/efureev/laravel-support-db)
 [![Build Status](https://www.travis-ci.com/efureev/laravel-support-db.svg?branch=master)](https://www.travis-ci.com/efureev/laravel-support-db)
