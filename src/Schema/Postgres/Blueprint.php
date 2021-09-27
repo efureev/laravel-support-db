@@ -89,13 +89,37 @@ class Blueprint extends BaseBlueprint
     }
 
     /**
-     * @param string $column
-     *
-     * @return Fluent
+     * Create a new date range column on the table.
      */
-    public function tsRange(string $column): Fluent
+    public function dateRange(string $column): ColumnDefinition
+    {
+        return $this->addColumn('dateRange', $column);
+    }
+
+    public function tsRange(string $column): ColumnDefinition
     {
         return $this->addColumn('tsrange', $column);
+    }
+
+    public function timestampRange(string $column): ColumnDefinition
+    {
+        return $this->tsRange($column);
+    }
+
+    /**
+     * Create a new ip network column on the table.
+     */
+    public function ipNetwork(string $column): ColumnDefinition
+    {
+        return $this->addColumn('ipNetwork', $column);
+    }
+
+    /**
+     * Create a new xml column on the table.
+     */
+    public function xml(string $column): ColumnDefinition
+    {
+        return $this->addColumn('xml', $column);
     }
 
     /**
@@ -108,6 +132,11 @@ class Blueprint extends BaseBlueprint
     public function createView(string $view, string $select, bool $materialize = false): Fluent
     {
         return $this->addCommand('createView', compact('view', 'select', 'materialize'));
+    }
+
+    public function createViewOrReplace(string $view, string $select, bool $materialize = false): Fluent
+    {
+        return $this->addCommand('createViewOrReplace', compact('view', 'select', 'materialize'));
     }
 
     public function dropView(string $view): Fluent

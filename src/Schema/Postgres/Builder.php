@@ -20,6 +20,13 @@ class Builder extends PostgresBuilder
         $this->build($blueprint);
     }
 
+    public function createViewOrReplace(string $view, string $select, $materialize = false): void
+    {
+        $blueprint = $this->createBlueprint($view);
+        $blueprint->createViewOrReplace($view, $select, $materialize);
+        $this->build($blueprint);
+    }
+
     public function dropView(string $view): void
     {
         $blueprint = $this->createBlueprint($view);
@@ -30,14 +37,14 @@ class Builder extends PostgresBuilder
     public function hasView(string $view): bool
     {
         return count(
-            $this->connection->selectFromWriteConnection(
-                $this->grammar->compileViewExists(),
-                [
-                    $this->connection->getConfig()['schema'],
-                    $this->connection->getTablePrefix() . $view,
-                ]
-            )
-        ) > 0;
+                $this->connection->selectFromWriteConnection(
+                    $this->grammar->compileViewExists(),
+                    [
+                        $this->connection->getConfig()['schema'],
+                        $this->connection->getTablePrefix() . $view,
+                    ]
+                )
+            ) > 0;
     }
 
     public function getViewDefinition($view): string
@@ -51,4 +58,23 @@ class Builder extends PostgresBuilder
         );
         return count($results) > 0 ? $results[0]->view_definition : '';
     }
+
+    public function createExtension(string $name): void
+    {
+        $name = $this->getConnection()->getSchemaGrammar()->wrap($name);
+        $this->getConnection()->statement("create extension $name");
+    }
+
+    public function createExtensionIfNotExists(string $name): void
+    {
+        $name = $this->getConnection()->getSchemaGrammar()->wrap($name);
+        $this->getConnection()->statement("create extension if not exists $name");
+    }
+
+    public function dropExtensionIfExists(string ...$name): void
+    {
+        $names = $this->getConnection()->getSchemaGrammar()->naming($name);
+        $this->getConnection()->statement("drop extension if exists $names");
+    }
+
 }

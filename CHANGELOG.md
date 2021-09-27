@@ -9,6 +9,20 @@ Check MD [online][check-online].
 
 ## [unreleased]
 
+## [1.1.0] - 2021-09-27
+
+- Add ext-column types
+  - Date Range
+  - IP Network
+  - XML
+- Add method `Schema::createViewOrReplace`
+- Add helpers for `Extensions`:
+  - `createExtension`
+  - `createExtensionIfNotExists`
+  - `dropExtensionIfExists`
+
+### Changed
+
 ## [1.0.0] - 2021-04-28
 
 ### Changed

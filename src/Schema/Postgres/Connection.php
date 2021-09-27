@@ -6,14 +6,20 @@ namespace Php\Support\Laravel\Database\Schema\Postgres;
 
 use Illuminate\Database\PostgresConnection as BasePostgresConnection;
 use PDO;
+use Php\Support\Laravel\Database\Schema\Postgres\Types\DateRangeType;
+use Php\Support\Laravel\Database\Schema\Postgres\Types\IpNetworkType;
 use Php\Support\Laravel\Database\Schema\Postgres\Types\NumericType;
 use Php\Support\Laravel\Database\Schema\Postgres\Types\TsRangeType;
+use Php\Support\Laravel\Database\Schema\Postgres\Types\XmlType;
 
 class Connection extends BasePostgresConnection
 {
     private array $initialTypes = [
-        TsRangeType::TYPE_NAME => TsRangeType::class,
-        NumericType::TYPE_NAME => NumericType::class,
+        DateRangeType::TYPE_NAME => DateRangeType::class,
+        TsRangeType::TYPE_NAME   => TsRangeType::class,
+        NumericType::TYPE_NAME   => NumericType::class,
+        XmlType::TYPE_NAME       => XmlType::class,
+        IpNetworkType::TYPE_NAME => IpNetworkType::class,
     ];
 
     protected function getDefaultSchemaGrammar()
@@ -43,18 +49,11 @@ class Connection extends BasePostgresConnection
             foreach ($bindings as $key => $value) {
                 $parameter = is_string($key) ? $key : $key + 1;
 
-                switch (true) {
-                    case is_bool($value):
-                        $dataType = PDO::PARAM_BOOL;
-                        break;
-
-                    case $value === null:
-                        $dataType = PDO::PARAM_NULL;
-                        break;
-
-                    default:
-                        $dataType = PDO::PARAM_STR;
-                }
+                $dataType = match (true) {
+                    is_bool($value) => PDO::PARAM_BOOL,
+                    $value === null => PDO::PARAM_NULL,
+                    default => PDO::PARAM_STR,
+                };
 
                 $statement->bindValue($parameter, $value, $dataType);
             }

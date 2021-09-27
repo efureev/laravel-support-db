@@ -12,36 +12,199 @@
 
 ## Description
 
-### Custom types
-
-Extending base types of Schemas for following DB:
-- Postgres
-    - [x] numeric
-    - [x] tsRange
-    - [x] auto-generated UUID
-    - [ ] all array types: varchar(255)[], int[]... / Collection
-    - [ ] daterange
-- nothing...
-
-### Custom action of Blueprint
-
-- bit
-- tsRange
-- numeric
-- generateUUID
-- primaryUUID
-- ifNotExists
-- hasIndex
-- createView
-- dropView
-- uniquePartial
-- dropUniquePartial
-
 ## Install
 
 ```bash
 composer require efureev/laravel-support-db "^0.0.2"
 ```
+
+## Contents
+
+- [Ext Column Types](#Ext Column Types)
+  - [Bit](#Bit)
+  - [IP Network](#IP Network)
+  - [Ranges](#Ranges)
+  - [UUID](#UUID)
+  - [XML](#XML)
+- [Views](#Views)
+- [Indexes](#Indexes)
+  - [Unique Partial indexes](#Unique Partial indexes)
+- [Extensions](#Extensions)
+
+### Ext Column Types
+
+#### Bit
+
+Bit String
+
+```php
+// @see https://www.postgresql.org/docs/current/datatype-bit.html
+$table->bit(string $column, int $length = 1);
+```
+
+#### IP Network
+
+The IP network datatype stores an IP network in CIDR notation.
+
+IPv4 = 7 bytes  
+IPv6 = 19 bytes
+
+```php
+// @see https://www.postgresql.org/docs/current/datatype-net-types.html
+$table->ipNetwork(string $column);
+```
+
+#### Ranges
+
+The range data types store a range of values with optional start and end values. They can be used e.g. to describe the
+duration a meeting room is booked.
+
+```php
+// @see https://www.postgresql.org/docs/current/rangetypes.html
+$table->dateRange(string $column);
+$table->tsRange(string $column);
+$table->timestampRange(string $column);
+```
+
+#### UUID
+
+The `primaryUUID` can be used to store UUID-type as primary key.
+
+```php
+$table->primaryUUID(); // create PK UUID-column with name `id`
+$table->primaryUUID('custom_name'); // create PK UUID-column with name `custom_name`
+```
+
+The `generateUUID` can be used to store UUID-type with/without index (or FK).
+
+On a row creating generates a value with `uuid_generate_v4()` by extension `uuid-ossp`.
+
+```php
+// create UUID-column with name `id`. Generate UUID-value by DB.
+$table->generateUUID();
+
+// create UUID-column with name `cid`. Generate UUID-value by DB.
+$table->generateUUID('cid');
+
+// create UUID-column with name `cid`. NOT generate UUID-value by DB. Set `nullable`. Default value: `NULL`. 
+$table->generateUUID('id', null);
+
+// create UUID-column with name `cid`. NOT generate UUID-value by DB. Set `nullable`. Default value: `NULL`. Create Index by this column.
+$table->generateUUID('fk_id', null)->index();
+
+ // create UUID-column with name `fk_id`. NOT generate UUID-value by DB.
+$table->generateUUID('fk_id', false);
+
+// create UUID-column with name `fk_id`. Generate UUID-value by DB with custom value.
+$table->generateUUID('fk_id', fn($column)=>'uuid_generate_v5()');
+
+// create UUID-column with name `fk_id`. Generate UUID-value by DB with custom value.
+$table->generateUUID('fk_id', new Expression('uuid_generate_v2()'));
+```
+
+#### XML
+
+The xml data type can be used to store an XML document.
+
+```php
+// @see https://www.postgresql.org/docs/current/datatype-xml.html
+$table->xml(string $column);
+```
+
+### Views
+
+#### Create views
+
+```php
+// Facade methods:
+Schema::createView('active_users', "SELECT * FROM users WHERE active = 1");
+Schema::createView('active_users', "SELECT * FROM users WHERE active = 1", true) ;
+Schema::createViewOrReplace('active_users', "SELECT * FROM users WHERE active = 1");
+
+// Schema methods:
+use \Php\Support\Laravel\Database\Schema\Postgres\Blueprint;
+
+Schema::create('users', function (Blueprint $table) {
+    $table
+        ->createView('active_users', "SELECT * FROM users WHERE active = 1")
+        ->materialize();
+});
+```
+
+#### Dropping views
+
+```php
+// Facade methods:
+Schema::dropView('active_users');
+Schema::dropViewIfExists('active_users');
+```
+
+### Indexes
+
+#### Unique Partial indexes
+
+Example:
+
+```php
+use \Php\Support\Laravel\Database\Schema\Postgres\Blueprint;
+Schema::create('table', static function (Blueprint $table) {
+    $table->string('code'); 
+    $table->softDeletes();
+    $table
+        ->uniquePartial('code')
+        ->whereNull('deleted_at');
+});
+```
+
+If you want to delete partial unique index, use this method:
+
+```php
+use \Php\Support\Laravel\Database\Schema\Postgres\Blueprint;
+
+Schema::create('table', static function (Blueprint $table) {
+    $table->dropUniquePartial(['code']);
+});
+```
+
+`$table->dropUnique()` doesn't work for Partial Unique Indexes, because PostgreSQL doesn't define a partial (ie
+conditional) UNIQUE constraint. If you try to delete such a Partial Unique Index you will get an error.
+
+```SQL
+CREATE UNIQUE INDEX CONCURRENTLY examples_new_col_idx ON examples (new_col);
+ALTER TABLE examples
+    ADD CONSTRAINT examples_unique_constraint USING INDEX examples_new_col_idx;
+```
+
+When you create a unique index without conditions, PostgresSQL will create Unique Constraint automatically for you, and
+when you try to delete such an index, Constraint will be deleted first, then Unique Index.
+
+### Extensions
+
+#### Create Extensions
+
+The Schema facade supports the creation of extensions with the `createExtension` and `createExtensionIfNotExists`
+methods:
+
+```php
+Schema::createExtension('tablefunc');
+Schema::createExtensionIfNotExists('tablefunc');
+```
+
+#### Dropping Extensions
+
+To remove extensions, you may use the `dropExtensionIfExists` methods provided by the Schema facade:
+
+```php 
+Schema::dropExtensionIfExists('tablefunc');
+```
+
+You may drop many extensions at once by passing multiple extension names:
+
+```php
+Schema::dropExtensionIfExists('tablefunc', 'fuzzystrmatch');
+```
+
+-----
 
 ## Usage
 
@@ -64,64 +227,6 @@ Schema::create(
     }
 );
 ```
-
-### Create views
-
-Example:
-```php
-// Facade methods:
-Schema::createView('active_users', "SELECT * FROM users WHERE active = 1");
-Schema::dropView('active_users');
-
-// Schema methods:
-use \Php\Support\Laravel\Database\Schema\Postgres\Blueprint;
-
-Schema::create('users', function (Blueprint $table) {
-    $table
-        ->createView('active_users', "SELECT * FROM users WHERE active = 1")
-        ->materialize();
-});
-```
-
-
-### Extended unique indexes creation
-
-Example:
-```php
-use \Php\Support\Laravel\Database\Schema\Postgres\Blueprint;
-Schema::create('table', static function (Blueprint $table) {
-    $table->string('code'); 
-    $table->softDeletes();
-    $table
-        ->uniquePartial('code')
-        ->whereNull('deleted_at');
-});
-```
-
-If you want to delete partial unique index, use this method:
-```php
-use \Php\Support\Laravel\Database\Schema\Postgres\Blueprint;
-
-Schema::create('table', static function (Blueprint $table) {
-    $table->dropUniquePartial(['code']);
-});
-```
-
-`$table->dropUnique()` doesn't work for Partial Unique Indexes, because PostgreSQL doesn't
-define a partial (ie conditional) UNIQUE constraint. If you try to delete such a Partial Unique
-Index you will get an error.
-
-```SQL
-CREATE UNIQUE INDEX CONCURRENTLY examples_new_col_idx ON examples (new_col);
-ALTER TABLE examples
-    ADD CONSTRAINT examples_unique_constraint
-    USING INDEX examples_new_col_idx;
-```
-
-When you create a unique index without conditions, PostgresSQL will create Unique Constraint
-automatically for you, and when you try to delete such an index, Constraint will be deleted 
-first, then Unique Index. 
-
 
 ## Test
 

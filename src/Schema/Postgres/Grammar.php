@@ -11,6 +11,7 @@ use Php\Support\Laravel\Database\Schema\Postgres\Builders\Indexes\Unique\UniqueP
 use Php\Support\Laravel\Database\Schema\Postgres\Compilers\UniqueCompiler;
 use Php\Support\Laravel\Database\Schema\Postgres\Types\NumericType;
 use Php\Support\Laravel\Database\Schema\Postgres\Types\TsRangeType;
+use Php\Support\Laravel\Database\Schema\Postgres\Types\XmlType;
 
 class Grammar extends PostgresGrammar
 {
@@ -28,9 +29,9 @@ class Grammar extends PostgresGrammar
 
     protected function typeNumeric(Fluent $column): string
     {
-        $type      = NumericType::TYPE_NAME;
+        $type = NumericType::TYPE_NAME;
         $precision = $column->get('precision');
-        $scale     = $column->get('scale');
+        $scale = $column->get('scale');
 
         if ($precision) {
             return "${type}({$precision}," . ($scale ? ", {$scale}" : '') . ')';
@@ -39,11 +40,31 @@ class Grammar extends PostgresGrammar
         return $type;
     }
 
+    protected function typeDateRange(Fluent $column): string
+    {
+        return 'daterange';
+    }
+
     protected function typeTsrange(Fluent $column): string
     {
         return TsRangeType::TYPE_NAME;
     }
 
+    /**
+     * Create the column definition for a xml type.
+     */
+    protected function typeXml(Fluent $column): string
+    {
+        return XmlType::TYPE_NAME;
+    }
+
+    /**
+     * Create the column definition for an ip network type.
+     */
+    protected function typeIpNetwork(Fluent $column): string
+    {
+        return 'cidr';
+    }
 
     public function compileCreateView(Blueprint $blueprint, Fluent $command): string
     {
@@ -54,6 +75,25 @@ class Grammar extends PostgresGrammar
             array_filter(
                 [
                     'create',
+                    $materialize,
+                    'view',
+                    $this->wrapTable($command->get('view')),
+                    'as',
+                    $command->get('select'),
+                ]
+            )
+        );
+    }
+
+    public function compileCreateViewOrReplace(Blueprint $blueprint, Fluent $command): string
+    {
+        $materialize = $command->get('materialize') ? 'materialized' : '';
+
+        return implode(
+            ' ',
+            array_filter(
+                [
+                    'create or replace',
                     $materialize,
                     'view',
                     $this->wrapTable($command->get('view')),
@@ -87,5 +127,10 @@ class Grammar extends PostgresGrammar
             return UniqueCompiler::compile($this, $blueprint, $command, $constraints);
         }
         return $this->compileUnique($blueprint, $command);
+    }
+
+    public function naming(array $names)
+    {
+        return implode(', ', array_map([$this, 'wrap'], $names));
     }
 }
