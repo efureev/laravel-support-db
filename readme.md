@@ -6,7 +6,7 @@
 ![PHP Database Laravel Package](https://github.com/efureev/laravel-support-db/workflows/PHP%20Database%20Laravel%20Package/badge.svg)
 [![Latest Stable Version](https://poser.pugx.org/efureev/laravel-support-db/v/stable?format=flat)](https://packagist.org/packages/efureev/laravel-support-db)
 [![Total Downloads](https://poser.pugx.org/efureev/laravel-support-db/downloads)](https://packagist.org/packages/efureev/laravel-support-db)
-[![Maintainability](https://api.codeclimate.com/v1/badges/5c2f433a24871b1f12e3/maintainability)](https://codeclimate.com/github/efureev/laravel-support-db/maintainability)
+[![Maintainability](https://api.codeclimate.com/v1/badges/97e244f2aa0ad5b425c5/maintainability)](https://codeclimate.com/github/efureev/laravel-support-db/maintainability)
 [![Test Coverage](https://api.codeclimate.com/v1/badges/97e244f2aa0ad5b425c5/test_coverage)](https://codeclimate.com/github/efureev/laravel-support-db/test_coverage)
 
 ## Description
