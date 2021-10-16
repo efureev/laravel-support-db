@@ -28,7 +28,7 @@ class Connection extends BasePostgresConnection
 
     protected function getDefaultSchemaGrammar()
     {
-        return $this->withTablePrefix(new Grammar());
+        return $this->withTablePrefix((new Grammar())->addModifier('Compression'));
     }
 
 

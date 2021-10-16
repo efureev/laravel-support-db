@@ -9,6 +9,11 @@ Check MD [online][check-online].
 
 ## [unreleased]
 
+## [1.3.0] - 2021-10-16
+
+- Add column options: `Compression`
+- Add index: `ginIndex`
+
 ## [1.2.0] - 2021-10-16
 
 - Add ext-column types

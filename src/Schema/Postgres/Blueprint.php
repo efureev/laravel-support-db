@@ -134,7 +134,7 @@ class Blueprint extends BaseBlueprint
         return $this->addColumn('uuidArray', $column);
     }
 
-  /**
+    /**
      * Create a new int[] column
      *
      * @param string $column
@@ -200,6 +200,11 @@ class Blueprint extends BaseBlueprint
             'uniquePartial',
             compact('columns', 'index', 'algorithm')
         );
+    }
+
+    public function ginIndex($columns, ?string $name = null): Fluent
+    {
+        return $this->indexCommand('index', $columns, $name, 'gin');
     }
 
     public function dropUniquePartial($index): Fluent

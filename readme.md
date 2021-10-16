@@ -27,6 +27,8 @@ composer require efureev/laravel-support-db "^1.1.0"
   - [XML](#xml)
   - [Array of UUID](#array-of-uuid)
   - [Array of Integer](#array-of-integer)
+- [Column Options](#column-options)
+  - [Compression](#compression)
 - [Views](#views)
 - [Indexes](#indexes)
   - [Unique Partial indexes](#unique-partial-indexes)
@@ -126,6 +128,19 @@ The array of integer data type can be used to store a list of integers.
 
 ```php
 $table->intArray(string $column);
+```
+
+### Column Options
+
+#### Compression
+
+PostgreSQL 14 introduced the possibility to specify the compression method for toast-able data types. You can choose
+between the default method `pglz`, the recently added `lz4` algorithm and the value `default` to use the server default
+setting.
+
+```php
+// @see https://www.postgresql.org/docs/current/storage-toast.html
+$table->string('col')->compression('lz4');
 ```
 
 ### Views
