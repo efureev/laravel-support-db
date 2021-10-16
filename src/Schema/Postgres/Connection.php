@@ -7,9 +7,11 @@ namespace Php\Support\Laravel\Database\Schema\Postgres;
 use Illuminate\Database\PostgresConnection as BasePostgresConnection;
 use PDO;
 use Php\Support\Laravel\Database\Schema\Postgres\Types\DateRangeType;
+use Php\Support\Laravel\Database\Schema\Postgres\Types\IntArrayType;
 use Php\Support\Laravel\Database\Schema\Postgres\Types\IpNetworkType;
 use Php\Support\Laravel\Database\Schema\Postgres\Types\NumericType;
 use Php\Support\Laravel\Database\Schema\Postgres\Types\TsRangeType;
+use Php\Support\Laravel\Database\Schema\Postgres\Types\UuidArrayType;
 use Php\Support\Laravel\Database\Schema\Postgres\Types\XmlType;
 
 class Connection extends BasePostgresConnection
@@ -20,6 +22,8 @@ class Connection extends BasePostgresConnection
         NumericType::TYPE_NAME   => NumericType::class,
         XmlType::TYPE_NAME       => XmlType::class,
         IpNetworkType::TYPE_NAME => IpNetworkType::class,
+        UuidArrayType::TYPE_NAME => UuidArrayType::class,
+        IntArrayType::TYPE_NAME  => IntArrayType::class,
     ];
 
     protected function getDefaultSchemaGrammar()

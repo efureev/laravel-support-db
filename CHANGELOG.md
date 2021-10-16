@@ -9,6 +9,12 @@ Check MD [online][check-online].
 
 ## [unreleased]
 
+## [1.2.0] - 2021-10-16
+
+- Add ext-column types
+  - Array of UUID
+  - Array of Integer
+
 ## [1.1.0] - 2021-09-27
 
 - Add ext-column types

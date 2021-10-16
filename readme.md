@@ -25,6 +25,8 @@ composer require efureev/laravel-support-db "^1.1.0"
   - [Ranges](#ranges)
   - [UUID](#uuid)
   - [XML](#xml)
+  - [Array of UUID](#array-of-uuid)
+  - [Array of Integer](#array-of-integer)
 - [Views](#views)
 - [Indexes](#indexes)
   - [Unique Partial indexes](#unique-partial-indexes)
@@ -108,6 +110,22 @@ The xml data type can be used to store an XML document.
 ```php
 // @see https://www.postgresql.org/docs/current/datatype-xml.html
 $table->xml(string $column);
+```
+
+#### Array of UUID
+
+The array of UUID data type can be used to store an array of IDs (uuid type).
+
+```php
+$table->uuidArray(string $column);
+```
+
+#### Array of Integer
+
+The array of integer data type can be used to store a list of integers.
+
+```php
+$table->intArray(string $column);
 ```
 
 ### Views

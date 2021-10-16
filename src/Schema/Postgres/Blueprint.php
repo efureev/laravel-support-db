@@ -123,6 +123,30 @@ class Blueprint extends BaseBlueprint
     }
 
     /**
+     * Create a new uuid[] column
+     *
+     * @param string $column
+     *
+     * @return ColumnDefinition
+     */
+    public function uuidArray(string $column): ColumnDefinition
+    {
+        return $this->addColumn('uuidArray', $column);
+    }
+
+  /**
+     * Create a new int[] column
+     *
+     * @param string $column
+     *
+     * @return ColumnDefinition
+     */
+    public function intArray(string $column): ColumnDefinition
+    {
+        return $this->addColumn('intArray', $column);
+    }
+
+    /**
      * @param string $view
      * @param string $select
      * @param bool $materialize
