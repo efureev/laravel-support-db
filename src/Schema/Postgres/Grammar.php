@@ -29,9 +29,9 @@ class Grammar extends PostgresGrammar
 
     protected function typeNumeric(Fluent $column): string
     {
-        $type = NumericType::TYPE_NAME;
+        $type      = NumericType::TYPE_NAME;
         $precision = $column->get('precision');
-        $scale = $column->get('scale');
+        $scale     = $column->get('scale');
 
         if ($precision) {
             return "${type}({$precision}," . ($scale ? ", {$scale}" : '') . ')';
