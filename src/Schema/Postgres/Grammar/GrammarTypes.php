@@ -71,5 +71,4 @@ trait GrammarTypes
     {
         return 'cidr';
     }
-
 }
