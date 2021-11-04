@@ -20,7 +20,7 @@ class Builder extends PostgresBuilder
      *
      * @return void
      */
-    public function dropIfExistsCascade($table)
+    public function dropIfExistsCascade(string $table)
     {
         $this->build(
             tap($this->createBlueprint($table), static function ($blueprint) {

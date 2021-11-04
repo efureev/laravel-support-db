@@ -7,11 +7,10 @@ namespace Php\Support\Laravel\Database\Schema\Postgres;
 use Exception;
 use Illuminate\Database\Query\Expression;
 use Illuminate\Database\Schema\Blueprint as BaseBlueprint;
-use Illuminate\Database\Schema\ColumnDefinition;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Fluent;
-use Php\Support\Laravel\Database\Schema\Definitions\DropDefinition;
+use Php\Support\Laravel\Database\Schema\Definitions\ColumnDefinition;
 use Php\Support\Laravel\Database\Schema\Definitions\LikeDefinition;
 use Php\Support\Laravel\Database\Schema\Definitions\UniqueDefinition;
 use Php\Support\Laravel\Database\Schema\Definitions\ViewDefinition;
@@ -37,7 +36,7 @@ class Blueprint extends BaseBlueprint
      * @param int|null $precision
      * @param int|null $scale
      *
-     * @return Fluent
+     * @return ColumnDefinition
      */
     public function numeric(string $column, ?int $precision = null, ?int $scale = null): Fluent
     {
@@ -149,6 +148,24 @@ class Blueprint extends BaseBlueprint
     }
 
     /**
+     * Add a new column to the blueprint.
+     *
+     * @param string $type
+     * @param string $name
+     * @param array $parameters
+     *
+     * @return ColumnDefinition
+     */
+    public function addColumn($type, $name, array $parameters = [])
+    {
+        return $this->addColumnDefinition(
+            new ColumnDefinition(
+                array_merge(compact('type', 'name'), $parameters)
+            )
+        );
+    }
+
+    /**
      * @param string $view
      * @param string $select
      * @param bool $materialize
@@ -220,16 +237,6 @@ class Blueprint extends BaseBlueprint
     public function dropUniquePartial($index): Fluent
     {
         return $this->dropIndexCommand('dropIndex', 'unique', $index);
-    }
-
-    /**
-     * Indicate that the table should be dropped if it exists.
-     *
-     * @return DropDefinition|Fluent
-     */
-    public function dropIfExists()
-    {
-        return $this->addCommand('dropIfExists');
     }
 
     protected function getSchemaManager()
