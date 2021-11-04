@@ -8,13 +8,13 @@ and this project adheres to [Semantic Versioning][semver].
 Check MD [online][check-online].
 
 ## [unreleased]
-''
+
 ## [1.5.0] - 2021-11-04
 
 ### Added
 
-- Add to `Blueprint` method `fromTable`: Create a table from another table and fills it data from the source-table.
-- Add to `Blueprint` method `fromSelect`: Create a table from select query.
+- Add to `Blueprint` method `fromTable`: Create a table from another table and fills it data from the source-table
+- Add to `Blueprint` method `fromSelect`: Create a table from select query
 
 ## [1.4.0] - 2021-11-04
 
@@ -51,7 +51,7 @@ Check MD [online][check-online].
   - `createExtension`
   - `createExtensionIfNotExists`
   - `dropExtensionIfExists`
-  
+
 ## [1.0.0] - 2021-04-28
 
 ### Changed
