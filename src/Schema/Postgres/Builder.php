@@ -23,9 +23,12 @@ class Builder extends PostgresBuilder
     public function dropIfExistsCascade(string $table)
     {
         $this->build(
-            tap($this->createBlueprint($table), static function ($blueprint) {
-                $blueprint->dropIfExists()->cascade();
-            })
+            tap(
+                $this->createBlueprint($table),
+                static function ($blueprint) {
+                    $blueprint->dropIfExists()->cascade();
+                }
+            )
         );
     }
 
@@ -53,14 +56,14 @@ class Builder extends PostgresBuilder
     public function hasView(string $view): bool
     {
         return count(
-                $this->connection->selectFromWriteConnection(
-                    $this->grammar->compileViewExists(),
-                    [
-                        $this->connection->getConfig()['schema'],
-                        $this->connection->getTablePrefix() . $view,
-                    ]
-                )
-            ) > 0;
+            $this->connection->selectFromWriteConnection(
+                $this->grammar->compileViewExists(),
+                [
+                    $this->connection->getConfig()['schema'],
+                    $this->connection->getTablePrefix() . $view,
+                ]
+            )
+        ) > 0;
     }
 
     public function getViewDefinition($view): string
