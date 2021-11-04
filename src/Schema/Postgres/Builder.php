@@ -13,6 +13,22 @@ class Builder extends PostgresBuilder
         return new Blueprint($table, $callback);
     }
 
+    /**
+     * Drop a table from the schema if it exists.
+     *
+     * @param string $table
+     *
+     * @return void
+     */
+    public function dropIfExistsCascade($table)
+    {
+        $this->build(
+            tap($this->createBlueprint($table), static function ($blueprint) {
+                $blueprint->dropIfExists()->cascade();
+            })
+        );
+    }
+
     public function createView(string $view, string $select, $materialize = false): void
     {
         $blueprint = $this->createBlueprint($view);
@@ -37,14 +53,14 @@ class Builder extends PostgresBuilder
     public function hasView(string $view): bool
     {
         return count(
-            $this->connection->selectFromWriteConnection(
-                $this->grammar->compileViewExists(),
-                [
-                    $this->connection->getConfig()['schema'],
-                    $this->connection->getTablePrefix() . $view,
-                ]
-            )
-        ) > 0;
+                $this->connection->selectFromWriteConnection(
+                    $this->grammar->compileViewExists(),
+                    [
+                        $this->connection->getConfig()['schema'],
+                        $this->connection->getTablePrefix() . $view,
+                    ]
+                )
+            ) > 0;
     }
 
     public function getViewDefinition($view): string

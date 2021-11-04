@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Php\Support\Laravel\Database\Tests\Functional\Schema;
+namespace Php\Support\Laravel\Database\Tests\Functional\Schemas;
 
 use Illuminate\Database\SQLiteConnection;
 use Illuminate\Support\Carbon;

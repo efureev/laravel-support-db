@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Php\Support\Laravel\Database\Tests\Functional\Schema;
+namespace Php\Support\Laravel\Database\Tests\Functional\Schemas;
 
 use Closure;
 use Generator;

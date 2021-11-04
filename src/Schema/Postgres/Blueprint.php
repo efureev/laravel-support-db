@@ -11,6 +11,8 @@ use Illuminate\Database\Schema\ColumnDefinition;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Fluent;
+use Php\Support\Laravel\Database\Schema\Definitions\DropDefinition;
+use Php\Support\Laravel\Database\Schema\Definitions\LikeDefinition;
 use Php\Support\Laravel\Database\Schema\Definitions\UniqueDefinition;
 use Php\Support\Laravel\Database\Schema\Definitions\ViewDefinition;
 use Php\Support\Laravel\Database\Schema\Postgres\Builders\Indexes\Unique\UniqueBuilder;
@@ -183,6 +185,14 @@ class Blueprint extends BaseBlueprint
     }
 
     /**
+     * @return LikeDefinition
+     */
+    public function like(string $table): Fluent
+    {
+        return $this->addCommand('like', compact('table'));
+    }
+
+    /**
      * @param array|string $columns
      * @param string|null $index
      * @param string|null $algorithm
@@ -210,6 +220,16 @@ class Blueprint extends BaseBlueprint
     public function dropUniquePartial($index): Fluent
     {
         return $this->dropIndexCommand('dropIndex', 'unique', $index);
+    }
+
+    /**
+     * Indicate that the table should be dropped if it exists.
+     *
+     * @return DropDefinition|Fluent
+     */
+    public function dropIfExists()
+    {
+        return $this->addCommand('dropIfExists');
     }
 
     protected function getSchemaManager()

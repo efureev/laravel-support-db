@@ -9,7 +9,6 @@ use Php\Support\Laravel\Database\Schema\Postgres\Blueprint;
 
 trait GrammarViews
 {
-
     public function compileCreateView(Blueprint $blueprint, Fluent $command): string
     {
         $materialize = $command->get('materialize') ? 'materialized' : '';

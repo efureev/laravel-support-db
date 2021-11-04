@@ -67,6 +67,11 @@ trait IndexAssertions
         return $definition ? $definition->indexdef : null;
     }
 
+    protected function getIndexListByTable(string $table): array
+    {
+        return DB::select('SELECT * FROM pg_indexes WHERE tablename = ?', [$table]);
+    }
+
     private function existConstraintOnTable(string $table, string $index): bool
     {
         $expression = '

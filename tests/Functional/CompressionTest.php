@@ -21,7 +21,8 @@ class CompressionTest extends AbstractTestCase
         Schema::create(
             'test_table',
             static function (Blueprint $table) {
-                $table->string('data')->compression('lz4');
+//                $table->string('data')->compression('lz4');
+                $table->string('data')->compression('pglz');
             }
         );
 

@@ -14,7 +14,7 @@
 ## Install
 
 ```bash
-composer require efureev/laravel-support-db "^1.1.0"
+composer require efureev/laravel-support-db "^1.4.0"
 ```
 
 ## Contents
@@ -32,6 +32,9 @@ composer require efureev/laravel-support-db "^1.1.0"
 - [Views](#views)
 - [Indexes](#indexes)
   - [Unique Partial indexes](#unique-partial-indexes)
+- [Extended Schema](#extended-schema)
+  - [Create](#create)
+  - [Drop Cascade If Exists](#drop-cascade-if-exists)
 - [Extensions](#extensions)
 
 ### Ext Column Types
@@ -209,6 +212,26 @@ ALTER TABLE examples
 
 When you create a unique index without conditions, PostgresSQL will create Unique Constraint automatically for you, and
 when you try to delete such an index, Constraint will be deleted first, then Unique Index.
+
+### Extended Schema
+
+#### Create
+
+```php
+Schema::create('target_table', function (Blueprint $table) {
+    $table->like('source_table')->includingAll(); 
+    $table->ifNotExists();
+});
+```
+
+#### Drop Cascade If Exists
+
+Automatically drop objects that depend on the table (such as views, indexes, seqs), and in turn all objects that depend
+on those objects.
+
+```php
+Schema::dropIfExistsCascade('table');
+```
 
 ### Extensions
 

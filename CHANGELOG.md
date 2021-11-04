@@ -9,6 +9,11 @@ Check MD [online][check-online].
 
 ## [unreleased]
 
+## [1.4.0] - 2021-11-04
+
+- Add `Schema::dropIfExistsCascade`
+- Create a table from another `$table->like('source_table')->includingAll()`
+
 ## [1.3.0] - 2021-10-16
 
 - Add column options: `Compression`
