@@ -210,6 +210,35 @@ class Blueprint extends BaseBlueprint
     }
 
     /**
+     * Create a new table from a source-table and fill it with a data from SELECT-query from the source-table
+     * and without dependencies (Indexes, etc.)
+     *
+     * @param string $fromSelect
+     *
+     * @return Fluent
+     *
+     * @example `$table->fromSelect('select t1.id, t1.name from src_table t1');`
+     */
+    public function fromSelect(string $fromSelect): Fluent
+    {
+        return $this->addCommand('fromSelect', compact('fromSelect'));
+    }
+
+    /**
+     * Create a new table coping from a source-table with a data and without dependencies (Indexes, etc.)
+     *
+     * @param string $fromTable
+     *
+     * @return Fluent
+     *
+     * @example `$table->fromTable('source_table');`
+     */
+    public function fromTable(string $fromTable): Fluent
+    {
+        return $this->addCommand('fromTable', compact('fromTable'));
+    }
+
+    /**
      * @param array|string $columns
      * @param string|null $index
      * @param string|null $algorithm

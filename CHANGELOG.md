@@ -8,18 +8,31 @@ and this project adheres to [Semantic Versioning][semver].
 Check MD [online][check-online].
 
 ## [unreleased]
+''
+## [1.5.0] - 2021-11-04
+
+### Added
+
+- Add to `Blueprint` method `fromTable`: Create a table from another table and fills it data from the source-table.
+- Add to `Blueprint` method `fromSelect`: Create a table from select query.
 
 ## [1.4.0] - 2021-11-04
 
-- Add `Schema::dropIfExistsCascade`
-- Create a table from another `$table->like('source_table')->includingAll()`
+### Added
+
+- Add to `Schema` method `dropIfExistsCascade`
+- Add to `Blueprint` method `like`: Create a table from another table
 
 ## [1.3.0] - 2021-10-16
+
+### Added
 
 - Add column options: `Compression`
 - Add index: `ginIndex`
 
 ## [1.2.0] - 2021-10-16
+
+### Added
 
 - Add ext-column types
   - Array of UUID
@@ -27,18 +40,18 @@ Check MD [online][check-online].
 
 ## [1.1.0] - 2021-09-27
 
+### Added
+
 - Add ext-column types
   - Date Range
   - IP Network
   - XML
-- Add method `Schema::createViewOrReplace`
+- Add to `Schema` method `createViewOrReplace`
 - Add helpers for `Extensions`:
   - `createExtension`
   - `createExtensionIfNotExists`
   - `dropExtensionIfExists`
-
-### Changed
-
+  
 ## [1.0.0] - 2021-04-28
 
 ### Changed

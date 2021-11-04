@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Php\Support\Laravel\Database\Tests\Functional\Schemas;
 
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 use Php\Support\Laravel\Database\Schema\Helpers\IndexAssertions;
 use Php\Support\Laravel\Database\Schema\Helpers\TableAssertions;
@@ -33,6 +34,9 @@ class CreateTableLikeTest extends AbstractTestCase
 
         self::assertCount(3, $this->getIndexListByTable(self::SRC_TABLE));
         self::assertEmpty($this->getIndexListByTable(self::TGT_TABLE));
+
+        $this->assertDatabaseCount(self::SRC_TABLE, 1);
+        $this->assertDatabaseCount(self::TGT_TABLE, 0);
     }
 
     /**
@@ -60,6 +64,9 @@ class CreateTableLikeTest extends AbstractTestCase
 
         self::assertEquals(self::SRC_TABLE . '_enum_index', $srcList[2]->indexname);
         self::assertEquals(self::TGT_TABLE . '_enum_idx', $tgtList[2]->indexname);
+
+        $this->assertDatabaseCount(self::SRC_TABLE, 1);
+        $this->assertDatabaseCount(self::TGT_TABLE, 0);
     }
 
     /**
@@ -75,10 +82,18 @@ class CreateTableLikeTest extends AbstractTestCase
                 $table->increments('id');
                 $table->string('name')->index();
                 $table->enum('enum', ['true', 'false'])->index();
-                $table->string('field_comment');
+                $table->string('field_comment')->nullable();
                 $table->integer('field_default')->default(123);
             }
         );
+
+        DB::table(self::SRC_TABLE)
+            ->insert(
+                [
+                    'name' => 'test',
+                    'enum' => 'false',
+                ]
+            );
     }
 
     protected function tearDown(): void

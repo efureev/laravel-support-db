@@ -12,6 +12,8 @@ trait GrammarTable
 {
     public function compileCreate(Blueprint $blueprint, Fluent $command): string
     {
+        $fromSelect  = $this->getCommandByName($blueprint, 'fromSelect');
+        $fromTable   = $this->getCommandByName($blueprint, 'fromTable');
         $like        = $this->getCommandByName($blueprint, 'like');
         $ifNotExists = $this->getCommandByName($blueprint, 'ifNotExists');
 
@@ -19,7 +21,7 @@ trait GrammarTable
             $this,
             $blueprint,
             $this->getColumns($blueprint),
-            compact('like', 'ifNotExists')
+            compact('like', 'ifNotExists', 'fromSelect', 'fromTable')
         );
     }
 

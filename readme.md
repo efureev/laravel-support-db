@@ -33,7 +33,9 @@ composer require efureev/laravel-support-db "^1.4.0"
 - [Indexes](#indexes)
   - [Unique Partial indexes](#unique-partial-indexes)
 - [Extended Schema](#extended-schema)
-  - [Create](#create)
+  - [Create like another table](#create-like-another-table)
+  - [Create as another table with full data](#create-as-another-table-with-full-data)
+  - [Create as another table with data from select query](#create-as-another-table-with-data-from-select-query)
   - [Drop Cascade If Exists](#drop-cascade-if-exists)
 - [Extensions](#extensions)
 
@@ -215,12 +217,47 @@ when you try to delete such an index, Constraint will be deleted first, then Uni
 
 ### Extended Schema
 
-#### Create
+#### Create like another table
+
+Create a table from a source-table. Creates a structure only.  
+`includingAll` copies all dependencies from source-table.
+
+Creating will be without a data.
 
 ```php
 Schema::create('target_table', function (Blueprint $table) {
     $table->like('source_table')->includingAll(); 
     $table->ifNotExists();
+});
+```
+
+#### Create as another table with full data
+
+Copy a table from a source-table. Copy only columns and a data. Without indexes and so on...
+
+```php
+Schema::create('target_table', function (Blueprint $table) {
+    $table->fromTable('source_table'); 
+});
+```
+
+#### Create as another table with data from select query
+
+Create a table from a select query. Copy only columns and a data. Without indexes and so on...
+
+```php
+Schema::create('target_table', function (Blueprint $table) {
+    $table->fromSelect('select id, name from source_table');
+});
+
+// or
+
+Schema::create('target_table', function (Blueprint $table) {
+    $table->fromSelect(
+        'select t1.id, t2.enabled, t2.extra from source_table t1 ' .
+        'join source_table_2 t2 on t1.id = t2.src_id ' .
+        'where t2.enabled = true'
+    );
 });
 ```
 
