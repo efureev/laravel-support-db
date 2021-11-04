@@ -259,6 +259,38 @@ Schema::create('target_table', function (Blueprint $table) {
         'where t2.enabled = true'
     );
 });
+
+// or
+
+$tbl = 'source_table';
+Schema::create(
+    $tbl,
+    static function (Blueprint $table) {
+        $table->string('key', 16)->primary();
+        $table->string('title');
+        $table->integer('sort')->index();
+    }
+);
+
+// or
+
+Schema::create(self::TGT_TABLE, function (Blueprint $table) use ($tbl) {
+    DB::statement('CREATE EXTENSION IF NOT EXISTS "uuid-ossp";');
+
+    $table->fromSelect(
+        'select uuid_generate_v4() as id, key, title, sort from ' . $tbl
+    );
+});
+
+// or
+
+Schema::create(self::TGT_TABLE, function (Blueprint $table) use ($tbl) {
+    DB::statement('CREATE EXTENSION IF NOT EXISTS "uuid-ossp";');
+
+    $table->fromSelect(
+        'select uuid_generate_v4() as id, * ' . $tbl
+    );
+});
 ```
 
 #### Drop Cascade If Exists

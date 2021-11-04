@@ -88,6 +88,74 @@ class CreateTableFromSelectTest extends AbstractTestCase
     }
 
     /**
+     * @test
+     */
+    public function createTableFromSelectExtended(): void
+    {
+        $tbl = 'src_table';
+
+        Schema::create(
+            $tbl,
+            static function (Blueprint $table) {
+                $table->string('key', 16)->primary();
+                $table->string('title');
+                $table->integer('sort')->index();
+            }
+        );
+
+        DB::table($tbl)
+            ->insert(
+                [
+                    [
+                        'key'   => 'ru',
+                        'title' => 'RU',
+                        'sort'  => 1,
+                    ],
+                    [
+                        'key'   => 'en',
+                        'title' => 'EN',
+                        'sort'  => 2,
+                    ],
+                ]
+            );
+
+        Schema::create(self::TGT_TABLE, function (Blueprint $table) use ($tbl) {
+            DB::statement('CREATE EXTENSION IF NOT EXISTS "uuid-ossp";');
+
+            $table->fromSelect(
+                'select uuid_generate_v4() as id, key, title, sort from ' . $tbl
+            );
+        });
+
+        $this->seeTable(self::TGT_TABLE);
+
+        $list = $this->getTableDefinition(self::TGT_TABLE);
+
+        static::assertEquals(['id', 'key', 'title', 'sort'], $list);
+        static::assertEmpty($this->getIndexListByTable(self::TGT_TABLE));
+
+        $this->assertDatabaseCount(self::TGT_TABLE, 2);
+
+
+        Schema::create(self::TGT_TABLE.'_1', function (Blueprint $table) use ($tbl) {
+            DB::statement('CREATE EXTENSION IF NOT EXISTS "uuid-ossp";');
+
+            $table->fromSelect(
+                'select uuid_generate_v4() as id, * from ' . $tbl
+            );
+        });
+
+        $this->seeTable(self::TGT_TABLE.'_1');
+
+        $list = $this->getTableDefinition(self::TGT_TABLE.'_1');
+
+        static::assertEquals(['id', 'key', 'title', 'sort'], $list);
+        static::assertEmpty($this->getIndexListByTable(self::TGT_TABLE.'_1'));
+
+        $this->assertDatabaseCount(self::TGT_TABLE.'_1', 2);
+    }
+
+    /**
      * @return void
      */
     protected function setUp(): void
