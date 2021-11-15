@@ -19,7 +19,7 @@
   "require": {
     "php": "^8.0",
     "ext-pdo": "*",
-    "illuminate/database": "^8.38",
+    "illuminate/database": "^8.50",
     "doctrine/dbal": "^2.6"
   },
   "require-dev": {
