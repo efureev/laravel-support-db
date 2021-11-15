@@ -35,3 +35,26 @@ namespace Illuminate\Database\Schema {
     {
     }
 }
+
+namespace Illuminate\Database\Query {
+
+    /**
+     * @mixin \Php\Support\Laravel\Database\Query\Builder
+     */
+    class Builder
+    {
+    }
+}
+
+namespace Illuminate\Database\Eloquent {
+
+    /**
+     * @method array updateAndReturn(array $values, string ...$columns) Update records in the database and return
+     *     columns of updated records.
+     * @method array deleteAndReturn(string ...$columns) Delete records in the database and return columns of deleted
+     *     records.
+     */
+    class Builder
+    {
+    }
+}

@@ -9,6 +9,13 @@ Check MD [online][check-online].
 
 ## [unreleased]
 
+## [1.6.0] - 2021-11-15
+
+### Added
+
+- Add to `Builder` method `updateAndReturn`: Update records in the database and return columns of updated records
+- Add to `Builder` method `deleteAndReturn`: Delete records in the database and return columns of deleted records
+
 ## [1.5.0] - 2021-11-04
 
 ### Added

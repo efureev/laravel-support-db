@@ -14,7 +14,7 @@
 ## Install
 
 ```bash
-composer require efureev/laravel-support-db "^1.4.0"
+composer require efureev/laravel-support-db "^1.6"
 ```
 
 ## Contents
@@ -37,6 +37,9 @@ composer require efureev/laravel-support-db "^1.4.0"
   - [Create as another table with full data](#create-as-another-table-with-full-data)
   - [Create as another table with data from select query](#create-as-another-table-with-data-from-select-query)
   - [Drop Cascade If Exists](#drop-cascade-if-exists)
+- [Extended Query Builder](#extended-query-builder)
+  - [Update records and return deleted records` columns](#update-records-and-return-updated-records-columns)
+  - [Delete records and return deleted records` columns](#delete-records-and-return-deleted-records-columns)
 - [Extensions](#extensions)
 
 ### Ext Column Types
@@ -300,6 +303,28 @@ on those objects.
 
 ```php
 Schema::dropIfExistsCascade('table');
+```
+
+### Extended Query Builder
+
+#### Update records and return updated records` columns
+
+```php
+$list = Model::toBase()->updateAndReturn(['deleted_at' => now()], 'id', 'name');
+```
+
+```php
+$list = Model::where(['enabled' => true])->updateAndReturn(['enabled' => false], 'id');
+```
+
+#### Delete records and return deleted records` columns
+
+```php
+$list = Model::toBase()->deleteAndReturn('id', 'name');
+```
+
+```php
+$list = Model::where(['enabled' => true])->deleteAndReturn('id');
 ```
 
 ### Extensions

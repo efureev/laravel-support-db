@@ -6,6 +6,8 @@ namespace Php\Support\Laravel\Database\Schema\Postgres;
 
 use Illuminate\Database\PostgresConnection as BasePostgresConnection;
 use PDO;
+use Php\Support\Laravel\Database\Query\Builder as QueryBuilder;
+use Php\Support\Laravel\Database\Query\Grammars\PostgresGrammar as QueryPostgresGrammar;
 use Php\Support\Laravel\Database\Schema\Postgres\Types\DateRangeType;
 use Php\Support\Laravel\Database\Schema\Postgres\Types\IntArrayType;
 use Php\Support\Laravel\Database\Schema\Postgres\Types\IpNetworkType;
@@ -40,6 +42,20 @@ class Connection extends BasePostgresConnection
         return new Builder($this);
     }
 
+    public function query()
+    {
+        return new QueryBuilder(
+            $this,
+            $this->getQueryGrammar(),
+            $this->getPostProcessor()
+        );
+    }
+
+    protected function getDefaultQueryGrammar()
+    {
+        return new QueryPostgresGrammar();
+    }
+
     public function useDefaultPostProcessor(): void
     {
         parent::useDefaultPostProcessor();
@@ -72,5 +88,45 @@ class Connection extends BasePostgresConnection
         foreach ($this->initialTypes as $type => $typeClass) {
             $builder->registerCustomDoctrineType($typeClass, $type, $type);
         }
+    }
+
+    public function updateAndReturn($query, $bindings = []): array
+    {
+        return $this->affectingStatementArray($query, $bindings);
+    }
+
+    public function deleteAndReturn($query, $bindings = []): array
+    {
+        return $this->affectingStatementArray($query, $bindings);
+    }
+
+    public function affectingStatementArray($query, $bindings = []): array
+    {
+        return $this->run(
+            $query,
+            $bindings,
+            function ($query, $bindings) {
+                if ($this->pretending()) {
+                    return [];
+                }
+
+                $statement = $this->getPdo()->prepare($query);
+
+                $this->bindValues($statement, $this->prepareBindings($bindings));
+
+                $statement->execute();
+
+                $this->recordsHaveBeenModified(
+                    ($list = $this->associateStatement($statement))
+                );
+
+                return $list;
+            }
+        );
+    }
+
+    public function associateStatement($statement): array
+    {
+        return $statement->fetchAll(PDO::FETCH_ASSOC);
     }
 }
