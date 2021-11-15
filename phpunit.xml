@@ -12,7 +12,6 @@
         </exclude>
         <report>
             <clover outputFile="./coverage/clover.xml"/>
-            <clover outputFile="./clover.xml"/>
             <html outputDirectory="./coverage/html"/>
             <text outputFile="php://stdout" showUncoveredFiles="false"/>
             <xml outputDirectory="./coverage/xml"/>
