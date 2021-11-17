@@ -42,10 +42,6 @@ class ServiceProvider extends DatabaseServiceProvider
         Builder::macro(
             'deleteAndReturn',
             function (string ...$columns) {
-                if (isset($this->onDelete)) {
-                    return call_user_func($this->onDelete, $this);
-                }
-
                 return $this->toBase()->deleteAndReturn(...$columns);
             }
         );
