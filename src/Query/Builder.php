@@ -9,7 +9,6 @@ use Illuminate\Database\Query\Builder as BaseQuery;
  */
 class Builder extends BaseQuery
 {
-
     /**
      * Update records in the database and return columns of updated records.
      *

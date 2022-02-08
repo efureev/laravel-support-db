@@ -2,12 +2,8 @@
 <ruleset name="PSR2">
     <description>The PSR2 coding standard.</description>
     <rule ref="PSR12"/>
-    <file>src/</file>
+    <file>src</file>
     <exclude-pattern>vendor</exclude-pattern>
-    <exclude-pattern>resources</exclude-pattern>
-    <exclude-pattern>database</exclude-pattern>
-    <exclude-pattern>coverage</exclude-pattern>
-    <exclude-pattern>node_modules</exclude-pattern>
     <!-- Include some sniffs from other standards that don't conflict with PEAR -->
     <rule ref="Squiz.Arrays.ArrayBracketSpacing"/>
     <rule ref="Squiz.Arrays.ArrayDeclaration"/>
