@@ -21,6 +21,8 @@ composer require efureev/laravel-support-db "^1.6"
 
 - [Ext Column Types](#ext-column-types)
   - [Bit](#bit)
+  - [GeoPoint](#geo-point)
+  - [GeoPath](#geo-path)
   - [IP Network](#ip-network)
   - [Ranges](#ranges)
   - [UUID](#uuid)
@@ -51,6 +53,24 @@ Bit String
 ```php
 // @see https://www.postgresql.org/docs/current/datatype-bit.html
 $table->bit(string $column, int $length = 1);
+```
+
+#### Geo Point
+
+Points are the fundamental two-dimensional building block for geometric types.
+
+```php
+// @see https://www.postgresql.org/docs/current/datatype-geometric.html#id-1.5.7.16.5
+$table->geoPoint(string $column);
+```
+
+#### Geo Path
+
+Paths are represented by lists of connected points.
+
+```php
+// @see https://www.postgresql.org/docs/current/datatype-geometric.html#id-1.5.7.16.9
+$table->geoPoint(string $column);
 ```
 
 #### IP Network

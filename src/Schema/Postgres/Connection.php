@@ -9,6 +9,8 @@ use PDO;
 use Php\Support\Laravel\Database\Query\Builder as QueryBuilder;
 use Php\Support\Laravel\Database\Query\Grammars\PostgresGrammar as QueryPostgresGrammar;
 use Php\Support\Laravel\Database\Schema\Postgres\Types\DateRangeType;
+use Php\Support\Laravel\Database\Schema\Postgres\Types\GeoPathType;
+use Php\Support\Laravel\Database\Schema\Postgres\Types\GeoPointType;
 use Php\Support\Laravel\Database\Schema\Postgres\Types\IntArrayType;
 use Php\Support\Laravel\Database\Schema\Postgres\Types\IpNetworkType;
 use Php\Support\Laravel\Database\Schema\Postgres\Types\NumericType;
@@ -20,12 +22,14 @@ class Connection extends BasePostgresConnection
 {
     private array $initialTypes = [
         DateRangeType::TYPE_NAME => DateRangeType::class,
-        TsRangeType::TYPE_NAME   => TsRangeType::class,
-        NumericType::TYPE_NAME   => NumericType::class,
-        XmlType::TYPE_NAME       => XmlType::class,
-        IpNetworkType::TYPE_NAME => IpNetworkType::class,
-        UuidArrayType::TYPE_NAME => UuidArrayType::class,
+        GeoPathType::TYPE_NAME   => GeoPathType::class,
+        GeoPointType::TYPE_NAME  => GeoPointType::class,
         IntArrayType::TYPE_NAME  => IntArrayType::class,
+        IpNetworkType::TYPE_NAME => IpNetworkType::class,
+        NumericType::TYPE_NAME   => NumericType::class,
+        TsRangeType::TYPE_NAME   => TsRangeType::class,
+        UuidArrayType::TYPE_NAME => UuidArrayType::class,
+        XmlType::TYPE_NAME       => XmlType::class,
     ];
 
     protected function getDefaultSchemaGrammar()

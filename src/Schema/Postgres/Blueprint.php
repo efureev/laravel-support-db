@@ -116,6 +116,30 @@ class Blueprint extends BaseBlueprint
     }
 
     /**
+     * Create a new POINT type column
+     *
+     * @param string $column
+     *
+     * @return ColumnDefinition
+     */
+    public function geoPoint(string $column): ColumnDefinition
+    {
+        return $this->addColumn('geoPoint', $column);
+    }
+
+    /**
+     * Create a new PATH type column
+     *
+     * @param string $column
+     *
+     * @return ColumnDefinition
+     */
+    public function geoPath(string $column): ColumnDefinition
+    {
+        return $this->addColumn('geoPath', $column);
+    }
+
+    /**
      * Create a new xml column on the table.
      */
     public function xml(string $column): ColumnDefinition

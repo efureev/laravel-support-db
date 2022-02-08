@@ -5,6 +5,9 @@ declare(strict_types=1);
 namespace Php\Support\Laravel\Database\Schema\Postgres\Grammar;
 
 use Illuminate\Support\Fluent;
+use Php\Support\Laravel\Database\Schema\Postgres\Types\GeoPathType;
+use Php\Support\Laravel\Database\Schema\Postgres\Types\GeoPointType;
+use Php\Support\Laravel\Database\Schema\Postgres\Types\IpNetworkType;
 use Php\Support\Laravel\Database\Schema\Postgres\Types\NumericType;
 use Php\Support\Laravel\Database\Schema\Postgres\Types\TsRangeType;
 use Php\Support\Laravel\Database\Schema\Postgres\Types\XmlType;
@@ -69,6 +72,16 @@ trait GrammarTypes
      */
     protected function typeIpNetwork(Fluent $column): string
     {
-        return 'cidr';
+        return IpNetworkType::TYPE_NAME;
+    }
+
+    protected function typeGeoPoint(Fluent $column): string
+    {
+        return GeoPointType::TYPE_NAME;
+    }
+
+    protected function typeGeoPath(Fluent $column): string
+    {
+        return GeoPathType::TYPE_NAME;
     }
 }

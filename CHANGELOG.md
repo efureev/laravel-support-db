@@ -9,6 +9,15 @@ Check MD [online][check-online].
 
 ## [unreleased]
 
+## [1.7.0] - 2022-02-08
+
+### Added
+
+- Add ext-column types
+  - Geo Point (native PG `point` type)
+  - Geo Path (native PG `path` type)
+  
+
 ## [1.6.0] - 2021-11-15
 
 ### Added
