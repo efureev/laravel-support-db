@@ -88,9 +88,8 @@ class Connection extends BasePostgresConnection
 
     public function registerInitialTypes(): void
     {
-        $builder = $this->getSchemaBuilder();
         foreach ($this->initialTypes as $type => $typeClass) {
-            $builder->registerCustomDoctrineType($typeClass, $type, $type);
+            $this->registerDoctrineType($typeClass, $type, $typeClass);
         }
     }
 

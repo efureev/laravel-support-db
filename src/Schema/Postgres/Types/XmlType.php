@@ -15,7 +15,7 @@ class XmlType extends Type
 {
     public const TYPE_NAME = 'xml';
 
-    public function getSQLDeclaration(array $fieldDeclaration, AbstractPlatform $platform)
+    public function getSQLDeclaration(array $column, AbstractPlatform $platform): string
     {
         return static::TYPE_NAME;
     }

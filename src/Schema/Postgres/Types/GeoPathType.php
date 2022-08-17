@@ -15,7 +15,7 @@ class GeoPathType extends Type
 {
     public const TYPE_NAME = 'path';
 
-    public function getSQLDeclaration(array $fieldDeclaration, AbstractPlatform $platform)
+    public function getSQLDeclaration(array $column, AbstractPlatform $platform): string
     {
         return static::TYPE_NAME;
     }
