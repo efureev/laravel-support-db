@@ -48,40 +48,40 @@ composer require efureev/laravel-support-db "^1.6"
 
 #### Bit
 
-Bit String
+Bit String.
+[Doc](https://www.postgresql.org/docs/current/datatype-bit.html).
 
 ```php
-// @see https://www.postgresql.org/docs/current/datatype-bit.html
 $table->bit(string $column, int $length = 1);
 ```
 
 #### Geo Point
 
 Points are the fundamental two-dimensional building block for geometric types.
+[Doc](https://www.postgresql.org/docs/current/datatype-geometric.html#id-1.5.7.16.5).
 
 ```php
-// @see https://www.postgresql.org/docs/current/datatype-geometric.html#id-1.5.7.16.5
 $table->geoPoint(string $column);
 ```
 
 #### Geo Path
 
 Paths are represented by lists of connected points.
+[Doc](https://www.postgresql.org/docs/current/datatype-geometric.html#id-1.5.7.16.9).
 
 ```php
-// @see https://www.postgresql.org/docs/current/datatype-geometric.html#id-1.5.7.16.9
 $table->geoPoint(string $column);
 ```
 
 #### IP Network
 
 The IP network datatype stores an IP network in CIDR notation.
+[Doc](https://www.postgresql.org/docs/current/datatype-net-types.html).
 
 IPv4 = 7 bytes  
 IPv6 = 19 bytes
 
 ```php
-// @see https://www.postgresql.org/docs/current/datatype-net-types.html
 $table->ipNetwork(string $column);
 ```
 
@@ -89,9 +89,9 @@ $table->ipNetwork(string $column);
 
 The range data types store a range of values with optional start and end values. They can be used e.g. to describe the
 duration a meeting room is booked.
+[Doc](https://www.postgresql.org/docs/current/rangetypes.html).
 
 ```php
-// @see https://www.postgresql.org/docs/current/rangetypes.html
 $table->dateRange(string $column);
 $table->tsRange(string $column);
 $table->timestampRange(string $column);
@@ -136,9 +136,9 @@ $table->generateUUID('fk_id', new Expression('uuid_generate_v2()'));
 #### XML
 
 The xml data type can be used to store an XML document.
+[Doc](https://www.postgresql.org/docs/current/datatype-xml.html).
 
 ```php
-// @see https://www.postgresql.org/docs/current/datatype-xml.html
 $table->xml(string $column);
 ```
 
@@ -165,9 +165,9 @@ $table->intArray(string $column);
 PostgreSQL 14 introduced the possibility to specify the compression method for toast-able data types. You can choose
 between the default method `pglz`, the recently added `lz4` algorithm and the value `default` to use the server default
 setting.
+[Doc](https://www.postgresql.org/docs/current/storage-toast.html).
 
 ```php
-// @see https://www.postgresql.org/docs/current/storage-toast.html
 $table->string('col')->compression('lz4');
 ```
 

@@ -9,6 +9,18 @@ Check MD [online][check-online].
 
 ## [unreleased]
 
+## [1.8.1] - 2022-09-08
+
+### Fixed
+
+- Fixed type declarations
+
+## [1.8.0] - 2022-08-18
+
+### Added
+
+- Add support PHP 8.1
+
 ## [1.7.0] - 2022-02-08
 
 ### Added

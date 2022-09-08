@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Php\Support\Laravel\Database\Schema\Postgres\Grammar;
 
 use Illuminate\Support\Fluent;
+use Php\Support\Laravel\Database\Schema\Postgres\Types\DateRangeType;
 use Php\Support\Laravel\Database\Schema\Postgres\Types\GeoPathType;
 use Php\Support\Laravel\Database\Schema\Postgres\Types\GeoPointType;
 use Php\Support\Laravel\Database\Schema\Postgres\Types\IpNetworkType;
@@ -41,7 +42,7 @@ trait GrammarTypes
 
     protected function typeDateRange(Fluent $column): string
     {
-        return 'daterange';
+        return DateRangeType::TYPE_NAME;
     }
 
     protected function typeUuidArray(Fluent $column): string
