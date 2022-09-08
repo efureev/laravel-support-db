@@ -12,6 +12,9 @@ class UuidArrayType extends AbstractType
 
     public function getMappedDatabaseTypes(AbstractPlatform $platform): array
     {
-        return ['uuid[]', static::TYPE_NAME];
+        return [
+            'uuid[]',
+            static::TYPE_NAME,
+        ];
     }
 }

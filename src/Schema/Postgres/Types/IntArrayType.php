@@ -12,6 +12,9 @@ class IntArrayType extends AbstractType
 
     public function getMappedDatabaseTypes(AbstractPlatform $platform): array
     {
-        return ['int[]', static::TYPE_NAME];
+        return [
+            'int[]',
+            static::TYPE_NAME,
+        ];
     }
 }
