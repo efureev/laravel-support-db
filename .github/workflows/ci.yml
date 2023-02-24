@@ -9,7 +9,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Check out code
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
       - name: Lint changelog file
         uses: avto-dev/markdown-lint@v1
         with:
@@ -123,10 +123,10 @@ jobs:
           extensions: mbstring
           coverage: xdebug
 
-#      - name: Get Composer Cache Directory # Docs: <https://github.com/actions/cache/blob/master/examples.md#php---composer>
-#        id: composer-cache
-#        run: |
-#          echo "dir=$(composer config cache-files-dir)" >> $GITHUB_OUTPUT"
+      - name: Get Composer Cache Directory # Docs: <https://github.com/actions/cache/blob/master/examples.md#php---composer>
+        id: composer-cache
+        run: |
+          echo "dir=$(composer config cache-files-dir)" >> $GITHUB_OUTPUT
 
       - name: Cache dependencies
         uses: actions/cache@v3
