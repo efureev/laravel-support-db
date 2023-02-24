@@ -9,6 +9,18 @@ Check MD [online][check-online].
 
 ## [unreleased]
 
+## [1.9.0] - 2023-02-24
+
+### Added
+
+- Add support PHP 8.2
+- Add support Laravel 10
+
+### Remove
+
+- Remove support PHP 8.0
+- Remove support Laravel 8|9
+
 ## [1.8.1] - 2022-09-08
 
 ### Fixed
@@ -26,8 +38,8 @@ Check MD [online][check-online].
 ### Added
 
 - Add ext-column types
-  - Geo Point (native PG `point` type)
-  - Geo Path (native PG `path` type)
+    - Geo Point (native PG `point` type)
+    - Geo Path (native PG `path` type)
 
 ## [1.6.0] - 2021-11-15
 
@@ -62,22 +74,22 @@ Check MD [online][check-online].
 ### Added
 
 - Add ext-column types
-  - Array of UUID
-  - Array of Integer
+    - Array of UUID
+    - Array of Integer
 
 ## [1.1.0] - 2021-09-27
 
 ### Added
 
 - Add ext-column types
-  - Date Range
-  - IP Network
-  - XML
+    - Date Range
+    - IP Network
+    - XML
 - Add to `Schema` method `createViewOrReplace`
 - Add helpers for `Extensions`:
-  - `createExtension`
-  - `createExtensionIfNotExists`
-  - `dropExtensionIfExists`
+    - `createExtension`
+    - `createExtensionIfNotExists`
+    - `dropExtensionIfExists`
 
 ## [1.0.0] - 2021-04-28
 

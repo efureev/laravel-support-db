@@ -1,30 +1,27 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<phpunit xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" bootstrap="./tests/bootstrap.php" backupGlobals="false"
-         backupStaticAttributes="false" colors="true" convertErrorsToExceptions="true" convertNoticesToExceptions="true"
-         convertWarningsToExceptions="true" processIsolation="false" stopOnFailure="true"
-         xsi:noNamespaceSchemaLocation="https://schema.phpunit.de/9.5/phpunit.xsd">
-    <coverage processUncoveredFiles="true">
-        <include>
-            <directory suffix=".php">./src</directory>
-        </include>
-        <exclude>
-            <directory>./vendor</directory>
-        </exclude>
-        <report>
-            <clover outputFile="./coverage/clover.xml"/>
-            <html outputDirectory="./coverage/html"/>
-            <text outputFile="php://stdout" showUncoveredFiles="false"/>
-            <xml outputDirectory="./coverage/xml"/>
-        </report>
-    </coverage>
-    <testsuites>
-        <testsuite name="Main">
-            <directory suffix="Test.php">./tests</directory>
-        </testsuite>
-    </testsuites>
-    <php>
-        <server name="DB_CONNECTION" value="testing"/>
-        <server name="APP_ENV" value="testing"/>
-        <server name="APP_KEY" value="base64:VM+W1TpjK5cVtw1wHOPcu+e8mHiVYDuvgUJSLf+1QLA="/>
-    </php>
+<phpunit xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" bootstrap="./tests/bootstrap.php" backupGlobals="false" colors="true" processIsolation="false" stopOnFailure="true" xsi:noNamespaceSchemaLocation="https://schema.phpunit.de/10.0/phpunit.xsd" cacheDirectory=".phpunit.cache" backupStaticProperties="false">
+  <coverage>
+    <include>
+      <directory suffix=".php">./src</directory>
+    </include>
+    <exclude>
+      <directory>./vendor</directory>
+    </exclude>
+    <report>
+      <clover outputFile="./coverage/clover.xml"/>
+      <html outputDirectory="./coverage/html"/>
+      <text outputFile="php://stdout" showUncoveredFiles="false"/>
+      <xml outputDirectory="./coverage/xml"/>
+    </report>
+  </coverage>
+  <testsuites>
+    <testsuite name="Main">
+      <directory suffix="Test.php">./tests</directory>
+    </testsuite>
+  </testsuites>
+  <php>
+    <server name="DB_CONNECTION" value="testing"/>
+    <server name="APP_ENV" value="testing"/>
+    <server name="APP_KEY" value="base64:VM+W1TpjK5cVtw1wHOPcu+e8mHiVYDuvgUJSLf+1QLA="/>
+  </php>
 </phpunit>
