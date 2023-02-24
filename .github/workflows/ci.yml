@@ -116,17 +116,17 @@ jobs:
     steps:
       - uses: actions/checkout@v3
 
-      - name: Use PHP 8.0
+      - name: Use PHP 8.2
         uses: shivammathur/setup-php@v2 # Action page: <https://github.com/shivammathur/setup-php>
         with:
           php-version: '8.2'
           extensions: mbstring
           coverage: xdebug
 
-      - name: Get Composer Cache Directory # Docs: <https://github.com/actions/cache/blob/master/examples.md#php---composer>
-        id: composer-cache
-        run: |
-          echo "dir=$(composer config cache-files-dir)" >> $GITHUB_OUTPUT"
+#      - name: Get Composer Cache Directory # Docs: <https://github.com/actions/cache/blob/master/examples.md#php---composer>
+#        id: composer-cache
+#        run: |
+#          echo "dir=$(composer config cache-files-dir)" >> $GITHUB_OUTPUT"
 
       - name: Cache dependencies
         uses: actions/cache@v3
@@ -139,7 +139,7 @@ jobs:
       - name: Install [BASIC] Composer dependencies
         run: composer update --prefer-dist --no-interaction --no-suggest
 
-      - uses: paambaati/codeclimate-action@v2.7.5
+      - uses: paambaati/codeclimate-action@v3.2.0
         env:
           DB_HOST: localhost
           DB_PORT: ${{ job.services.postgres.ports[5432] }}
