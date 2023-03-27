@@ -12,8 +12,10 @@ use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Fluent;
 use Php\Support\Laravel\Database\Schema\Definitions\ColumnDefinition;
 use Php\Support\Laravel\Database\Schema\Definitions\LikeDefinition;
+use Php\Support\Laravel\Database\Schema\Definitions\PartialDefinition;
 use Php\Support\Laravel\Database\Schema\Definitions\UniqueDefinition;
 use Php\Support\Laravel\Database\Schema\Definitions\ViewDefinition;
+use Php\Support\Laravel\Database\Schema\Postgres\Builders\Indexes\PartialBuilder;
 use Php\Support\Laravel\Database\Schema\Postgres\Builders\Indexes\Unique\UniqueBuilder;
 
 class Blueprint extends BaseBlueprint
@@ -180,7 +182,7 @@ class Blueprint extends BaseBlueprint
      *
      * @return ColumnDefinition
      */
-    public function addColumn($type, $name, array $parameters = [])
+    public function addColumn($type, $name, array $parameters = []): ColumnDefinition
     {
         return $this->addColumnDefinition(
             new ColumnDefinition(
@@ -282,6 +284,26 @@ class Blueprint extends BaseBlueprint
         );
     }
 
+    /**
+     * @param array|string $columns
+     * @param string|null $index
+     * @param string|null $algorithm
+     *
+     * @return PartialDefinition|PartialBuilder
+     */
+    public function partial($columns, ?string $index = null, ?string $algorithm = null): Fluent
+    {
+        $columns = (array)$columns;
+
+        $index = $index ?: $this->createIndexName('partial', $columns);
+
+        return $this->addExtendedCommand(
+            PartialBuilder::class,
+            'partial',
+            compact('columns', 'index', 'algorithm')
+        );
+    }
+
     public function ginIndex($columns, ?string $name = null): Fluent
     {
         return $this->indexCommand('index', $columns, $name, 'gin');
@@ -290,6 +312,11 @@ class Blueprint extends BaseBlueprint
     public function dropUniquePartial($index): Fluent
     {
         return $this->dropIndexCommand('dropIndex', 'unique', $index);
+    }
+
+    public function dropPartial($index): Fluent
+    {
+        return $this->dropIndexCommand('dropIndex', 'partial', $index);
     }
 
     protected function getSchemaManager()

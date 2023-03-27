@@ -9,6 +9,12 @@ Check MD [online][check-online].
 
 ## [unreleased]
 
+## [1.10.0] - 2023-03-27
+
+### Added
+
+- Add `Partial index`
+
 ## [1.9.0] - 2023-02-24
 
 ### Added

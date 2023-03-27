@@ -20,28 +20,29 @@ composer require efureev/laravel-support-db "^1.9"
 ## Contents
 
 - [Ext Column Types](#ext-column-types)
-  - [Bit](#bit)
-  - [GeoPoint](#geo-point)
-  - [GeoPath](#geo-path)
-  - [IP Network](#ip-network)
-  - [Ranges](#ranges)
-  - [UUID](#uuid)
-  - [XML](#xml)
-  - [Array of UUID](#array-of-uuid)
-  - [Array of Integer](#array-of-integer)
+    - [Bit](#bit)
+    - [GeoPoint](#geo-point)
+    - [GeoPath](#geo-path)
+    - [IP Network](#ip-network)
+    - [Ranges](#ranges)
+    - [UUID](#uuid)
+    - [XML](#xml)
+    - [Array of UUID](#array-of-uuid)
+    - [Array of Integer](#array-of-integer)
 - [Column Options](#column-options)
-  - [Compression](#compression)
+    - [Compression](#compression)
 - [Views](#views)
 - [Indexes](#indexes)
-  - [Unique Partial indexes](#unique-partial-indexes)
+    - [Partial indexes](#partial-indexes)
+    - [Unique Partial indexes](#unique-partial-indexes)
 - [Extended Schema](#extended-schema)
-  - [Create like another table](#create-like-another-table)
-  - [Create as another table with full data](#create-as-another-table-with-full-data)
-  - [Create as another table with data from select query](#create-as-another-table-with-data-from-select-query)
-  - [Drop Cascade If Exists](#drop-cascade-if-exists)
+    - [Create like another table](#create-like-another-table)
+    - [Create as another table with full data](#create-as-another-table-with-full-data)
+    - [Create as another table with data from select query](#create-as-another-table-with-data-from-select-query)
+    - [Drop Cascade If Exists](#drop-cascade-if-exists)
 - [Extended Query Builder](#extended-query-builder)
-  - [Update records and return deleted records` columns](#update-records-and-return-updated-records-columns)
-  - [Delete records and return deleted records` columns](#delete-records-and-return-deleted-records-columns)
+    - [Update records and return deleted records` columns](#update-records-and-return-updated-records-columns)
+    - [Delete records and return deleted records` columns](#delete-records-and-return-deleted-records-columns)
 - [Extensions](#extensions)
 
 ### Ext Column Types
@@ -200,6 +201,33 @@ Schema::dropViewIfExists('active_users');
 ```
 
 ### Indexes
+
+#### Partial indexes
+
+See: https://www.postgresql.org/docs/current/indexes-partial.html
+
+Example:
+
+```php
+use \Php\Support\Laravel\Database\Schema\Postgres\Blueprint;
+Schema::create('table', static function (Blueprint $table) {
+    $table->string('code'); 
+    $table->softDeletes();
+    $table
+        ->partial('code')
+        ->whereNull('deleted_at');
+});
+```
+
+If you want to delete partial index, use this method:
+
+```php
+use \Php\Support\Laravel\Database\Schema\Postgres\Blueprint;
+
+Schema::create('table', static function (Blueprint $table) {
+    $table->dropPartial(['code']);
+});
+```
 
 #### Unique Partial indexes
 
