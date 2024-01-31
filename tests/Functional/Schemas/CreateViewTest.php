@@ -30,7 +30,7 @@ class CreateViewTest extends AbstractTestCase
 
         $this->seeView('test_view');
         $this->assertSameView(
-            'select test_table.id, test_table.name from test_table where (test_table.name is not null);',
+            'select id, name from test_table where (name is not null);',
             'test_view'
         );
 
@@ -52,7 +52,7 @@ class CreateViewTest extends AbstractTestCase
 
         $this->seeView('test_view');
         $this->assertSameView(
-            'select test_table.id, test_table.name from test_table where (test_table.name is not null);',
+            'select id, name from test_table where (name is not null);',
             'test_view'
         );
 

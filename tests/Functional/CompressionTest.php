@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Php\Support\Laravel\Database\Tests\Functional\Types;
+namespace Php\Support\Laravel\Database\Tests\Functional;
 
 use Illuminate\Support\Facades\Schema;
 use Php\Support\Laravel\Database\Schema\Helpers\ColumnAssertions;

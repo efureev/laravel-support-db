@@ -53,7 +53,7 @@ class Builder extends PostgresBuilder
         $this->build($blueprint);
     }
 
-    public function hasView(string $view): bool
+    public function hasView($view): bool
     {
         return count(
             $this->connection->selectFromWriteConnection(
