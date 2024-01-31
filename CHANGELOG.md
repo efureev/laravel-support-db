@@ -9,6 +9,12 @@ Check MD [online][check-online].
 
 ## [unreleased]
 
+## [1.11.0] - 2024-01-31
+
+### Added
+
+- Add support PHP 8.3
+
 ## [1.10.0] - 2023-03-27
 
 ### Added
