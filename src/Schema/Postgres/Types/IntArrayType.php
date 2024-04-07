@@ -4,17 +4,17 @@ declare(strict_types=1);
 
 namespace Php\Support\Laravel\Database\Schema\Postgres\Types;
 
-use Doctrine\DBAL\Platforms\AbstractPlatform;
-
 class IntArrayType extends AbstractType
 {
-    public const TYPE_NAME = 'intArray';
+    public const TYPE_NAME = 'integer[]';
 
-    public function getMappedDatabaseTypes(AbstractPlatform $platform): array
+    public function phpType(): string
     {
-        return [
-            'int[]',
-            static::TYPE_NAME,
-        ];
+        return 'integer[]';
+    }
+
+    public function postgresType(): string
+    {
+        return 'ARRAY';
     }
 }

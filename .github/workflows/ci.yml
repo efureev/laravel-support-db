@@ -28,7 +28,7 @@ jobs:
       fail-fast: false
       matrix:
         setup: [ 'basic', 'lowest', 'stable' ]
-        php: [ '8.1', '8.2' , '8.3' ]
+        php: [ '8.2' , '8.3' ]
 
     services:
       postgres:
@@ -116,10 +116,10 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Use PHP 8.2
+      - name: Use PHP 8.3
         uses: shivammathur/setup-php@v2 # Action page: <https://github.com/shivammathur/setup-php>
         with:
-          php-version: '8.2'
+          php-version: '8.3'
           extensions: mbstring
           coverage: xdebug
 

@@ -12,12 +12,12 @@ use Php\Support\Laravel\Database\Schema\ConnectionFactory;
 use Php\Support\Laravel\Database\Schema\Postgres\Blueprint;
 use Php\Support\Laravel\Database\Schema\Postgres\Connection;
 use Php\Support\Laravel\Database\Tests\AbstractTestCase;
+use PHPUnit\Framework\Attributes\DataProvider;
+use PHPUnit\Framework\Attributes\Test;
 
 class ConnectionTest extends AbstractTestCase
 {
-    /**
-     * @test
-     */
+    #[Test]
     public function connectionFactory(): void
     {
         $factory = new ConnectionFactory($this->app);
@@ -25,25 +25,18 @@ class ConnectionTest extends AbstractTestCase
         static::assertInstanceOf(SQLiteConnection::class, $factory->make(config('database.connections.sqlite')));
     }
 
-    /**
-     * @test
-     */
+    #[Test]
     public function checkConnection(): void
     {
         static::assertInstanceOf(Connection::class, $this->app['db.connection']);
     }
 
-
-    /**
-     * @test
-     * @dataProvider boolDataProvider
-     *
-     * @param $value
-     */
+    #[Test]
+    #[DataProvider('boolDataProvider')]
     public function boolTrueBindingsWorks($value): void
     {
         $table = 'test_table';
-        $data  = [
+        $data = [
             'field' => $value,
         ];
 
@@ -61,16 +54,12 @@ class ConnectionTest extends AbstractTestCase
         static::assertSame(1, $result->count());
     }
 
-    /**
-     * @test
-     * @dataProvider intDataProvider
-     *
-     * @param $value
-     */
+    #[Test]
+    #[DataProvider('intDataProvider')]
     public function intBindingsWorks($value): void
     {
         $table = 'test_table';
-        $data  = [
+        $data = [
             'field' => $value,
         ];
         Schema::create(
@@ -86,13 +75,11 @@ class ConnectionTest extends AbstractTestCase
     }
 
 
-    /**
-     * @test
-     */
+    #[Test]
     public function stringBindingsWorks(): void
     {
         $table = 'test_table';
-        $data  = [
+        $data = [
             'field' => 'string',
         ];
         Schema::create(
@@ -107,13 +94,11 @@ class ConnectionTest extends AbstractTestCase
         static::assertSame(1, $result->count());
     }
 
-    /**
-     * @test
-     */
+    #[Test]
     public function nullBindingsWorks(): void
     {
         $table = 'test_table';
-        $data  = [
+        $data = [
             'field' => null,
         ];
         Schema::create(
@@ -129,16 +114,12 @@ class ConnectionTest extends AbstractTestCase
         static::assertSame(1, $result->count());
     }
 
-    /**
-     * @test
-     * @dataProvider dateDataProvider
-     *
-     * @param $value
-     */
+    #[Test]
+    #[DataProvider('dateDataProvider')]
     public function dateTimeBindingsWorks($value): void
     {
         $table = 'test_table';
-        $data  = [
+        $data = [
             'field' => $value,
         ];
         Schema::create(
@@ -165,19 +146,19 @@ class ConnectionTest extends AbstractTestCase
     }*/
 
 
-    public function boolDataProvider(): ?\Generator
+    public static function boolDataProvider(): ?\Generator
     {
         yield 'true' => [true];
         yield 'false' => [false];
     }
 
-    public function intDataProvider(): ?\Generator
+    public static function intDataProvider(): ?\Generator
     {
         yield 'zero' => [0];
         yield 'non-zero' => [10];
     }
 
-    public function dateDataProvider(): ?\Generator
+    public static function dateDataProvider(): ?\Generator
     {
         yield 'as string' => ['2019-01-01 13:12:22'];
         yield 'as Carbon object' => [new Carbon('2019-01-01 13:12:22')];

@@ -27,16 +27,12 @@ trait GrammarTable
 
     /**
      * Compile a drop table (if exists) command.
-     *
-     * @param Blueprint $blueprint
-     * @param Fluent $command
-     *
-     * @return string
      */
-    public function compileDropIfExists(Blueprint $blueprint, Fluent $command)
+    public function compileDropIfExists(Blueprint $blueprint, Fluent $command): string
     {
         $baseCompile = parent::compileDropIfExists($blueprint, $command);
         $cascade     = $command->get('cascade') ? ' cascade' : '';
+
         return "$baseCompile$cascade";
     }
 }

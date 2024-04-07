@@ -6,10 +6,11 @@ namespace Php\Support\Laravel\Database\Tests\Functional\Schemas;
 
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
-use Php\Support\Laravel\Database\Schema\Helpers\IndexAssertions;
-use Php\Support\Laravel\Database\Schema\Helpers\TableAssertions;
 use Php\Support\Laravel\Database\Schema\Postgres\Blueprint;
 use Php\Support\Laravel\Database\Tests\AbstractTestCase;
+use Php\Support\Laravel\Database\Tests\Helpers\IndexAssertions;
+use Php\Support\Laravel\Database\Tests\Helpers\TableAssertions;
+use PHPUnit\Framework\Attributes\Test;
 
 
 class CreateTableFromSelectTest extends AbstractTestCase
@@ -20,9 +21,7 @@ class CreateTableFromSelectTest extends AbstractTestCase
     private const SRC_TABLE = 'source_table';
     private const TGT_TABLE = 'target_table';
 
-    /**
-     * @test
-     */
+    #[Test]
     public function createTableFromSelect(): void
     {
         Schema::create(self::TGT_TABLE, function (Blueprint $table) {
@@ -37,9 +36,7 @@ class CreateTableFromSelectTest extends AbstractTestCase
         static::assertEmpty($this->getIndexListByTable(self::TGT_TABLE));
     }
 
-    /**
-     * @test
-     */
+    #[Test]
     public function createTableFromSelectWithJoin(): void
     {
         $tbl = self::SRC_TABLE . '_2';
@@ -57,13 +54,13 @@ class CreateTableFromSelectTest extends AbstractTestCase
             ->insert(
                 [
                     [
-                        'extra'   => 'extra text',
-                        'src_id'  => 1,
+                        'extra' => 'extra text',
+                        'src_id' => 1,
                         'enabled' => true,
                     ],
                     [
-                        'extra'   => 'dis text',
-                        'src_id'  => 2,
+                        'extra' => 'dis text',
+                        'src_id' => 2,
                         'enabled' => false,
                     ],
                 ]
@@ -87,9 +84,7 @@ class CreateTableFromSelectTest extends AbstractTestCase
         $this->assertDatabaseCount(self::TGT_TABLE, 1);
     }
 
-    /**
-     * @test
-     */
+    #[Test]
     public function createTableFromSelectExtended(): void
     {
         $tbl = 'src_table';
@@ -107,14 +102,14 @@ class CreateTableFromSelectTest extends AbstractTestCase
             ->insert(
                 [
                     [
-                        'key'   => 'ru',
+                        'key' => 'ru',
                         'title' => 'RU',
-                        'sort'  => 1,
+                        'sort' => 1,
                     ],
                     [
-                        'key'   => 'en',
+                        'key' => 'en',
                         'title' => 'EN',
-                        'sort'  => 2,
+                        'sort' => 2,
                     ],
                 ]
             );
@@ -137,7 +132,7 @@ class CreateTableFromSelectTest extends AbstractTestCase
         $this->assertDatabaseCount(self::TGT_TABLE, 2);
 
 
-        Schema::create(self::TGT_TABLE.'_1', function (Blueprint $table) use ($tbl) {
+        Schema::create(self::TGT_TABLE . '_1', function (Blueprint $table) use ($tbl) {
             DB::statement('CREATE EXTENSION IF NOT EXISTS "uuid-ossp";');
 
             $table->fromSelect(
@@ -145,19 +140,16 @@ class CreateTableFromSelectTest extends AbstractTestCase
             );
         });
 
-        $this->seeTable(self::TGT_TABLE.'_1');
+        $this->seeTable(self::TGT_TABLE . '_1');
 
-        $list = $this->getTableDefinition(self::TGT_TABLE.'_1');
+        $list = $this->getTableDefinition(self::TGT_TABLE . '_1');
 
         static::assertEquals(['id', 'key', 'title', 'sort'], $list);
-        static::assertEmpty($this->getIndexListByTable(self::TGT_TABLE.'_1'));
+        static::assertEmpty($this->getIndexListByTable(self::TGT_TABLE . '_1'));
 
-        $this->assertDatabaseCount(self::TGT_TABLE.'_1', 2);
+        $this->assertDatabaseCount(self::TGT_TABLE . '_1', 2);
     }
 
-    /**
-     * @return void
-     */
     protected function setUp(): void
     {
         parent::setUp();

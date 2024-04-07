@@ -18,13 +18,22 @@ class PartialCompiler
         PartialBuilder $fluent
     ): string {
         $wheres = static::build($grammar, $blueprint, $fluent);
+        $cols   = implode(',', (array)$fluent->get('columns'));
 
-        $where = count($wheres) === 0 ? '' : ' WHERE %s';
+        if (count($wheres) === 0) {
+            return sprintf(
+                "CREATE INDEX %s ON %s (%s)",
+                $fluent->get('index'),
+                $blueprint->getTable(),
+                $cols,
+            );
+        }
+
         return sprintf(
-            "CREATE INDEX %s ON %s (%s)$where",
+            "CREATE INDEX %s ON %s (%s) WHERE %s",
             $fluent->get('index'),
             $blueprint->getTable(),
-            implode(',', (array)$fluent->get('columns')),
+            $cols,
             static::removeLeadingBoolean(implode(' ', $wheres))
         );
     }

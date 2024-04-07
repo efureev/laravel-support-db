@@ -6,17 +6,17 @@ namespace Php\Support\Laravel\Database\Tests\Functional\Types;
 
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
-use Php\Support\Laravel\Database\Schema\Helpers\ColumnAssertions;
 use Php\Support\Laravel\Database\Schema\Postgres\Blueprint;
+use Php\Support\Laravel\Database\Schema\Postgres\Types\GeoPathType;
 use Php\Support\Laravel\Database\Tests\AbstractTestCase;
+use Php\Support\Laravel\Database\Tests\Helpers\ColumnAssertions;
+use PHPUnit\Framework\Attributes\Test;
 
 class GeoPathTest extends AbstractTestCase
 {
     use ColumnAssertions;
 
-    /**
-     * @test
-     */
+    #[Test]
     public function base(): void
     {
         Schema::create(
@@ -28,9 +28,6 @@ class GeoPathTest extends AbstractTestCase
 
         static::assertTrue(Schema::hasTable('test_table'));
 
-        //        $this->assertLaravelTypeColumn('test_table', 'geo', GeoPointType::TYPE_NAME);
-        //        $this->assertPostgresTypeColumn('test_table', 'geo', GeoPointType::TYPE_NAME);
-
         $expected = '(58.60374,49.65931),(50,40.6),(10,20)';
 
         DB::insert('INSERT INTO test_table VALUES (?)', [$expected]);
@@ -38,6 +35,8 @@ class GeoPathTest extends AbstractTestCase
         $value = DB::selectOne('select "path" from test_table');
 
         static::assertEquals("($expected)", $value->path);
+
+        $this->assertTypeColumn('test_table', 'path', GeoPathType::class);
     }
 
 }

@@ -9,6 +9,17 @@ Check MD [online][check-online].
 
 ## [unreleased]
 
+## [2.0.0] - 2024-03-13
+
+### Added
+
+- Add support Laravel 11
+
+### Removed
+
+- Remove support Laravel < 11
+- Remove support PHP < 8.2
+
 ## [1.11.0] - 2024-01-31
 
 ### Added

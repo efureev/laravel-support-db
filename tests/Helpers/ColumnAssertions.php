@@ -2,10 +2,11 @@
 
 declare(strict_types=1);
 
-namespace Php\Support\Laravel\Database\Schema\Helpers;
+namespace Php\Support\Laravel\Database\Tests\Helpers;
 
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
+use Php\Support\Laravel\Database\Schema\Postgres\Types\AbstractType;
 
 trait ColumnAssertions
 {
@@ -37,7 +38,15 @@ trait ColumnAssertions
 
     protected function assertLaravelTypeColumn(string $table, string $column, string $expected): void
     {
-        static::assertSame($expected, Schema::getColumnType($table, $column));
+        static::assertSame($expected, Schema::getColumnType($table, $column, true));
+    }
+
+    protected function assertTypeColumn(string $table, string $column, AbstractType|string $type): void
+    {
+        $type = Helper::instance($type);
+
+        $this->assertLaravelTypeColumn($table, $column, $type->phpType());
+        $this->assertPostgresTypeColumn($table, $column, $type->postgresType());
     }
 
     protected function assertPostgresTypeColumn(string $table, string $column, string $expected): void

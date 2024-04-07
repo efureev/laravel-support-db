@@ -10,6 +10,7 @@ use Php\Support\Laravel\Database\Schema\Postgres\Connection;
 use Php\Support\Laravel\Database\Tests\AbstractTestCase;
 use Php\Support\Laravel\Database\Tests\Database\Factories\TestModelFactory;
 use Php\Support\Laravel\Database\Tests\Models\TestModel;
+use PHPUnit\Framework\Attributes\Test;
 
 class QueryBuilderTest extends AbstractTestCase
 {
@@ -17,9 +18,7 @@ class QueryBuilderTest extends AbstractTestCase
         '2021_11_15_000000_create_test_table.php',
     ];
 
-    /**
-     * @test
-     */
+    #[Test]
     public function createCustomQuery(): void
     {
         /** @var Connection $connection */
@@ -31,9 +30,7 @@ class QueryBuilderTest extends AbstractTestCase
         self::assertInstanceOf(PostgresGrammar::class, $connection->query()->getGrammar());
     }
 
-    /**
-     * @test
-     */
+    #[Test]
     public function returnColsOnUpdateFromBaseQuery(): void
     {
         TestModelFactory::times(5)->create(['enabled' => true]);
@@ -58,9 +55,7 @@ class QueryBuilderTest extends AbstractTestCase
         }
     }
 
-    /**
-     * @test
-     */
+    #[Test]
     public function returnColsOnUpdateFromQuery(): void
     {
         TestModelFactory::times(5)->create(['enabled' => true]);
@@ -75,9 +70,7 @@ class QueryBuilderTest extends AbstractTestCase
         }
     }
 
-    /**
-     * @test
-     */
+    #[Test]
     public function returnColsOnUpdateFromWhere(): void
     {
         TestModelFactory::times(5)->create(['enabled' => true]);
@@ -91,9 +84,7 @@ class QueryBuilderTest extends AbstractTestCase
         }
     }
 
-    /**
-     * @test
-     */
+    #[Test]
     public function returnColsOnUpdateFromModel(): void
     {
         TestModelFactory::times(5)->create(['enabled' => true]);
@@ -112,9 +103,7 @@ class QueryBuilderTest extends AbstractTestCase
     }
 
 
-    /**
-     * @test
-     */
+    #[Test]
     public function returnColsOnDeleteFromBaseQuery(): void
     {
         TestModelFactory::times(5)->create(['enabled' => true]);
@@ -129,9 +118,7 @@ class QueryBuilderTest extends AbstractTestCase
         }
     }
 
-    /**
-     * @test
-     */
+    #[Test]
     public function returnColsOnDeleteFromQuery(): void
     {
         TestModelFactory::times(5)->create(['enabled' => true]);
@@ -146,9 +133,7 @@ class QueryBuilderTest extends AbstractTestCase
         }
     }
 
-    /**
-     * @test
-     */
+    #[Test]
     public function returnColsOnDeleteFromWhere(): void
     {
         TestModelFactory::times(5)->create(['enabled' => true]);
@@ -163,9 +148,7 @@ class QueryBuilderTest extends AbstractTestCase
         }
     }
 
-    /**
-     * @test
-     */
+    #[Test]
     public function returnColsOnDeleteFromModel(): void
     {
         TestModelFactory::times(5)->create(['enabled' => true]);
