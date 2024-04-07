@@ -14,7 +14,7 @@
 ## Install
 
 ```bash
-composer require efureev/laravel-support-db "^1.9"
+composer require efureev/laravel-support-db "^2.0"
 ```
 
 ## Contents
