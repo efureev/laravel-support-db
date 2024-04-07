@@ -8,30 +8,9 @@ use Illuminate\Database\PostgresConnection as BasePostgresConnection;
 use PDO;
 use Php\Support\Laravel\Database\Query\Builder as QueryBuilder;
 use Php\Support\Laravel\Database\Query\Grammars\PostgresGrammar as QueryPostgresGrammar;
-use Php\Support\Laravel\Database\Schema\Postgres\Types\DateRangeType;
-use Php\Support\Laravel\Database\Schema\Postgres\Types\GeoPathType;
-use Php\Support\Laravel\Database\Schema\Postgres\Types\GeoPointType;
-use Php\Support\Laravel\Database\Schema\Postgres\Types\IntArrayType;
-use Php\Support\Laravel\Database\Schema\Postgres\Types\IpNetworkType;
-use Php\Support\Laravel\Database\Schema\Postgres\Types\NumericType;
-use Php\Support\Laravel\Database\Schema\Postgres\Types\TsRangeType;
-use Php\Support\Laravel\Database\Schema\Postgres\Types\UuidArrayType;
-use Php\Support\Laravel\Database\Schema\Postgres\Types\XmlType;
 
 class Connection extends BasePostgresConnection
 {
-    private array $initialTypes = [
-        DateRangeType::TYPE_NAME => DateRangeType::class,
-        GeoPathType::TYPE_NAME   => GeoPathType::class,
-        GeoPointType::TYPE_NAME  => GeoPointType::class,
-        IntArrayType::TYPE_NAME  => IntArrayType::class,
-        IpNetworkType::TYPE_NAME => IpNetworkType::class,
-        NumericType::TYPE_NAME   => NumericType::class,
-        TsRangeType::TYPE_NAME   => TsRangeType::class,
-        UuidArrayType::TYPE_NAME => UuidArrayType::class,
-        XmlType::TYPE_NAME       => XmlType::class,
-    ];
-
     protected function getDefaultSchemaGrammar()
     {
         return $this->withTablePrefix((new Grammar())->addModifier('Compression'));
@@ -60,13 +39,6 @@ class Connection extends BasePostgresConnection
         return new QueryPostgresGrammar();
     }
 
-    public function useDefaultPostProcessor(): void
-    {
-        parent::useDefaultPostProcessor();
-
-        $this->registerInitialTypes();
-    }
-
     public function bindValues($statement, $bindings): void
     {
         if ($this->getPdo()->getAttribute(PDO::ATTR_EMULATE_PREPARES)) {
@@ -83,13 +55,6 @@ class Connection extends BasePostgresConnection
             }
         } else {
             parent::bindValues($statement, $bindings);
-        }
-    }
-
-    public function registerInitialTypes(): void
-    {
-        foreach ($this->initialTypes as $type => $typeClass) {
-            $this->registerDoctrineType($typeClass, $type, $typeClass);
         }
     }
 

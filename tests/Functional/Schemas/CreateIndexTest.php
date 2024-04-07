@@ -5,19 +5,19 @@ declare(strict_types=1);
 namespace Php\Support\Laravel\Database\Tests\Functional\Schemas;
 
 use Illuminate\Support\Facades\Schema;
-use Php\Support\Laravel\Database\Schema\Helpers\IndexAssertions;
-use Php\Support\Laravel\Database\Schema\Helpers\TableAssertions;
 use Php\Support\Laravel\Database\Schema\Postgres\Blueprint;
 use Php\Support\Laravel\Database\Tests\AbstractTestCase;
+use Php\Support\Laravel\Database\Tests\Helpers\IndexAssertions;
+use Php\Support\Laravel\Database\Tests\Helpers\TableAssertions;
+use PHPUnit\Framework\Attributes\Group;
+use PHPUnit\Framework\Attributes\Test;
 
 class CreateIndexTest extends AbstractTestCase
 {
     use TableAssertions;
     use IndexAssertions;
 
-    /**
-     * @test
-     */
+    #[Test]
     public function createIndexIfNotExists(): void
     {
         Schema::create(
@@ -26,7 +26,7 @@ class CreateIndexTest extends AbstractTestCase
                 $table->increments('id');
                 $table->string('name');
 
-                if (!$table->hasIndex(['name'], true)) {
+                if (!$table->hasIndex(['name'], 'unique')) {
                     $table->unique(['name']);
                 }
             }
@@ -37,7 +37,7 @@ class CreateIndexTest extends AbstractTestCase
         Schema::table(
             'test_table',
             static function (Blueprint $table) {
-                if (!$table->hasIndex(['name'], true)) {
+                if (!$table->hasIndex(['name'], 'unique')) {
                     $table->unique(['name']);
                 }
             }
@@ -46,10 +46,8 @@ class CreateIndexTest extends AbstractTestCase
         $this->seeIndex('test_table_name_unique');
     }
 
-    /**
-     * @test
-     * @group WithSchema
-     */
+    #[Group('WithSchema')]
+    #[Test]
     public function createIndexWithSchema(): void
     {
         $this->createIndexDefinition();
@@ -59,10 +57,8 @@ class CreateIndexTest extends AbstractTestCase
         );
     }
 
-    /**
-     * @test
-     * @group WithoutSchema
-     */
+    #[Test]
+    #[Group('WithoutSchema')]
     public function createIndexWithoutSchema(): void
     {
         $this->createIndexDefinition();
@@ -72,9 +68,7 @@ class CreateIndexTest extends AbstractTestCase
         );
     }
 
-    /**
-     * @test
-     */
+    #[Test]
     public function createSpecifyIndex(): void
     {
         Schema::create(
@@ -101,7 +95,7 @@ class CreateIndexTest extends AbstractTestCase
                 $table->increments('id');
                 $table->string('name');
 
-                if (!$table->hasIndex(['name'], true)) {
+                if (!$table->hasIndex(['name'])) {
                     $table->unique(['name']);
                 }
             }
@@ -112,7 +106,7 @@ class CreateIndexTest extends AbstractTestCase
         Schema::table(
             'test_table',
             static function (Blueprint $table) {
-                if (!$table->hasIndex(['name'], true)) {
+                if (!$table->hasIndex(['name'])) {
                     $table->unique(['name']);
                 }
             }

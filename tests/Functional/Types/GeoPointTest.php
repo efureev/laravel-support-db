@@ -6,17 +6,17 @@ namespace Php\Support\Laravel\Database\Tests\Functional\Types;
 
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
-use Php\Support\Laravel\Database\Schema\Helpers\ColumnAssertions;
 use Php\Support\Laravel\Database\Schema\Postgres\Blueprint;
+use Php\Support\Laravel\Database\Schema\Postgres\Types\GeoPointType;
 use Php\Support\Laravel\Database\Tests\AbstractTestCase;
+use Php\Support\Laravel\Database\Tests\Helpers\ColumnAssertions;
+use PHPUnit\Framework\Attributes\Test;
 
 class GeoPointTest extends AbstractTestCase
 {
     use ColumnAssertions;
 
-    /**
-     * @test
-     */
+    #[Test]
     public function base(): void
     {
         Schema::create(
@@ -28,8 +28,7 @@ class GeoPointTest extends AbstractTestCase
 
         static::assertTrue(Schema::hasTable('test_table'));
 
-        //        $this->assertLaravelTypeColumn('test_table', 'geo', GeoPointType::TYPE_NAME);
-        //        $this->assertPostgresTypeColumn('test_table', 'geo', GeoPointType::TYPE_NAME);
+        $this->assertTypeColumn('test_table', 'geo', GeoPointType::class);
 
         $expected = '(58.60374,49.65931)';
 

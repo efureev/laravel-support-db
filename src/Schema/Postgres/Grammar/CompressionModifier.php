@@ -13,7 +13,7 @@ trait CompressionModifier
 {
     public function compileChange(BaseBlueprint $blueprint, Fluent $command, Connection $connection)
     {
-        $queries = parent::compileChange($blueprint, $command, $connection);
+        $queries = (array)parent::compileChange($blueprint, $command, $connection);
 
         foreach ($blueprint->getChangedColumns() as $changedColumn) {
             if ($changedColumn->compression !== null) {
@@ -34,8 +34,10 @@ trait CompressionModifier
      */
     protected function modifyCompression(Blueprint $blueprint, Fluent $column): ?string
     {
-        if ($column->compression !== null) {
-            return " compression $column->compression";
+        $compression = $column->value('compression');
+
+        if ($compression !== null) {
+            return " compression $compression";
         }
 
         return null;

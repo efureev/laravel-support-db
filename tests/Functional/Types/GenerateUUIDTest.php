@@ -4,20 +4,20 @@ declare(strict_types=1);
 
 namespace Php\Support\Laravel\Database\Tests\Functional\Types;
 
+use Illuminate\Database\Query\Expression;
 use Illuminate\Support\Facades\Schema;
-use Php\Support\Laravel\Database\Schema\Helpers\ColumnAssertions;
-use Php\Support\Laravel\Database\Schema\Helpers\IndexAssertions;
 use Php\Support\Laravel\Database\Schema\Postgres\Blueprint;
 use Php\Support\Laravel\Database\Tests\AbstractTestCase;
+use Php\Support\Laravel\Database\Tests\Helpers\ColumnAssertions;
+use Php\Support\Laravel\Database\Tests\Helpers\IndexAssertions;
+use PHPUnit\Framework\Attributes\Test;
 
 class GenerateUUIDTest extends AbstractTestCase
 {
     use ColumnAssertions;
     use IndexAssertions;
 
-    /**
-     * @test
-     */
+    #[Test]
     public function base(): void
     {
         Schema::create(
@@ -30,13 +30,11 @@ class GenerateUUIDTest extends AbstractTestCase
 
         static::assertTrue(Schema::hasTable('test_table'));
 
-        $this->assertLaravelTypeColumn('test_table', 'id', 'guid');
+        $this->assertLaravelTypeColumn('test_table', 'id', 'uuid');
         $this->assertPostgresTypeColumn('test_table', 'id', 'uuid');
     }
 
-    /**
-     * @test
-     */
+    #[Test]
     public function uuidWithoutIndex(): void
     {
         Schema::create(
@@ -49,13 +47,11 @@ class GenerateUUIDTest extends AbstractTestCase
 
         static::assertTrue(Schema::hasTable('test_table'));
         $this->notSeeIndex('test_table_pkey');
-        $this->assertLaravelTypeColumn('test_table', 'custom_name', 'guid');
+        $this->assertLaravelTypeColumn('test_table', 'custom_name', 'uuid');
         $this->assertPostgresTypeColumn('test_table', 'custom_name', 'uuid');
     }
 
-    /**
-     * @test
-     */
+    #[Test]
     public function uuidWithNull(): void
     {
         Schema::create(
@@ -68,13 +64,11 @@ class GenerateUUIDTest extends AbstractTestCase
 
         static::assertTrue(Schema::hasTable('test_table'));
         $this->notSeeIndex('test_table_pkey');
-        $this->assertLaravelTypeColumn('test_table', 'fk_id', 'guid');
+        $this->assertLaravelTypeColumn('test_table', 'fk_id', 'uuid');
         $this->assertPostgresTypeColumn('test_table', 'fk_id', 'uuid');
     }
 
-    /**
-     * @test
-     */
+    #[Test]
     public function uuidIndexedWithNull(): void
     {
         Schema::create(
@@ -89,13 +83,11 @@ class GenerateUUIDTest extends AbstractTestCase
         $this->notSeeIndex('test_table_pkey');
         $this->seeIndex('test_table_fk_id_index');
 
-        $this->assertLaravelTypeColumn('test_table', 'fk_id', 'guid');
+        $this->assertLaravelTypeColumn('test_table', 'fk_id', 'uuid');
         $this->assertPostgresTypeColumn('test_table', 'fk_id', 'uuid');
     }
 
-    /**
-     * @test
-     */
+    #[Test]
     public function primaryUUID(): void
     {
         Schema::create(
@@ -108,13 +100,11 @@ class GenerateUUIDTest extends AbstractTestCase
 
         static::assertTrue(Schema::hasTable('test_table'));
 
-        $this->assertLaravelTypeColumn('test_table', 'id', 'guid');
+        $this->assertLaravelTypeColumn('test_table', 'id', 'uuid');
         $this->assertPostgresTypeColumn('test_table', 'id', 'uuid');
     }
 
-    /**
-     * @test
-     */
+    #[Test]
     public function primaryUUIDCustomName(): void
     {
         Schema::create(
@@ -125,10 +115,43 @@ class GenerateUUIDTest extends AbstractTestCase
             }
         );
 
-        $this->assertLaravelTypeColumn('test_table', 'custom_name', 'guid');
+        $this->assertLaravelTypeColumn('test_table', 'custom_name', 'uuid');
         $this->assertPostgresTypeColumn('test_table', 'custom_name', 'uuid');
 
         $this->seeIndex('test_table_pkey');
     }
 
+    #[Test]
+    public function generateCb(): void
+    {
+        Schema::create(
+            'test_table',
+            static function (Blueprint $table) {
+                $table->generateUUID(default: function (string $column) {
+                    return 'uuid_generate_v4()';
+                });
+
+                $table->string('title');
+            }
+        );
+
+        $this->assertLaravelTypeColumn('test_table', 'id', 'uuid');
+        $this->assertPostgresTypeColumn('test_table', 'id', 'uuid');
+    }
+
+    #[Test]
+    public function expression(): void
+    {
+        Schema::create(
+            'test_table',
+            static function (Blueprint $table) {
+                $table->generateUUID(default: new Expression('uuid_generate_v4()'));
+
+                $table->string('title');
+            }
+        );
+
+        $this->assertLaravelTypeColumn('test_table', 'id', 'uuid');
+        $this->assertPostgresTypeColumn('test_table', 'id', 'uuid');
+    }
 }

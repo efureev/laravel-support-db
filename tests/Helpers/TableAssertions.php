@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Php\Support\Laravel\Database\Schema\Helpers;
+namespace Php\Support\Laravel\Database\Tests\Helpers;
 
 use Illuminate\Support\Facades\Schema;
 

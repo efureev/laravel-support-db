@@ -7,49 +7,20 @@ namespace Php\Support\Laravel\Database\Tests\Functional\Schemas;
 use Closure;
 use Generator;
 use Illuminate\Support\Facades\Schema;
-use Php\Support\Laravel\Database\Schema\Helpers\IndexAssertions;
-use Php\Support\Laravel\Database\Schema\Helpers\TableAssertions;
 use Php\Support\Laravel\Database\Schema\Postgres\Blueprint;
 use Php\Support\Laravel\Database\Tests\AbstractTestCase;
+use Php\Support\Laravel\Database\Tests\Helpers\IndexAssertions;
+use Php\Support\Laravel\Database\Tests\Helpers\TableAssertions;
+use PHPUnit\Framework\Attributes\DataProvider;
+use PHPUnit\Framework\Attributes\Test;
 
 class CreatePartialIndexTest extends AbstractTestCase
 {
     use TableAssertions;
     use IndexAssertions;
-
-    /**
-     * @test
-     */
-//    public function createPartialOne(): void
-//    {
-//        Schema::create(
-//            'test_table',
-//            static function (Blueprint $table) {
-//                $table->increments('id');
-//                $table->string('name');
-//                $table->string('code');
-//                $table->integer('phone');
-//                $table->boolean('enabled');
-//                $table->integer('icq');
-//                $table->softDeletes();
-//
-//                $table->partial('name'); //->whereNull('deleted_at');
-//            }
-//        );
-//
-//        $this->seeTable('test_table');
-////        $this->assertRegExpIndex('test_table_name_partial', '/' . self::getDummyIndex() . ' WHERE \(deleted_at IS NULL\)/');
-//        $this->assertRegExpIndex('test_table_name_partial', '/' . self::getDummyIndex() . '/');
-//    }
-
-
-    /**
-     * @test
-     * @dataProvider provideIndexes
-     *
-     * @param string $expected
-     * @param Closure $callback
-     */
+    
+    #[Test]
+    #[DataProvider('provideIndexes')]
     public function createPartial(string $expected, Closure $callback): void
     {
         Schema::create(
@@ -84,7 +55,7 @@ class CreatePartialIndexTest extends AbstractTestCase
         $this->notSeeIndex('test_table_name_unique');
     }
 
-    public function provideIndexes(): Generator
+    public static function provideIndexes(): Generator
     {
         yield [
             '',

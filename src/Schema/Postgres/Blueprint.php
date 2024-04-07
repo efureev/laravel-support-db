@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace Php\Support\Laravel\Database\Schema\Postgres;
 
-use Exception;
 use Illuminate\Database\Query\Expression;
 use Illuminate\Database\Schema\Blueprint as BaseBlueprint;
 use Illuminate\Support\Facades\DB;
@@ -20,12 +19,6 @@ use Php\Support\Laravel\Database\Schema\Postgres\Builders\Indexes\Unique\UniqueB
 
 class Blueprint extends BaseBlueprint
 {
-    /**
-     * @param string $column
-     * @param int $length
-     *
-     * @return ColumnDefinition
-     */
     public function bit(string $column, int $length): ColumnDefinition
     {
         return $this->addColumn('bit', $column, compact('length'));
@@ -45,40 +38,31 @@ class Blueprint extends BaseBlueprint
         return $this->addColumn('numeric', $column, compact('precision', 'scale'));
     }
 
-    /**
-     * @param string $column
-     * @param bool|callable|Expression|null $generate
-     *
-     * @return ColumnDefinition
-     * @throws Exception
-     */
-    public function generateUUID(string $column = 'id', $generate = true): ColumnDefinition
+    public function generateUUID(string $column = 'id', bool|callable|Expression|null $default = true): ColumnDefinition
     {
         $defCol = $this->addColumn('uuid', $column);
-        if ($generate === false) {
+        if ($default === false) {
             return $defCol;
         }
 
         DB::statement('CREATE EXTENSION IF NOT EXISTS "uuid-ossp";');
 
         switch (true) {
-            case is_bool($generate):
+            case $default === true:
                 $defaultExpression = new Expression('uuid_generate_v4()');
                 break;
 
-            case is_callable($generate):
-                $defaultExpression = new Expression($generate($column));
+            case is_callable($default):
+                $defaultExpression = new Expression($default($column));
                 break;
 
-            case $generate === null:
-                $defaultExpression = $generate;
+            case $default === null:
+                $defaultExpression = null;
                 $defCol->nullable();
                 break;
-            case $generate instanceof Expression:
-                $defaultExpression = $generate;
+            case $default instanceof Expression:
+                $defaultExpression = $default;
                 break;
-            default:
-                $defaultExpression = new Expression($generate);
         }
 
 
@@ -131,10 +115,6 @@ class Blueprint extends BaseBlueprint
 
     /**
      * Create a new PATH type column
-     *
-     * @param string $column
-     *
-     * @return ColumnDefinition
      */
     public function geoPath(string $column): ColumnDefinition
     {
@@ -151,10 +131,6 @@ class Blueprint extends BaseBlueprint
 
     /**
      * Create a new uuid[] column
-     *
-     * @param string $column
-     *
-     * @return ColumnDefinition
      */
     public function uuidArray(string $column): ColumnDefinition
     {
@@ -179,8 +155,6 @@ class Blueprint extends BaseBlueprint
      * @param string $type
      * @param string $name
      * @param array $parameters
-     *
-     * @return ColumnDefinition
      */
     public function addColumn($type, $name, array $parameters = []): ColumnDefinition
     {
@@ -218,13 +192,14 @@ class Blueprint extends BaseBlueprint
         return $this->addCommand('ifNotExists');
     }
 
-    public function hasIndex($index, bool $unique = false): bool
+    /**
+     * @param array|string $index
+     * @param string|null $type unique|primary
+     * @return bool
+     */
+    public function hasIndex(array|string $index, ?string $type = null): bool
     {
-        if (is_array($index)) {
-            $index = $this->createIndexName($unique === false ? 'index' : 'unique', $index);
-        }
-
-        return array_key_exists($index, $this->getSchemaManager()->listTableIndexes($this->getTable()));
+        return Schema::hasIndex($this->getTable(), $index, $type);
     }
 
     /**
@@ -317,11 +292,6 @@ class Blueprint extends BaseBlueprint
     public function dropPartial($index): Fluent
     {
         return $this->dropIndexCommand('dropIndex', 'partial', $index);
-    }
-
-    protected function getSchemaManager()
-    {
-        return Schema::getConnection()->getDoctrineSchemaManager();
     }
 
     private function addExtendedCommand(string $fluent, string $name, array $parameters = []): Fluent

@@ -7,23 +7,20 @@ namespace Php\Support\Laravel\Database\Tests\Functional\Schemas;
 use Closure;
 use Generator;
 use Illuminate\Support\Facades\Schema;
-use Php\Support\Laravel\Database\Schema\Helpers\IndexAssertions;
-use Php\Support\Laravel\Database\Schema\Helpers\TableAssertions;
 use Php\Support\Laravel\Database\Schema\Postgres\Blueprint;
 use Php\Support\Laravel\Database\Tests\AbstractTestCase;
+use Php\Support\Laravel\Database\Tests\Helpers\IndexAssertions;
+use Php\Support\Laravel\Database\Tests\Helpers\TableAssertions;
+use PHPUnit\Framework\Attributes\DataProvider;
+use PHPUnit\Framework\Attributes\Test;
 
 class CreatePartialUniqueIndexTest extends AbstractTestCase
 {
     use TableAssertions;
     use IndexAssertions;
 
-    /**
-     * @test
-     * @dataProvider provideIndexes
-     *
-     * @param string $expected
-     * @param Closure $callback
-     */
+    #[Test]
+    #[DataProvider('provideIndexes')]
     public function createPartialUnique(string $expected, Closure $callback): void
     {
         Schema::create(
@@ -59,7 +56,7 @@ class CreatePartialUniqueIndexTest extends AbstractTestCase
     }
 
 
-    public function provideIndexes(): Generator
+    public static function provideIndexes(): Generator
     {
         yield [
             '',
@@ -146,7 +143,7 @@ class CreatePartialUniqueIndexTest extends AbstractTestCase
     {
         return 'CREATE UNIQUE INDEX test_table_name_unique ON (public.)?test_table USING btree \(name\)';
     }
-    
+
     protected function tearDown(): void
     {
         Schema::dropIfExists('test_table');

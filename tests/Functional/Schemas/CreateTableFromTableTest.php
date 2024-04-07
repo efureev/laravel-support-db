@@ -6,10 +6,11 @@ namespace Php\Support\Laravel\Database\Tests\Functional\Schemas;
 
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
-use Php\Support\Laravel\Database\Schema\Helpers\IndexAssertions;
-use Php\Support\Laravel\Database\Schema\Helpers\TableAssertions;
 use Php\Support\Laravel\Database\Schema\Postgres\Blueprint;
 use Php\Support\Laravel\Database\Tests\AbstractTestCase;
+use Php\Support\Laravel\Database\Tests\Helpers\IndexAssertions;
+use Php\Support\Laravel\Database\Tests\Helpers\TableAssertions;
+use PHPUnit\Framework\Attributes\Test;
 
 
 class CreateTableFromTableTest extends AbstractTestCase
@@ -20,9 +21,7 @@ class CreateTableFromTableTest extends AbstractTestCase
     private const SRC_TABLE = 'source_table';
     private const TGT_TABLE = 'target_table';
 
-    /**
-     * @test
-     */
+    #[Test]
     public function createTableFromTable(): void
     {
         Schema::create(self::TGT_TABLE, function (Blueprint $table) {
@@ -40,9 +39,6 @@ class CreateTableFromTableTest extends AbstractTestCase
         $this->assertDatabaseCount(self::TGT_TABLE, 2);
     }
 
-    /**
-     * @return void
-     */
     protected function setUp(): void
     {
         parent::setUp();
