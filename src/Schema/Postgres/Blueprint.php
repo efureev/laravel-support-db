@@ -138,6 +138,14 @@ class Blueprint extends BaseBlueprint
     }
 
     /**
+     * Create a new text[] column
+     */
+    public function textArray(string $column): ColumnDefinition
+    {
+        return $this->addColumn('textArray', $column);
+    }
+
+    /**
      * Create a new int[] column
      *
      * @param string $column

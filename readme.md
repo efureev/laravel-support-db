@@ -29,6 +29,7 @@ composer require efureev/laravel-support-db "^2.0"
     - [XML](#xml)
     - [Array of UUID](#array-of-uuid)
     - [Array of Integer](#array-of-integer)
+    - [Array of Text](#array-of-text)
 - [Column Options](#column-options)
     - [Compression](#compression)
 - [Views](#views)
@@ -157,6 +158,14 @@ The array of integer data type can be used to store a list of integers.
 
 ```php
 $table->intArray(string $column);
+```
+
+#### Array of Text
+
+The array of text data type can be used to store a list of string.
+
+```php
+$table->textArray(string $column);
 ```
 
 ### Column Options

@@ -9,6 +9,12 @@ Check MD [online][check-online].
 
 ## [unreleased]
 
+## [2.1.0] - 2024-07-22
+
+### Added
+
+- Add `TextArrayType`
+
 ## [2.0.0] - 2024-03-13
 
 ### Added

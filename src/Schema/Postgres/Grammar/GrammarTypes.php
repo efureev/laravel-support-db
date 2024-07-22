@@ -11,6 +11,7 @@ use Php\Support\Laravel\Database\Schema\Postgres\Types\GeoPointType;
 use Php\Support\Laravel\Database\Schema\Postgres\Types\IntArrayType;
 use Php\Support\Laravel\Database\Schema\Postgres\Types\IpNetworkType;
 use Php\Support\Laravel\Database\Schema\Postgres\Types\NumericType;
+use Php\Support\Laravel\Database\Schema\Postgres\Types\TextArrayType;
 use Php\Support\Laravel\Database\Schema\Postgres\Types\TsRangeType;
 use Php\Support\Laravel\Database\Schema\Postgres\Types\UuidArrayType;
 use Php\Support\Laravel\Database\Schema\Postgres\Types\XmlType;
@@ -46,6 +47,11 @@ trait GrammarTypes
     protected function typeUuidArray(ColumnDefinition $column): string
     {
         return UuidArrayType::TYPE_NAME;
+    }
+
+    protected function typeTextArray(ColumnDefinition $column): string
+    {
+        return TextArrayType::TYPE_NAME;
     }
 
     protected function typeIntArray(ColumnDefinition $column): string
