@@ -67,12 +67,12 @@ abstract class AbstractTestCase extends TestCase
     }
 
 
-    protected static function databasePath(string $path = null): string
+    protected static function databasePath(?string $path = null): string
     {
         return __DIR__ . '/database' . ($path ? "/$path" : '');
     }
 
-    protected static function migrationsPath(string $path = null): string
+    protected static function migrationsPath(?string $path = null): string
     {
         return self::databasePath('migrations' . ($path ? "/$path" : ''));
     }

@@ -66,7 +66,7 @@ class Blueprint extends BaseBlueprint
         }
 
 
-        return $defCol->default($defaultExpression);
+        return $defCol->default($defaultExpression ?? null);
     }
 
 

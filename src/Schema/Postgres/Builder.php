@@ -4,11 +4,12 @@ declare(strict_types=1);
 
 namespace Php\Support\Laravel\Database\Schema\Postgres;
 
+use Closure;
 use Illuminate\Database\Schema\PostgresBuilder;
 
 class Builder extends PostgresBuilder
 {
-    protected function createBlueprint($table, \Closure $callback = null)
+    protected function createBlueprint($table, ?Closure $callback = null)
     {
         return new Blueprint($table, $callback);
     }
@@ -17,8 +18,6 @@ class Builder extends PostgresBuilder
      * Drop a table from the schema if it exists.
      *
      * @param string $table
-     *
-     * @return void
      */
     public function dropIfExistsCascade(string $table)
     {

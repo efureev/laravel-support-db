@@ -17,13 +17,15 @@
     }
   ],
   "require": {
-    "php": "^8.2|^8.3",
+    "php": "^8.2",
     "ext-pdo": "*",
     "illuminate/database": "^11.0"
   },
   "require-dev": {
-    "phpunit/phpunit": "^11.0",
+    "ergebnis/composer-normalize": "^2.42",
     "orchestra/testbench": "^9.0",
+    "phpstan/phpstan": "^2.0",
+    "phpunit/phpunit": "^11.5",
     "squizlabs/php_codesniffer": "^3.9"
   },
   "autoload": {
@@ -37,6 +39,11 @@
       "Php\\Support\\Laravel\\Database\\Tests\\Database\\Factories\\": "tests/database/factories"
     }
   },
+  "config": {
+    "allow-plugins": {
+      "ergebnis/composer-normalize": true
+    }
+  },
   "extra": {
     "laravel": {
       "providers": [
@@ -45,8 +52,9 @@
     }
   },
   "scripts": {
-    "phpcs": "@php ./vendor/bin/phpcs",
     "cs-fix": "@php ./vendor/bin/phpcbf",
+    "phpcs": "@php ./vendor/bin/phpcs",
+    "phpstan": "@php ./vendor/bin/phpstan analyze -c phpstan.neon --no-progress --ansi",
     "phpunit": "@php ./vendor/bin/phpunit --no-coverage --testdox --colors=always",
     "phpunit-cover": "@php ./vendor/bin/phpunit --coverage-clover ./coverage/clover.xml",
     "test": [
