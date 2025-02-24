@@ -20,7 +20,7 @@ class Grammar extends PostgresGrammar
     use CompressionModifier;
 
 
-    public function naming(array $names)
+    public function naming(array $names): string
     {
         return implode(', ', array_map([$this, 'wrap'], $names));
     }

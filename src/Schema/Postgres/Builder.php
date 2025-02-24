@@ -5,13 +5,20 @@ declare(strict_types=1);
 namespace Php\Support\Laravel\Database\Schema\Postgres;
 
 use Closure;
+use Illuminate\Container\Container;
 use Illuminate\Database\Schema\PostgresBuilder;
 
 class Builder extends PostgresBuilder
 {
     protected function createBlueprint($table, ?Closure $callback = null)
     {
-        return new Blueprint($table, $callback);
+        $connection = $this->connection;
+
+        if (isset($this->resolver)) {
+            return call_user_func($this->resolver, $connection, $table, $callback);
+        }
+
+        return Container::getInstance()->make(Blueprint::class, compact('connection', 'table', 'callback'));
     }
 
     /**

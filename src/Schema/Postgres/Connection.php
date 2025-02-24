@@ -13,7 +13,7 @@ class Connection extends BasePostgresConnection
 {
     protected function getDefaultSchemaGrammar()
     {
-        return $this->withTablePrefix((new Grammar())->addModifier('Compression'));
+        return (new Grammar($this))->addModifier('Compression');
     }
 
 
@@ -36,7 +36,7 @@ class Connection extends BasePostgresConnection
 
     protected function getDefaultQueryGrammar()
     {
-        return new QueryPostgresGrammar();
+        return new QueryPostgresGrammar($this);
     }
 
     public function bindValues($statement, $bindings): void
@@ -47,6 +47,7 @@ class Connection extends BasePostgresConnection
 
                 $dataType = match (true) {
                     is_bool($value) => PDO::PARAM_BOOL,
+                    is_resource($value) => PDO::PARAM_LOB,
                     $value === null => PDO::PARAM_NULL,
                     default => PDO::PARAM_STR,
                 };

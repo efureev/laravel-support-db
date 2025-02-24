@@ -27,6 +27,8 @@ class ServiceProvider extends DatabaseServiceProvider
 
         $this->app->bind('db.connection', static fn($app) => $app['db']->connection());
 
+        $this->app->bind('db.schema', static fn($app) => $app['db']->connection()->getSchemaBuilder());
+
         $this->app->singleton('db.transactions', static fn($app) => new DatabaseTransactionsManager());
     }
 
