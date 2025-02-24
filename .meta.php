@@ -37,16 +37,16 @@ namespace Illuminate\Database\Schema {
     {
     }
 }
-
-namespace Illuminate\Database\Query {
-
-    /**
-     * @mixin \Php\Support\Laravel\Database\Query\Builder
-     */
-    class Builder
-    {
-    }
-}
+//
+//namespace Illuminate\Database\Query {
+//
+//    /**
+//     * @mixin \Php\Support\Laravel\Database\Query\Builder
+//     */
+//    class Builder
+//    {
+//    }
+//}
 
 namespace Illuminate\Database\Eloquent {
 

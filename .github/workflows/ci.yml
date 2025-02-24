@@ -28,7 +28,7 @@ jobs:
       fail-fast: false
       matrix:
         setup: [ 'basic', 'lowest', 'stable' ]
-        php: [ '8.2' , '8.3' ]
+        php: [ '8.2', '8.3', '8.4' ]
 
     services:
       postgres:
@@ -54,19 +54,6 @@ jobs:
           php-version: ${{ matrix.php }}
           extensions: mbstring
           coverage: xdebug
-
-      - name: Get Composer Cache Directory # Docs: <https://github.com/actions/cache/blob/master/examples.md#php---composer>
-        id: composer-cache
-        run: |
-          echo "dir=$(composer config cache-files-dir)" >> $GITHUB_OUTPUT
-
-      - name: Cache dependencies
-        uses: actions/cache@v4
-        with:
-          path: ${{ steps.composer-cache.outputs.dir }}
-          key: ${{ runner.os }}-composer-${{ hashFiles('**/composer.json') }}
-          restore-keys: |
-            ${{ runner.os }}-composer-
 
       - name: Validate composer.json
         run: composer validate
@@ -122,19 +109,6 @@ jobs:
           php-version: '8.3'
           extensions: mbstring
           coverage: xdebug
-
-      - name: Get Composer Cache Directory # Docs: <https://github.com/actions/cache/blob/master/examples.md#php---composer>
-        id: composer-cache
-        run: |
-          echo "dir=$(composer config cache-files-dir)" >> $GITHUB_OUTPUT
-
-      - name: Cache dependencies
-        uses: actions/cache@v4
-        with:
-          path: ${{ steps.composer-cache.outputs.dir }}
-          key: ${{ runner.os }}-composer-${{ hashFiles('**/composer.json') }}
-          restore-keys: |
-            ${{ runner.os }}-composer-
 
       - name: Install [BASIC] Composer dependencies
         run: composer update --prefer-dist --no-interaction --no-suggest
