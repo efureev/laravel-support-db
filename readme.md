@@ -1,20 +1,18 @@
 # PHP Laravel Database Support
 
-![](https://img.shields.io/badge/php->=8.2|8.3-blue.svg)
-![](https://img.shields.io/badge/Laravel->=11.0-red.svg)
+![](https://img.shields.io/badge/php->=8.4-blue.svg)
+![](https://img.shields.io/badge/Laravel->=13.0-red.svg)
 [![Codacy Badge](https://api.codacy.com/project/badge/Grade/5c8b9e85897f4c65b5a017d16f6af6cb)](https://app.codacy.com/manual/efureev/laravel-support-db)
 ![PHP Database Laravel Package](https://github.com/efureev/laravel-support-db/workflows/PHP%20Database%20Laravel%20Package/badge.svg)
 [![Latest Stable Version](https://poser.pugx.org/efureev/laravel-support-db/v/stable?format=flat)](https://packagist.org/packages/efureev/laravel-support-db)
 [![Total Downloads](https://poser.pugx.org/efureev/laravel-support-db/downloads)](https://packagist.org/packages/efureev/laravel-support-db)
-[![Maintainability](https://api.codeclimate.com/v1/badges/97e244f2aa0ad5b425c5/maintainability)](https://codeclimate.com/github/efureev/laravel-support-db/maintainability)
-[![Test Coverage](https://api.codeclimate.com/v1/badges/97e244f2aa0ad5b425c5/test_coverage)](https://codeclimate.com/github/efureev/laravel-support-db/test_coverage)
 
 ## Description
 
 ## Install
 
 ```bash
-composer require efureev/laravel-support-db "^2.0"
+composer require efureev/laravel-support-db "^4.0"
 ```
 
 ## Contents
@@ -110,10 +108,10 @@ $table->primaryUUID('custom_name'); // create PK UUID-column with name `custom_n
 
 The `generateUUID` can be used to store UUID-type with/without index (or FK).
 
-On a row creating generates a value with `uuid_generate_v4()` by extension `uuid-ossp`.
+On a row creating generates a value with the native `gen_random_uuid()` function (PostgreSQL >= 13, no extension required).
 
 ```php
-// create UUID-column with name `id`. Generate UUID-value by DB.
+// create UUID-column with name `id`. Generate UUID-value by DB (gen_random_uuid()).
 $table->generateUUID();
 
 // create UUID-column with name `cid`. Generate UUID-value by DB.
@@ -335,20 +333,16 @@ Schema::create(
 // or
 
 Schema::create(self::TGT_TABLE, function (Blueprint $table) use ($tbl) {
-    Schema::createExtensionIfNotExists('uuid-ossp');
-
     $table->fromSelect(
-        'select uuid_generate_v4() as id, key, title, sort from ' . $tbl
+        'select gen_random_uuid() as id, key, title, sort from ' . $tbl
     );
 });
 
 // or
 
 Schema::create(self::TGT_TABLE, function (Blueprint $table) use ($tbl) {
-    Schema::createExtensionIfNotExists('uuid-ossp');
-
     $table->fromSelect(
-        'select uuid_generate_v4() as id, * ' . $tbl
+        'select gen_random_uuid() as id, * ' . $tbl
     );
 });
 ```
@@ -436,7 +430,25 @@ Schema::create(
 
 ## Test
 
+The package targets **PostgreSQL** only, so a running PostgreSQL instance is required.
+
+### With Docker (recommended)
+
+A `docker-compose.yml` ships a disposable **PostgreSQL 18** instance and a PHP 8.4 runner.
+No local PHP/PostgreSQL installation is needed:
+
 ```bash
-composer test
-composer test-cover # with coverage
+composer test:docker
+# equivalent to:
+# docker compose up --build --abort-on-container-exit --exit-code-from app
+```
+
+### Locally
+
+Provide DB connection settings via environment variables (defaults: `forge` / `forge` / `forge` on
+`localhost:5432`), then run:
+
+```bash
+composer test        # PHPCS + PHPUnit
+composer test-cover  # with coverage (pcov)
 ```

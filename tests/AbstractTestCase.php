@@ -28,33 +28,22 @@ abstract class AbstractTestCase extends TestCase
      */
     protected function getEnvironmentSetUp($app): void
     {
-        // Setup default database to use sqlite :memory:
-        $app['config']->set('database.default', 'testing');
+        $app['config']->set('database.default', 'pgsql');
         $app['config']->set(
-            'database.connections.testing',
+            'database.connections.pgsql',
             [
                 'driver'         => 'pgsql',
                 'url'            => env('DATABASE_URL'),
                 'host'           => env('DB_HOST', 'localhost'),
                 'port'           => env('DB_PORT', '5432'),
-                'database'       => env('POSTGRES_DB', 'postgres'),
-                'username'       => env('DB_USERNAME', 'postgres'),
-                'password'       => env('DB_PASSWORD', 'postgres'),
+                'database'       => env('DB_DATABASE', 'forge'),
+                'username'       => env('DB_USERNAME', 'forge'),
+                'password'       => env('DB_PASSWORD', 'forge'),
                 'charset'        => 'utf8',
                 'prefix'         => '',
                 'prefix_indexes' => true,
-                'schema'         => 'public',
+                'search_path'    => 'public',
                 'sslmode'        => 'prefer',
-            ]
-        );
-
-        $app['config']->set(
-            'database.connections.sqlite',
-            [
-                'driver'   => 'sqlite',
-                'host'     => '127.0.0.1',
-                'port'     => '3306',
-                'database' => __DIR__ . '/_data/database.sqlite',
             ]
         );
     }

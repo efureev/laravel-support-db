@@ -65,7 +65,7 @@ class Builder extends PostgresBuilder
             $this->connection->selectFromWriteConnection(
                 $this->grammar->compileViewExists(),
                 [
-                    $this->connection->getConfig()['schema'],
+                    $this->getCurrentSchemaName(),
                     $this->connection->getTablePrefix() . $view,
                 ]
             )
@@ -77,7 +77,7 @@ class Builder extends PostgresBuilder
         $results = $this->connection->selectFromWriteConnection(
             $this->grammar->compileViewDefinition(),
             [
-                $this->connection->getConfig()['schema'],
+                $this->getCurrentSchemaName(),
                 $this->connection->getTablePrefix() . $view,
             ]
         );

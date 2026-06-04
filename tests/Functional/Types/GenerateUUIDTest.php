@@ -128,7 +128,7 @@ class GenerateUUIDTest extends AbstractTestCase
             'test_table',
             static function (Blueprint $table) {
                 $table->generateUUID(default: function (string $column) {
-                    return 'uuid_generate_v4()';
+                    return 'gen_random_uuid()';
                 });
 
                 $table->string('title');
@@ -145,7 +145,7 @@ class GenerateUUIDTest extends AbstractTestCase
         Schema::create(
             'test_table',
             static function (Blueprint $table) {
-                $table->generateUUID(default: new Expression('uuid_generate_v4()'));
+                $table->generateUUID(default: new Expression('gen_random_uuid()'));
 
                 $table->string('title');
             }

@@ -16,14 +16,16 @@ class BuilderTest extends AbstractTestCase
     #[Test]
     public function createExtensionIfNotExists(): void
     {
-        Schema::createExtensionIfNotExists('uuid-ossp');
+        Schema::dropExtensionIfExists('uuid-ossp');
 
+        Schema::createExtensionIfNotExists('uuid-ossp');
         $this->assertHasExtension('uuid-ossp');
     }
 
     #[Test]
     public function dropExtensionIfExists(): void
     {
+        Schema::createExtensionIfNotExists('uuid-ossp');
         $this->assertHasExtension('uuid-ossp');
 
         Schema::dropExtensionIfExists('uuid-ossp');
@@ -36,6 +38,10 @@ class BuilderTest extends AbstractTestCase
     #[Test]
     public function createExtension(): void
     {
+        Schema::dropExtensionIfExists('uuid-ossp');
+        $this->assertHasNotExtension('uuid-ossp');
+
+        Schema::createExtension('uuid-ossp');
         $this->assertHasExtension('uuid-ossp');
 
         Schema::dropExtensionIfExists('uuid-ossp');

@@ -1,6 +1,6 @@
 name: PHP Database Laravel Package
 
-on: [ push ]
+on: [ push, pull_request ]
 
 jobs:
 
@@ -9,7 +9,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Check out code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
       - name: Lint changelog file
         uses: avto-dev/markdown-lint@v1
         with:
@@ -17,10 +17,43 @@ jobs:
           config: '/lint/config/changelog.yml'
           args: './CHANGELOG.md'
 
+  lint:
+    name: Coding Standards (PHPCS)
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Use PHP 8.4
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.4'
+          extensions: mbstring
+          coverage: none
+
+      - name: Get Composer Cache Directory
+        id: composer-cache
+        run: |
+          echo "dir=$(composer config cache-files-dir)" >> $GITHUB_OUTPUT
+
+      - name: Cache dependencies
+        uses: actions/cache@v4
+        with:
+          path: ${{ steps.composer-cache.outputs.dir }}
+          key: ${{ runner.os }}-composer-${{ hashFiles('**/composer.json') }}
+          restore-keys: |
+            ${{ runner.os }}-composer-
+
+      - name: Install Composer dependencies
+        run: composer update --prefer-dist --no-interaction
+
+      - name: Run PHPCS
+        run: composer phpcs
+
   testing:
     name: Test on PHP ${{ matrix.php }} with ${{ matrix.setup }} dependencies
 
-    needs: [ lint-changelog ]
+    needs: [ lint-changelog, lint ]
     runs-on: ubuntu-latest
     timeout-minutes: 10
 
@@ -28,15 +61,15 @@ jobs:
       fail-fast: false
       matrix:
         setup: [ 'basic', 'lowest', 'stable' ]
-        php: [ '8.2', '8.3', '8.4' ]
+        php: [ '8.4', '8.5' ]
 
     services:
       postgres:
-        image: postgres:16
+        image: postgres:18
         env:
-          POSTGRES_USER: postgres
-          POSTGRES_PASSWORD: postgres
-          POSTGRES_DB: postgres
+          POSTGRES_USER: forge
+          POSTGRES_PASSWORD: forge
+          POSTGRES_DB: forge
         ports:
           - 5432:5432
         options: >-
@@ -46,81 +79,54 @@ jobs:
           --health-retries 5
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
       - name: Use PHP ${{ matrix.php }}
         uses: shivammathur/setup-php@v2 # Action page: <https://github.com/shivammathur/setup-php>
         with:
           php-version: ${{ matrix.php }}
-          extensions: mbstring
-          coverage: xdebug
+          extensions: mbstring, pdo_pgsql, pgsql
+          coverage: none
+
+      - name: Get Composer Cache Directory # Docs: <https://github.com/actions/cache/blob/master/examples.md#php---composer>
+        id: composer-cache
+        run: |
+          echo "dir=$(composer config cache-files-dir)" >> $GITHUB_OUTPUT
+
+      - name: Cache dependencies
+        uses: actions/cache@v4
+        with:
+          path: ${{ steps.composer-cache.outputs.dir }}
+          key: ${{ runner.os }}-composer-${{ hashFiles('**/composer.json') }}
+          restore-keys: |
+            ${{ runner.os }}-composer-
 
       - name: Validate composer.json
         run: composer validate
 
       - name: Install [LOWEST] Composer dependencies
         if: matrix.setup == 'lowest'
-        run: composer update --prefer-dist --no-interaction --no-suggest --prefer-lowest
+        run: composer update --prefer-dist --no-interaction --prefer-lowest
 
       - name: Install [BASIC] Composer dependencies
         if: matrix.setup == 'basic'
-        run: composer update --prefer-dist --no-interaction --no-suggest
+        run: composer update --prefer-dist --no-interaction
 
       - name: Install [STABLE] Composer dependencies
         if: matrix.setup == 'stable'
-        run: composer update --prefer-dist --no-interaction --no-suggest --prefer-stable
+        run: composer update --prefer-dist --no-interaction --prefer-stable
 
       - name: Show most important packages' versions
         run: composer info | grep -e efureev -e laravel/framework -e phpunit/phpunit
-
-      # Add a test script to composer.json, for instance: "test": "vendor/bin/phpunit"
-      # Docs: https://getcomposer.org/doc/articles/scripts.md
 
       - name: Run test suite
         run: composer test
         env:
           DB_HOST: localhost
           DB_PORT: ${{ job.services.postgres.ports[5432] }}
-
-  coverage:
-    needs: [ testing ]
-    name: coverage
-    runs-on: ubuntu-latest
-    services:
-      postgres:
-        image: postgres:16
-        env:
-          POSTGRES_USER: postgres
-          POSTGRES_PASSWORD: postgres
-          POSTGRES_DB: postgres
-        ports:
-          - 5432:5432
-        options: >-
-          --health-cmd pg_isready
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 5
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Use PHP 8.3
-        uses: shivammathur/setup-php@v2 # Action page: <https://github.com/shivammathur/setup-php>
-        with:
-          php-version: '8.3'
-          extensions: mbstring
-          coverage: xdebug
-
-      - name: Install [BASIC] Composer dependencies
-        run: composer update --prefer-dist --no-interaction --no-suggest
-
-      - uses: paambaati/codeclimate-action@v5
-        env:
-          DB_HOST: localhost
-          DB_PORT: ${{ job.services.postgres.ports[5432] }}
-          CC_TEST_REPORTER_ID: ${{secrets.CC_TEST_REPORTER_ID}}
-        with:
-          coverageCommand: composer phpunit-cover
-          coverageLocations: ./coverage/clover.xml:clover
+          DB_DATABASE: forge
+          DB_USERNAME: forge
+          DB_PASSWORD: forge
 
   release:
     name: Create Release
@@ -129,14 +135,14 @@ jobs:
     if: ${{ startsWith(github.ref, 'refs/tags/v') && endsWith(github.ref, '.0') }}
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
+
       - name: Create Release
-        id: create_release
-        uses: softprops/action-gh-release@v1
+        uses: softprops/action-gh-release@v2
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        if: startsWith(github.ref, 'refs/tags/')
         with:
-          name: Release ${{ github.ref }}
+          tag_name: ${{ github.ref_name }}
+          name: Release ${{ github.ref_name }}
           draft: false
           prerelease: false
