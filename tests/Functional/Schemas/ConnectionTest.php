@@ -22,7 +22,10 @@ class ConnectionTest extends AbstractTestCase
     {
         $factory = new ConnectionFactory($this->app);
 
-        static::assertInstanceOf(SQLiteConnection::class, $factory->make(config('database.connections.sqlite')));
+        static::assertInstanceOf(
+            SQLiteConnection::class,
+            $factory->make(['driver' => 'sqlite', 'database' => ':memory:'])
+        );
     }
 
     #[Test]

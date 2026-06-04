@@ -6,7 +6,6 @@ namespace Php\Support\Laravel\Database\Schema\Postgres;
 
 use Illuminate\Database\Query\Expression;
 use Illuminate\Database\Schema\Blueprint as BaseBlueprint;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Fluent;
 use Php\Support\Laravel\Database\Schema\Definitions\ColumnDefinition;
@@ -45,11 +44,10 @@ class Blueprint extends BaseBlueprint
             return $defCol;
         }
 
-        DB::statement('CREATE EXTENSION IF NOT EXISTS "uuid-ossp";');
-
         switch (true) {
             case $default === true:
-                $defaultExpression = new Expression('uuid_generate_v4()');
+                // Native, extension-less UUID generation (PostgreSQL >= 13).
+                $defaultExpression = new Expression('gen_random_uuid()');
                 break;
 
             case is_callable($default):

@@ -9,6 +9,28 @@ Check MD [online][check-online].
 
 ## [unreleased]
 
+## [4.0.0] - 2026-06-04
+
+### Added
+
+- Add support for Laravel 13
+- Add support for PHP 8.4 (tested against PHP 8.5)
+- Add Docker-based test environment (`docker-compose.yml` with PostgreSQL 18, `composer test:docker`)
+
+### Changed
+
+- `Blueprint::generateUUID()` now defaults to the native `gen_random_uuid()` (PostgreSQL >= 13)
+  instead of the `uuid-ossp` extension (`uuid_generate_v4()`); no implicit `CREATE EXTENSION` is executed anymore
+- Upgrade test runner to PHPUnit 13
+- Modernize GitHub Actions CI (PostgreSQL 18, PHP 8.4/8.5 matrix, composer cache, dropped CodeClimate coverage)
+
+### Removed
+
+- Remove support for Laravel < 13
+- Remove support for PHP < 8.4
+- Remove the implicit `uuid-ossp` extension dependency from `generateUUID()`
+- Remove the obsolete `.travis.yml`
+
 ## [3.0.0] - 2025-02-24
 
 ### Added
@@ -144,7 +166,39 @@ Check MD [online][check-online].
 
 - Create the package
 
-[unreleased]: https://github.com/efureev/laravel-support-db/compare/v1.0.0...HEAD
+[unreleased]: https://github.com/efureev/laravel-support-db/compare/v4.0.0...HEAD
+
+[4.0.0]: https://github.com/efureev/laravel-support-db/compare/v3.0.0...v4.0.0
+
+[3.0.0]: https://github.com/efureev/laravel-support-db/compare/v2.1.0...v3.0.0
+
+[2.1.0]: https://github.com/efureev/laravel-support-db/compare/v2.0.0...v2.1.0
+
+[2.0.0]: https://github.com/efureev/laravel-support-db/compare/v1.11.0...v2.0.0
+
+[1.11.0]: https://github.com/efureev/laravel-support-db/compare/v1.10.0...v1.11.0
+
+[1.10.0]: https://github.com/efureev/laravel-support-db/compare/v1.9.0...v1.10.0
+
+[1.9.0]: https://github.com/efureev/laravel-support-db/compare/v1.8.1...v1.9.0
+
+[1.8.1]: https://github.com/efureev/laravel-support-db/compare/v1.8.0...v1.8.1
+
+[1.8.0]: https://github.com/efureev/laravel-support-db/compare/v1.7.0...v1.8.0
+
+[1.7.0]: https://github.com/efureev/laravel-support-db/compare/v1.6.0...v1.7.0
+
+[1.6.0]: https://github.com/efureev/laravel-support-db/compare/v1.5.0...v1.6.0
+
+[1.5.0]: https://github.com/efureev/laravel-support-db/compare/v1.4.0...v1.5.0
+
+[1.4.0]: https://github.com/efureev/laravel-support-db/compare/v1.3.0...v1.4.0
+
+[1.3.0]: https://github.com/efureev/laravel-support-db/compare/v1.2.0...v1.3.0
+
+[1.2.0]: https://github.com/efureev/laravel-support-db/compare/v1.1.0...v1.2.0
+
+[1.1.0]: https://github.com/efureev/laravel-support-db/compare/v1.0.0...v1.1.0
 
 [1.0.0]: https://github.com/efureev/laravel-support-db/releases/tag/v1.0.0
 

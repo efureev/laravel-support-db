@@ -13,12 +13,13 @@ use Php\Support\Laravel\Database\Schema\Postgres\Compilers\UniqueCompiler;
 
 trait GrammarIndexes
 {
-    public function compileUniquePartial(Blueprint $blueprint, UniqueBuilder $command): string
+    public function compileUniquePartial(Blueprint $blueprint, UniqueBuilder $command): string|array
     {
         $constraints = $command->get('constraints');
         if ($constraints instanceof UniquePartialBuilder) {
             return UniqueCompiler::compile($this, $blueprint, $command, $constraints);
         }
+        // Since Laravel 13 `compileUnique()` returns an array of statements.
         return $this->compileUnique($blueprint, $command);
     }
 

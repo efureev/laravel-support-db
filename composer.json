@@ -17,16 +17,16 @@
     }
   ],
   "require": {
-    "php": "^8.2",
+    "php": ">=8.4",
     "ext-pdo": "*",
-    "illuminate/database": "^12.0"
+    "illuminate/database": "^13.0"
   },
   "require-dev": {
-    "ergebnis/composer-normalize": "^2.42",
-    "orchestra/testbench": "^10.0",
-    "phpstan/phpstan": "^2.0",
-    "phpunit/phpunit": "^11.5",
-    "squizlabs/php_codesniffer": "^3.9"
+    "ergebnis/composer-normalize": "^2.52",
+    "orchestra/testbench": "^11.0",
+    "phpstan/phpstan": "^2.2",
+    "phpunit/phpunit": "^13.0",
+    "squizlabs/php_codesniffer": "^3.11"
   },
   "autoload": {
     "psr-4": {
@@ -42,7 +42,8 @@
   "config": {
     "allow-plugins": {
       "ergebnis/composer-normalize": true
-    }
+    },
+    "sort-packages": true
   },
   "extra": {
     "laravel": {
@@ -56,11 +57,12 @@
     "phpcs": "@php ./vendor/bin/phpcs",
     "phpstan": "@php ./vendor/bin/phpstan analyze -c phpstan.neon --no-progress --ansi",
     "phpunit": "@php ./vendor/bin/phpunit --no-coverage --testdox --colors=always",
-    "phpunit-cover": "@php ./vendor/bin/phpunit --coverage-clover ./coverage/clover.xml",
+    "phpunit-cover": "@php ./vendor/bin/phpunit --coverage-clover ./storage/coverage/clover.xml",
     "test": [
       "@phpcs",
       "@phpunit"
     ],
+    "test:docker": "docker compose up --build --abort-on-container-exit --exit-code-from app",
     "test-cover": [
       "@phpcs",
       "@phpunit-cover"

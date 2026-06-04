@@ -115,10 +115,8 @@ class CreateTableFromSelectTest extends AbstractTestCase
             );
 
         Schema::create(self::TGT_TABLE, function (Blueprint $table) use ($tbl) {
-            DB::statement('CREATE EXTENSION IF NOT EXISTS "uuid-ossp";');
-
             $table->fromSelect(
-                'select uuid_generate_v4() as id, key, title, sort from ' . $tbl
+                'select gen_random_uuid() as id, key, title, sort from ' . $tbl
             );
         });
 
@@ -133,10 +131,8 @@ class CreateTableFromSelectTest extends AbstractTestCase
 
 
         Schema::create(self::TGT_TABLE . '_1', function (Blueprint $table) use ($tbl) {
-            DB::statement('CREATE EXTENSION IF NOT EXISTS "uuid-ossp";');
-
             $table->fromSelect(
-                'select uuid_generate_v4() as id, * from ' . $tbl
+                'select gen_random_uuid() as id, * from ' . $tbl
             );
         });
 
