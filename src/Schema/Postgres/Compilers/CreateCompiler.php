@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Php\Support\Laravel\Database\Schema\Postgres\Compilers;
 
-use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Database\Schema\Blueprint as BaseBlueprint;
 use Illuminate\Support\Fluent;
 use Php\Support\Laravel\Database\Schema\Postgres\Grammar;
 
@@ -12,7 +12,7 @@ class CreateCompiler
 {
     public static function compile(
         Grammar $grammar,
-        Blueprint $blueprint,
+        BaseBlueprint $blueprint,
         array $columns,
         array $commands = []
     ): string {

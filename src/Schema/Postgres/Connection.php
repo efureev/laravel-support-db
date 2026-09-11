@@ -11,12 +11,14 @@ use Php\Support\Laravel\Database\Query\Grammars\PostgresGrammar as QueryPostgres
 
 class Connection extends BasePostgresConnection
 {
+    #[\Override]
     protected function getDefaultSchemaGrammar()
     {
         return (new Grammar($this))->addModifier('Compression');
     }
 
 
+    #[\Override]
     public function getSchemaBuilder()
     {
         if ($this->schemaGrammar === null) {
@@ -25,6 +27,7 @@ class Connection extends BasePostgresConnection
         return new Builder($this);
     }
 
+    #[\Override]
     public function query()
     {
         return new QueryBuilder(
@@ -34,11 +37,13 @@ class Connection extends BasePostgresConnection
         );
     }
 
+    #[\Override]
     protected function getDefaultQueryGrammar()
     {
         return new QueryPostgresGrammar($this);
     }
 
+    #[\Override]
     public function bindValues($statement, $bindings): void
     {
         if ($this->getPdo()->getAttribute(PDO::ATTR_EMULATE_PREPARES)) {

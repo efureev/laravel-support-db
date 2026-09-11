@@ -4,20 +4,26 @@ declare(strict_types=1);
 
 namespace Php\Support\Laravel\Database\Schema\Postgres\Grammar;
 
-use Php\Support\Laravel\Database\Schema\Definitions\ColumnDefinition;
+use Illuminate\Support\Fluent;
 use Php\Support\Laravel\Database\Schema\Postgres\ColumnType;
 
 trait GrammarTypes
 {
+    /*
+     * Laravel dispatches these by name from `Grammar::getType(Fluent $column)`, so the parameter
+     * must stay as wide as the framework's — narrowing it to the package's ColumnDefinition made
+     * any blueprint built by a custom resolver a fatal TypeError.
+     */
+
     /**
      * Create the column definition for a 'bit' type.
      */
-    protected function typeBit(ColumnDefinition $column): string
+    protected function typeBit(Fluent $column): string
     {
         return "bit({$column->value('length')})";
     }
 
-    protected function typeNumeric(ColumnDefinition $column): string
+    protected function typeNumeric(Fluent $column): string
     {
         $type      = ColumnType::Numeric->value;
         $precision = $column->get('precision');
@@ -30,27 +36,27 @@ trait GrammarTypes
         return $type;
     }
 
-    protected function typeDateRange(ColumnDefinition $column): string
+    protected function typeDateRange(Fluent $column): string
     {
         return ColumnType::DateRange->value;
     }
 
-    protected function typeUuidArray(ColumnDefinition $column): string
+    protected function typeUuidArray(Fluent $column): string
     {
         return ColumnType::UuidArray->value;
     }
 
-    protected function typeTextArray(ColumnDefinition $column): string
+    protected function typeTextArray(Fluent $column): string
     {
         return ColumnType::TextArray->value;
     }
 
-    protected function typeIntArray(ColumnDefinition $column): string
+    protected function typeIntArray(Fluent $column): string
     {
         return ColumnType::IntArray->value;
     }
 
-    protected function typeTsrange(ColumnDefinition $column): string
+    protected function typeTsrange(Fluent $column): string
     {
         return ColumnType::TsRange->value;
     }
@@ -58,7 +64,7 @@ trait GrammarTypes
     /**
      * Create the column definition for a xml type.
      */
-    protected function typeXml(ColumnDefinition $column): string
+    protected function typeXml(Fluent $column): string
     {
         return ColumnType::Xml->value;
     }
@@ -66,17 +72,17 @@ trait GrammarTypes
     /**
      * Create the column definition for an ip network type.
      */
-    protected function typeIpNetwork(ColumnDefinition $column): string
+    protected function typeIpNetwork(Fluent $column): string
     {
         return ColumnType::IpNetwork->value;
     }
 
-    protected function typeGeoPoint(ColumnDefinition $column): string
+    protected function typeGeoPoint(Fluent $column): string
     {
         return ColumnType::GeoPoint->value;
     }
 
-    protected function typeGeoPath(ColumnDefinition $column): string
+    protected function typeGeoPath(Fluent $column): string
     {
         return ColumnType::GeoPath->value;
     }

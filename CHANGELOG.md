@@ -77,6 +77,15 @@ Check MD [online][check-online].
 
 ### Changed
 
+- Grammar methods Laravel dispatches by name no longer narrow their parameters to this package's
+  own `Blueprint` / `ColumnDefinition` subclasses. Narrowing worked only while every blueprint
+  happened to be built by this package; a custom `blueprintResolver`, a `BlueprintState` or a
+  third-party macro made it a fatal `TypeError`.
+- `compileCreate()` hands a plain `create table` back to the parent grammar and only takes over
+  when the blueprint actually uses `like()`, `fromSelect()`, `fromTable()` or `ifNotExists()`,
+  so framework improvements are no longer silently discarded.
+- `#[\Override]` on all 15 overrides, and `declare(strict_types=1)` in the two files that lacked
+  it. Return and parameter types filled in on the extended query builder and schema builder.
 - `like()` returns a `LikeDefinition` and `createView()` / `createViewOrReplace()` return a
   `ViewDefinition` instead of a bare `Fluent`, so the documented return types are now the real
   ones and `->includingAll()` / `->materialize()` are visible to IDEs.

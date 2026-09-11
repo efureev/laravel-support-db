@@ -4,18 +4,18 @@ declare(strict_types=1);
 
 namespace Php\Support\Laravel\Database\Schema\Postgres\Grammar;
 
+use Illuminate\Database\Schema\Blueprint as BaseBlueprint;
 use Illuminate\Support\Fluent;
 use LogicException;
-use Php\Support\Laravel\Database\Schema\Postgres\Blueprint;
 
 trait GrammarViews
 {
-    public function compileCreateView(Blueprint $blueprint, Fluent $command): string
+    public function compileCreateView(BaseBlueprint $blueprint, Fluent $command): string
     {
         return $this->compileView('create', $command);
     }
 
-    public function compileCreateViewOrReplace(Blueprint $blueprint, Fluent $command): string
+    public function compileCreateViewOrReplace(BaseBlueprint $blueprint, Fluent $command): string
     {
         if ($command->get('materialize')) {
             throw new LogicException(
@@ -26,7 +26,7 @@ trait GrammarViews
         return $this->compileView('create or replace', $command);
     }
 
-    public function compileDropView(Blueprint $blueprint, Fluent $command): string
+    public function compileDropView(BaseBlueprint $blueprint, Fluent $command): string
     {
         return implode(
             ' ',

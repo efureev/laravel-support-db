@@ -24,6 +24,7 @@ class ColumnDefinition extends CD
         'algorithm' => 'Use $table->index($columns, $name, $algorithm), or $table->partial(...) for a partial index.',
     ];
 
+    #[\Override]
     public function __call($method, $parameters)
     {
         if (isset(self::REMOVED_MODIFIERS[$method])) {

@@ -159,6 +159,7 @@ class Blueprint extends BaseBlueprint
      * @param string $name
      * @param array $parameters
      */
+    #[\Override]
     public function addColumn($type, $name, array $parameters = []): ColumnDefinition
     {
         return $this->addColumnDefinition(

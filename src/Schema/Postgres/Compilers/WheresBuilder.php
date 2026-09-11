@@ -8,7 +8,7 @@ use BackedEnum;
 use DateTimeInterface;
 use Illuminate\Support\Fluent;
 use InvalidArgumentException;
-use Php\Support\Laravel\Database\Schema\Postgres\Blueprint;
+use Illuminate\Database\Schema\Blueprint as BaseBlueprint;
 use Php\Support\Laravel\Database\Schema\Postgres\Grammar;
 use Stringable;
 
@@ -21,7 +21,7 @@ trait WheresBuilder
      * literal `%` in the SQL (`like 'a%b'`) is not mistaken for a format specifier. The offset
      * advances past each replacement so a value containing `?` is not re-scanned.
      */
-    protected static function whereRaw(Grammar $grammar, Blueprint $blueprint, array $where = []): string
+    protected static function whereRaw(Grammar $grammar, BaseBlueprint $blueprint, array $where = []): string
     {
         $sql    = (string)($where['sql'] ?? '');
         $offset = 0;
@@ -39,7 +39,7 @@ trait WheresBuilder
         return $sql;
     }
 
-    protected static function whereBasic(Grammar $grammar, Blueprint $blueprint, array $where): string
+    protected static function whereBasic(Grammar $grammar, BaseBlueprint $blueprint, array $where): string
     {
         return implode(
             ' ',
@@ -51,7 +51,7 @@ trait WheresBuilder
         );
     }
 
-    protected static function whereColumn(Grammar $grammar, Blueprint $blueprint, array $where): string
+    protected static function whereColumn(Grammar $grammar, BaseBlueprint $blueprint, array $where): string
     {
         return implode(
             ' ',
@@ -63,7 +63,7 @@ trait WheresBuilder
         );
     }
 
-    protected static function whereIn(Grammar $grammar, Blueprint $blueprint, array $where = []): string
+    protected static function whereIn(Grammar $grammar, BaseBlueprint $blueprint, array $where = []): string
     {
         if (!empty($where['values'])) {
             return implode(
@@ -78,7 +78,7 @@ trait WheresBuilder
         return '0 = 1';
     }
 
-    protected static function whereNotIn(Grammar $grammar, Blueprint $blueprint, array $where = []): string
+    protected static function whereNotIn(Grammar $grammar, BaseBlueprint $blueprint, array $where = []): string
     {
         if (!empty($where['values'])) {
             return implode(
@@ -93,22 +93,22 @@ trait WheresBuilder
         return '1 = 1';
     }
 
-    protected static function whereBoolean(Grammar $grammar, Blueprint $blueprint, array $where): string
+    protected static function whereBoolean(Grammar $grammar, BaseBlueprint $blueprint, array $where): string
     {
         return implode(' ', [$grammar->wrap($where['column']), 'is ' . static::wrapValueForBool($where['value'])]);
     }
 
-    protected static function whereNull(Grammar $grammar, Blueprint $blueprint, array $where): string
+    protected static function whereNull(Grammar $grammar, BaseBlueprint $blueprint, array $where): string
     {
         return implode(' ', [$grammar->wrap($where['column']), 'is null']);
     }
 
-    protected static function whereNotNull(Grammar $grammar, Blueprint $blueprint, array $where): string
+    protected static function whereNotNull(Grammar $grammar, BaseBlueprint $blueprint, array $where): string
     {
         return implode(' ', [$grammar->wrap($where['column']), 'is not null']);
     }
 
-    protected static function whereBetween(Grammar $grammar, Blueprint $blueprint, array $where): string
+    protected static function whereBetween(Grammar $grammar, BaseBlueprint $blueprint, array $where): string
     {
         return implode(
             ' ',
@@ -167,7 +167,7 @@ trait WheresBuilder
         return preg_replace('/^(and|or)\s+/i', '', $value, 1);
     }
 
-    private static function build(Grammar $grammar, Blueprint $blueprint, Fluent $command): array
+    private static function build(Grammar $grammar, BaseBlueprint $blueprint, Fluent $command): array
     {
         return array_map(
             static function (array $where) use ($grammar, $blueprint): string {

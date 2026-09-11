@@ -1,12 +1,11 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Php\Support\Laravel\Database\Query;
 
 use Illuminate\Database\Query\Builder as BaseQuery;
 
-/**
- * @method array|int update(array $values)
- */
 class Builder extends BaseQuery
 {
     /**
@@ -17,7 +16,7 @@ class Builder extends BaseQuery
      *
      * @return array
      */
-    public function updateAndReturn(array $values, string ...$columns)
+    public function updateAndReturn(array $values, string ...$columns): array
     {
         $this->applyBeforeQueryCallbacks();
 
@@ -39,7 +38,7 @@ class Builder extends BaseQuery
      *
      * @return array
      */
-    public function deleteAndReturn(string ...$columns)
+    public function deleteAndReturn(string ...$columns): array
     {
         $this->applyBeforeQueryCallbacks();
 

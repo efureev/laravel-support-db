@@ -22,6 +22,7 @@ trait CompressionModifier
      * the changed column is `$command->column`. Iterating over every changed column here would
      * emit each statement N times.
      */
+    #[\Override]
     public function compileChange(BaseBlueprint $blueprint, Fluent $command)
     {
         $queries = (array)parent::compileChange($blueprint, $command);

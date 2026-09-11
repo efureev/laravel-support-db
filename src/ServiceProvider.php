@@ -11,6 +11,7 @@ use Php\Support\Laravel\Database\Schema\Postgres\Connection as PostgresConnectio
 
 class ServiceProvider extends DatabaseServiceProvider
 {
+    #[\Override]
     public function register()
     {
         parent::register();
@@ -18,6 +19,7 @@ class ServiceProvider extends DatabaseServiceProvider
         $this->registerConnectionResolver();
     }
 
+    #[\Override]
     public function boot()
     {
         parent::boot();

@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Php\Support\Laravel\Database\Schema\Postgres\Compilers;
 
-use Php\Support\Laravel\Database\Schema\Postgres\Blueprint;
+use Illuminate\Database\Schema\Blueprint as BaseBlueprint;
 use Php\Support\Laravel\Database\Schema\Postgres\Builders\Indexes\PartialBuilder;
 use Php\Support\Laravel\Database\Schema\Postgres\Grammar;
 
@@ -15,7 +15,7 @@ class PartialCompiler
 
     public static function compile(
         Grammar $grammar,
-        Blueprint $blueprint,
+        BaseBlueprint $blueprint,
         PartialBuilder $fluent
     ): string {
         $wheres = static::build($grammar, $blueprint, $fluent);

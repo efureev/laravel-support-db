@@ -65,25 +65,9 @@ partial-индексы, views, `CREATE TABLE LIKE/AS SELECT`, PG-типы — э
 
 ## 2. Дефекты
 
-Осталось только латентное — то, что пока не стреляет, но сработает при смене условий.
-
-**Сужение типов в динамически вызываемых методах.** Laravel диспатчит `type*`, `modify*`,
-`compile*` через строковые имена, передавая базовые `Illuminate\Database\Schema\Blueprint`
-и `Illuminate\Support\Fluent`. Пакет сузил параметры до собственных подклассов:
-
-| Файл | Сужено до |
-|---|---|
-| `GrammarTypes.php:24-91` (11 методов) | `Definitions\ColumnDefinition` |
-| `GrammarViews.php:12,31,51` | `Postgres\Blueprint` |
-| `GrammarIndexes.php:16,26` | `Postgres\Blueprint`, `PartialBuilder`/`UniqueBuilder` |
-
-Работает только потому, что `Blueprint::addColumn()` всегда конструирует пакетный подкласс.
-Любой сторонний `blueprintResolver`, `BlueprintState` или макрос → фатальный `TypeError`.
-PHPStan на level 1 этого не видит.
-
-**`GrammarTable::compileCreate()` не вызывает `parent::`**
-(`src/Schema/Postgres/Grammar/GrammarTable.php:13`) — полностью заменяет компиляцию CREATE TABLE.
-Любое изменение Laravel в этом методе теряется молча, без ошибки и без предупреждения.
+Открытых не осталось. История закрытых — в `CHANGELOG.md`; регрессии на каждый лежат
+в `tests/Unit/`, в том числе `TypeVarianceTest` на сужение типов и
+`ConnectionTest::connectionServicesAreNotReimplemented` на копирование методов фреймворка.
 
 ---
 
@@ -394,31 +378,21 @@ Job `lint` помимо PHPCS гоняет unit-сьют (без БД).
 
 ## 6. Модернизация под PHP 8.5
 
-**Требования vs реальность.** `composer.json` требует PHP >= 8.5, но код написан
-в диалекте PHP 7.4/8.0. В пакете **нет ни одного**: `enum`, `readonly`, promoted constructor
-property (ни один класс в `src/` вообще не объявляет конструктор), first-class callable syntax,
-`never`, intersection type, typed class constant (8.3), `#[\Override]` (8.3), `final`,
-asymmetric visibility (8.4), property hook (8.4).
-
-Особенно обидно отсутствие `#[\Override]`: именно он поймал бы устаревшие копии родительских
-методов — такие, как рассинхрон `registerConnectionServices()` с оригиналом.
+**Требования vs реальность.** Осталось не использовано: `readonly`, promoted constructor
+property (ни один класс в `src/` не объявляет конструктор), `never`, intersection type,
+typed class constant, `final`, asymmetric visibility, property hook.
 
 **Что используется современного:** `match(true)` (`Connection.php:48`), стрелочные функции,
 union и nullable-типы, `static` как возвращаемый тип, вариадики, `match` в компиляторах,
-`declare(strict_types=1)` везде, кроме двух файлов.
+backed enum для типов колонок, `#[\Override]` на всех 15 переопределениях, `declare(strict_types=1)`
+во всех файлах.
 
 ### Конкретные точки приложения
 
 | Замена | Где |
 |---|---|
 | `switch (true)` → `match (true)` | `src/Schema/Postgres/Blueprint.php:47` — единственный `switch` в пакете, и у него нет `default`, из-за чего `$defaultExpression` остаётся неопределённой и прикрывается `?? null` на строке 67 |
-| `fn($item) => $this->wrap($item)` → `$this->wrap(...)` | `src/Query/Grammars/PostgresGrammar.php:13` |
-| `call_user_func($this->resolver, ...)` → `($this->resolver)(...)` | `src/Schema/Postgres/Builder.php:18` |
-| `Types\*` (10 классов) → backed enum | вся директория `src/Schema/Postgres/Types/` |
-| `#[\Override]` | 14 реальных переопределений (перечень в разделе 3.1 и 2) |
-| `declare(strict_types=1)` | добавить в `src/Query/Builder.php` и `src/Query/Grammars/PostgresGrammar.php` — единственные два файла без него |
-| Типы возврата | `Query/Builder.php:20,42`; `UniqueBuilder.php:27`; `Builder.php:29`; `CompressionModifier.php:25` |
-| Типы параметров | `Builder.php:62,75`; `Blueprint.php:71,288,293,298` |
+| Типы параметров | `Builder.php:62,75` (`$view`); `Blueprint.php:71,288,293,298` |
 
 **Про сам минимум PHP.** Laravel 13 требует `php: ^8.3`. Подъём минимума пакета до `>=8.5` —
 собственное решение, а не требование фреймворка, и оно отсекает большинство пользователей
@@ -469,17 +443,13 @@ CREATE TABLE. Любое улучшение Laravel в этом методе т�
 
 ### v5.0.0 — следующий релиз (BC break, без deprecation-периода)
 
-**Блок 1. Типобезопасность.** Расширить сужённые типы до базовых `Blueprint`/`Fluent`
-(раздел 2); проставить `#[\Override]` на все переопределения; добить недостающие типы
-параметров и возврата.
-
-**Блок 2. Качество.** Починить три текущие ошибки `composer phpstan` (5.4); PHPStan level 6
+**Блок 1. Качество.** Починить три текущие ошибки `composer phpstan` (5.4); PHPStan level 6
 + larastan, **в CI**; `composer audit` в CI и явный `squizlabs/php_codesniffer: ^3.13.6` (5.8);
 PHPCS на `tests` в дополнение к `src`; `#[CoversClass]` и
 `failOnWarning`/`failOnDeprecation`/`failOnRisky` в `phpunit.xml`; починить PSR-4
 в `ArrayOfTextTest`.
 
-**Блок 3. Документация.** Переписать `readme.md`: заполнить Description, добавить Requirements
+**Блок 2. Документация.** Переписать `readme.md`: заполнить Description, добавить Requirements
 (PHP, Laravel, минимальные PG для `gen_random_uuid()` и `COMPRESSION`), починить оставшиеся неработающие
 примеры из 4.1, задокументировать пропущенные методы и факт подмены connection factory,
 добавить раздел «что теперь умеет сам Laravel 13» (3.2). Восстановить блок `Query\Builder`

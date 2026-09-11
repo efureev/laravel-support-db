@@ -19,7 +19,8 @@ class UniqueBuilder extends Fluent
      * The constraint builder is created once and reused, so repeated calls on the same instance
      * accumulate their predicates instead of discarding the previous ones.
      */
-    public function __call($method, $parameters)
+    #[\Override]
+    public function __call($method, $parameters): Fluent
     {
         if (!method_exists(PartialBuilder::class, $method)) {
             return parent::__call($method, $parameters);

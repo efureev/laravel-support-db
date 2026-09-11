@@ -10,12 +10,13 @@ use Illuminate\Database\Schema\PostgresBuilder;
 
 class Builder extends PostgresBuilder
 {
+    #[\Override]
     protected function createBlueprint($table, ?Closure $callback = null)
     {
         $connection = $this->connection;
 
         if (isset($this->resolver)) {
-            return call_user_func($this->resolver, $connection, $table, $callback);
+            return ($this->resolver)($connection, $table, $callback);
         }
 
         return Container::getInstance()->make(Blueprint::class, compact('connection', 'table', 'callback'));
@@ -26,7 +27,7 @@ class Builder extends PostgresBuilder
      *
      * @param string $table
      */
-    public function dropIfExistsCascade(string $table)
+    public function dropIfExistsCascade(string $table): void
     {
         $this->build(
             tap(
@@ -81,6 +82,7 @@ class Builder extends PostgresBuilder
      * Unlike the framework's `hasView()`, this also finds materialized views — neither
      * `pg_views` (used by Laravel) nor `information_schema.views` lists them.
      */
+    #[\Override]
     public function hasView($view): bool
     {
         return count(
