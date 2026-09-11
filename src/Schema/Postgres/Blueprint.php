@@ -242,15 +242,7 @@ class Blueprint extends BaseBlueprint
      */
     public function uniquePartial($columns, ?string $index = null, ?string $algorithm = null): UniqueBuilder
     {
-        $columns = (array)$columns;
-
-        $index = $index ?: $this->createIndexName('unique', $columns);
-
-        return $this->addExtendedCommand(
-            UniqueBuilder::class,
-            'uniquePartial',
-            compact('columns', 'index', 'algorithm')
-        );
+        return $this->addPartialIndex(UniqueBuilder::class, 'uniquePartial', 'unique', $columns, $index, $algorithm);
     }
 
     /**
@@ -261,15 +253,29 @@ class Blueprint extends BaseBlueprint
      */
     public function partial($columns, ?string $index = null, ?string $algorithm = null): PartialBuilder
     {
+        return $this->addPartialIndex(PartialBuilder::class, 'partial', 'partial', $columns, $index, $algorithm);
+    }
+
+    /**
+     * @template T of Fluent
+     *
+     * @param class-string<T> $builder
+     * @param array|string    $columns
+     *
+     * @return T
+     */
+    private function addPartialIndex(
+        string $builder,
+        string $command,
+        string $nameType,
+        $columns,
+        ?string $index,
+        ?string $algorithm
+    ): Fluent {
         $columns = (array)$columns;
+        $index   = $index ?: $this->createIndexName($nameType, $columns);
 
-        $index = $index ?: $this->createIndexName('partial', $columns);
-
-        return $this->addExtendedCommand(
-            PartialBuilder::class,
-            'partial',
-            compact('columns', 'index', 'algorithm')
-        );
+        return $this->addExtendedCommand($builder, $command, compact('columns', 'index', 'algorithm'));
     }
 
     public function ginIndex($columns, ?string $name = null): Fluent

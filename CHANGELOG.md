@@ -41,6 +41,11 @@ Check MD [online][check-online].
 
 ### Fixed
 
+- `RETURNING` rows from `updateAndReturn()` / `deleteAndReturn()` were fetched with a hardcoded
+  `PDO::FETCH_ASSOC` that bypassed `Connection::prepared()`. They were the only result set on the
+  connection shaped as arrays, a configured fetch mode was ignored, and the `StatementPrepared`
+  event — which packages hook to change that mode — never fired. **They now come back in the
+  connection's fetch mode, `stdClass` by default, like every other result set.**
 - Broken `readme.md` examples: the Geo Path section showed `geoPoint()`, `bit()` was documented
   with a default it never had, a `fromSelect()` example was missing its `from`, the UUID examples
   called `uuid_generate_v2()` (no such function) and `uuid_generate_v5()` without its arguments,

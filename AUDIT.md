@@ -301,37 +301,17 @@ Laravel 13. Технически ничто этого не требует: `php
 
 ## 7. Производительность и консистентность API
 
-**`updateAndReturn()` возвращает не то, что весь остальной Laravel.**
-`Connection::associateStatement()` (`src/Schema/Postgres/Connection.php:97-100`) жёстко задаёт
-`PDO::FETCH_ASSOC` и обходит `Connection::prepared()`. В результате:
+Закрыто: строки `RETURNING` идут через `Connection::prepared()`, то есть уважают настроенный
+fetch mode и диспатчат `StatementPrepared`; регистр SQL выровнен под нижний; `compileCreate()`
+делегирует родителю; схлопнуты дубли `createView`/`createViewOrReplace`, `partial`/`uniquePartial`,
+`compileCreateView`/`compileCreateViewOrReplace`, `PartialBuilder`/`UniquePartialBuilder`;
+текущая схема кэшируется вместо `show search_path` на каждый вызов.
 
-- `select()` возвращает массив `stdClass` (у Laravel `protected $fetchMode = PDO::FETCH_OBJ`),
-  а `updateAndReturn()` — массив массивов. Разные формы данных у соседних методов одного соединения.
-- Настроенный пользователем fetch mode игнорируется.
-- Событие `StatementPrepared` не диспатчится — пакеты, которые на него подписаны
-  (в том числе для установки кастомного fetch mode), не сработают.
+Осталось:
 
-**`GrammarTable::compileCreate()` не вызывает `parent::`** — полностью заменяет компиляцию
-CREATE TABLE. Любое улучшение Laravel в этом методе теряется без ошибки и без предупреждения.
-Соседний `compileDropIfExists()` (строка 31) сделан правильно: вызывает `parent::` и дописывает
-`cascade`. Это образец для первого.
-
-**Регистр SQL разъезжается.** Laravel генерирует SQL в нижнем регистре. Пакет:
-`" RETURNING ..."` (`Query/Grammars/PostgresGrammar.php:15`), `"CREATE INDEX"` / `"CREATE UNIQUE INDEX"`
-(`PartialCompiler`, `UniqueCompiler`), `"ALTER TABLE ... SET COMPRESSION"` (`CompressionModifier.php:20`),
-`"as TABLE"` (`CreateCompiler.php:64`) — в верхнем, а `GrammarViews` в том же пакете — в нижнем.
-Это не косметика: тесты сравнивают точные строки, и любое приведение к единому стилю их сломает,
-что и делает такую унификацию работой для мажора.
-
-**Дублирование, которое стоит схлопнуть:** `compileCreateView` / `compileCreateViewOrReplace`
-(15 строк, разница в одной строковой константе); `createView` / `createViewOrReplace`
-в `Builder`; `updateAndReturn` / `deleteAndReturn` в `Connection`; `uniquePartial` / `partial`
-в `Blueprint` (различаются только классом билдера и префиксом имени индекса);
-`createExtension` / `createExtensionIfNotExists`; `PartialBuilder` / `UniquePartialBuilder`.
-
-**Микро:** `Builder::hasView()` и `getViewDefinition()` каждый раз вызывают
-`getCurrentSchemaName()`, который выполняет запрос `show search_path`. Незначительно
-(схема вызывается в миграциях), но кэшируемо.
+- `Builder::createExtension()` / `createExtensionIfNotExists()` и
+  `Connection::updateAndReturn()` / `deleteAndReturn()` — по две строки каждая пара,
+  схлопывание изменит публичный API ради малого выигрыша.
 
 ---
 

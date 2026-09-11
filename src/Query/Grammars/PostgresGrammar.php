@@ -14,6 +14,6 @@ class PostgresGrammar extends BasePostgresGrammar
 
         $returns = implode(',', array_map($this->wrap(...), $cols));
 
-        return $returns ? " RETURNING $returns" : '';
+        return $returns ? " returning $returns" : '';
     }
 }

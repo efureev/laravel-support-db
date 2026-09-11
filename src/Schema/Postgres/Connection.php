@@ -84,7 +84,10 @@ class Connection extends BasePostgresConnection
                     return [];
                 }
 
-                $statement = $this->getPdo()->prepare($query);
+                // Going through `prepared()` is what makes RETURNING rows look like every other
+                // result set: it applies the configured fetch mode and dispatches
+                // `StatementPrepared`, which packages hook to change that mode.
+                $statement = $this->prepared($this->getPdo()->prepare($query));
 
                 $this->bindValues($statement, $this->prepareBindings($bindings));
 
@@ -93,16 +96,11 @@ class Connection extends BasePostgresConnection
                 // `Connection::$recordsModified` is a bool and is stored verbatim, so passing the
                 // row list would leave an array in it and skew the sticky-connection check.
                 $this->recordsHaveBeenModified(
-                    ($list = $this->associateStatement($statement)) !== []
+                    ($list = $statement->fetchAll()) !== []
                 );
 
                 return $list;
             }
         );
-    }
-
-    public function associateStatement($statement): array
-    {
-        return $statement->fetchAll(PDO::FETCH_ASSOC);
     }
 }

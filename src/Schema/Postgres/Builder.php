@@ -14,6 +14,8 @@ use Illuminate\Database\Schema\PostgresBuilder;
  */
 class Builder extends PostgresBuilder
 {
+    private ?string $currentSchema = null;
+
     /**
      * Point the parent's `createBlueprint()` at this package's Blueprint.
      *
@@ -54,17 +56,21 @@ class Builder extends PostgresBuilder
 
     public function createView(string $view, string $select, bool $materialize = false): void
     {
-        /** @var Blueprint $blueprint */
-        $blueprint = $this->createBlueprint($view);
-        $blueprint->createView($view, $select, $materialize);
-        $this->build($blueprint);
+        $this->buildView('createView', $view, $select, $materialize);
     }
 
     public function createViewOrReplace(string $view, string $select, bool $materialize = false): void
     {
+        $this->buildView('createViewOrReplace', $view, $select, $materialize);
+    }
+
+    private function buildView(string $method, string $view, string $select, bool $materialize): void
+    {
         /** @var Blueprint $blueprint */
         $blueprint = $this->createBlueprint($view);
-        $blueprint->createViewOrReplace($view, $select, $materialize);
+
+        $blueprint->{$method}($view, $select, $materialize);
+
         $this->build($blueprint);
     }
 
@@ -125,7 +131,9 @@ class Builder extends PostgresBuilder
      */
     private function viewBindings(string $view): array
     {
-        $schema = $this->getCurrentSchemaName();
+        // `getCurrentSchemaName()` issues a `show search_path` every time; the schema cannot
+        // change under a single builder instance.
+        $schema = $this->currentSchema ??= $this->getCurrentSchemaName();
         $name   = $this->connection->getTablePrefix() . $view;
 
         return [

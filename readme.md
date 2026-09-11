@@ -465,7 +465,8 @@ $list = Model::where(['enabled' => true])->updateAndReturn(['enabled' => false],
 > The two forms differ: through Eloquent the model's `updated_at` is maintained as usual, while
 > `toBase()` drops to the query builder and writes only the columns you pass.
 
-Rows come back as associative arrays, not `stdClass` — unlike `DB::select()`.
+Rows come back in the connection's configured fetch mode, the same as `DB::select()` — `stdClass`
+objects unless you have changed it.
 
 #### Delete records and return deleted records' columns
 

@@ -4,7 +4,9 @@ declare(strict_types=1);
 
 namespace Php\Support\Laravel\Database\Tests\Functional\Query;
 
+use Illuminate\Database\Events\StatementPrepared;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Event;
 use Php\Support\Laravel\Database\Query\Builder;
 use Php\Support\Laravel\Database\Query\Grammars\PostgresGrammar;
 use Php\Support\Laravel\Database\Schema\Postgres\Connection;
@@ -12,6 +14,7 @@ use Php\Support\Laravel\Database\Tests\AbstractTestCase;
 use Php\Support\Laravel\Database\Tests\Database\Factories\TestModelFactory;
 use Php\Support\Laravel\Database\Tests\Models\TestModel;
 use PHPUnit\Framework\Attributes\Test;
+use stdClass;
 
 class QueryBuilderTest extends AbstractTestCase
 {
@@ -54,6 +57,42 @@ class QueryBuilderTest extends AbstractTestCase
         self::assertFalse($connection->hasModifiedRecords());
     }
 
+    /**
+     * RETURNING rows used to be fetched with a hardcoded `PDO::FETCH_ASSOC`, bypassing
+     * `Connection::prepared()`. That made them the only result set in the connection shaped as
+     * arrays, ignored a configured fetch mode, and skipped the `StatementPrepared` event that
+     * packages hook to change it. See AUDIT.md §7.
+     */
+    #[Test]
+    public function returnedRowsHaveTheSameShapeAsASelect(): void
+    {
+        TestModelFactory::times(1)->create(['enabled' => true]);
+
+        $selected = DB::table('tests')->first();
+        $returned = TestModel::toBase()->updateAndReturn(['enabled' => false], 'id')[0];
+
+        self::assertInstanceOf(stdClass::class, $selected);
+        self::assertInstanceOf(stdClass::class, $returned);
+    }
+
+    #[Test]
+    public function preparingTheStatementIsObservable(): void
+    {
+        TestModelFactory::times(1)->create(['enabled' => true]);
+
+        $seen = [];
+        Event::listen(
+            StatementPrepared::class,
+            static function (StatementPrepared $event) use (&$seen): void {
+                $seen[] = $event;
+            }
+        );
+
+        TestModel::toBase()->updateAndReturn(['enabled' => false], 'id');
+
+        self::assertNotEmpty($seen, 'StatementPrepared must fire for RETURNING statements too');
+    }
+
     #[Test]
     public function returnColsOnUpdateFromBaseQuery(): void
     {
@@ -63,9 +102,9 @@ class QueryBuilderTest extends AbstractTestCase
         self::assertCount(5, $list);
 
         foreach ($list as $item) {
-            self::assertCount(2, $item);
-            self::assertArrayHasKey('id', $item);
-            self::assertArrayHasKey('name', $item);
+            self::assertCount(2, (array)$item);
+            self::assertObjectHasProperty('id', $item);
+            self::assertObjectHasProperty('name', $item);
         }
 
         $list = TestModel::toBase()->deleteAndReturn('id', 'name');
@@ -73,9 +112,9 @@ class QueryBuilderTest extends AbstractTestCase
         self::assertCount(5, $list);
 
         foreach ($list as $item) {
-            self::assertCount(2, $item);
-            self::assertArrayHasKey('id', $item);
-            self::assertArrayHasKey('name', $item);
+            self::assertCount(2, (array)$item);
+            self::assertObjectHasProperty('id', $item);
+            self::assertObjectHasProperty('name', $item);
         }
     }
 
@@ -88,9 +127,9 @@ class QueryBuilderTest extends AbstractTestCase
 
         self::assertCount(5, $list);
         foreach ($list as $item) {
-            self::assertCount(2, $item);
-            self::assertArrayHasKey('id', $item);
-            self::assertArrayHasKey('name', $item);
+            self::assertCount(2, (array)$item);
+            self::assertObjectHasProperty('id', $item);
+            self::assertObjectHasProperty('name', $item);
         }
     }
 
@@ -102,9 +141,9 @@ class QueryBuilderTest extends AbstractTestCase
 
         self::assertCount(5, $list);
         foreach ($list as $item) {
-            self::assertCount(2, $item);
-            self::assertArrayHasKey('id', $item);
-            self::assertArrayHasKey('name', $item);
+            self::assertCount(2, (array)$item);
+            self::assertObjectHasProperty('id', $item);
+            self::assertObjectHasProperty('name', $item);
         }
     }
 
@@ -120,9 +159,9 @@ class QueryBuilderTest extends AbstractTestCase
 
         self::assertCount(5, $list);
         foreach ($list as $item) {
-            self::assertCount(1, $item);
-            self::assertArrayHasKey('id', $item);
-            self::assertArrayNotHasKey('name', $item);
+            self::assertCount(1, (array)$item);
+            self::assertObjectHasProperty('id', $item);
+            self::assertObjectNotHasProperty('name', $item);
         }
     }
 
@@ -136,9 +175,9 @@ class QueryBuilderTest extends AbstractTestCase
         self::assertCount(5, $list);
 
         foreach ($list as $item) {
-            self::assertCount(2, $item);
-            self::assertArrayHasKey('id', $item);
-            self::assertArrayHasKey('name', $item);
+            self::assertCount(2, (array)$item);
+            self::assertObjectHasProperty('id', $item);
+            self::assertObjectHasProperty('name', $item);
         }
     }
 
@@ -151,9 +190,9 @@ class QueryBuilderTest extends AbstractTestCase
 
         self::assertCount(5, $list);
         foreach ($list as $item) {
-            self::assertCount(2, $item);
-            self::assertArrayHasKey('id', $item);
-            self::assertArrayHasKey('name', $item);
+            self::assertCount(2, (array)$item);
+            self::assertObjectHasProperty('id', $item);
+            self::assertObjectHasProperty('name', $item);
         }
     }
 
@@ -166,9 +205,9 @@ class QueryBuilderTest extends AbstractTestCase
 
         self::assertCount(2, $list);
         foreach ($list as $item) {
-            self::assertCount(2, $item);
-            self::assertArrayHasKey('id', $item);
-            self::assertArrayHasKey('name', $item);
+            self::assertCount(2, (array)$item);
+            self::assertObjectHasProperty('id', $item);
+            self::assertObjectHasProperty('name', $item);
         }
     }
 
@@ -184,9 +223,9 @@ class QueryBuilderTest extends AbstractTestCase
 
         self::assertCount(5, $list);
         foreach ($list as $item) {
-            self::assertCount(1, $item);
-            self::assertArrayHasKey('id', $item);
-            self::assertArrayNotHasKey('name', $item);
+            self::assertCount(1, (array)$item);
+            self::assertObjectHasProperty('id', $item);
+            self::assertObjectNotHasProperty('name', $item);
         }
     }
 }
