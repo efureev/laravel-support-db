@@ -24,10 +24,6 @@ parameters:
             path: tests/*
         -
             identifier: method.notFound
-            message: '#Call to an undefined method Illuminate\\Database\\Schema\\Grammars\\Grammar::compile#'
-            path: tests/*
-        -
-            identifier: method.notFound
             message: '#Call to an undefined method .*Builders\\Indexes\\.*::#'
             path: tests/*
         -

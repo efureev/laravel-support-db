@@ -73,7 +73,7 @@ final class ViewTest extends UnitTestCase
     #[Test]
     public function viewLookupsCoverBothCatalogs(): void
     {
-        $grammar = $this->connection()->getSchemaGrammar();
+        $grammar = $this->grammar();
 
         foreach ([$grammar->compileViewExists(), $grammar->compileViewDefinition()] as $sql) {
             self::assertStringContainsString('pg_views', $sql);
@@ -85,7 +85,7 @@ final class ViewTest extends UnitTestCase
     #[Test]
     public function materializedViewsCanBeRefreshed(): void
     {
-        $grammar = $this->connection()->getSchemaGrammar();
+        $grammar = $this->grammar();
 
         self::assertSame('refresh materialized view "v"', $grammar->compileRefreshMaterializedView('v'));
         self::assertSame(

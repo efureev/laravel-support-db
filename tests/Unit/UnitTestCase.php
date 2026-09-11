@@ -9,6 +9,7 @@ use PDO;
 use PHPUnit\Framework\TestCase;
 use Php\Support\Laravel\Database\Schema\Postgres\Blueprint;
 use Php\Support\Laravel\Database\Schema\Postgres\Connection;
+use Php\Support\Laravel\Database\Schema\Postgres\Grammar;
 
 /**
  * Base class for tests that assert on generated SQL without touching a database.
@@ -34,6 +35,18 @@ abstract class UnitTestCase extends TestCase
         $connection->useDefaultSchemaGrammar();
 
         return $connection;
+    }
+
+    /**
+     * The schema grammar, typed as the package's own — `getSchemaGrammar()` is declared to
+     * return the framework's base class.
+     */
+    protected function grammar(string $prefix = ''): Grammar
+    {
+        /** @var Grammar $grammar */
+        $grammar = $this->connection($prefix)->getSchemaGrammar();
+
+        return $grammar;
     }
 
     protected function blueprint(string $table, string $prefix = ''): Blueprint
