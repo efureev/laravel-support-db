@@ -23,8 +23,8 @@ exactly as before.
 |---|---|---|
 | PHP | >= 8.5 | |
 | Laravel | >= 13.0 | `illuminate/database` |
-| PostgreSQL | >= 13 | `generateUUID()` uses the native `gen_random_uuid()` |
-| | >= 14 | only for `compression()` |
+| PostgreSQL | 13 – 18 | tested against every one of them in CI |
+| | >= 14 | only for `compression()`; on 13 the feature is unavailable |
 
 The package targets PostgreSQL and takes effect on `pgsql` connections only.
 
@@ -73,6 +73,8 @@ registered wins.
     - [Update records and return updated records' columns](#update-records-and-return-updated-records-columns)
     - [Delete records and return deleted records' columns](#delete-records-and-return-deleted-records-columns)
 - [Extensions](#extensions)
+    - [Create Extensions](#create-extensions)
+    - [Dropping Extensions](#dropping-extensions)
 - [Already in Laravel 13](#already-in-laravel-13)
 
 ### Ext Column Types
@@ -109,7 +111,7 @@ $table->geoPath(string $column);
 The IP network datatype stores an IP network in CIDR notation.
 [Doc](https://www.postgresql.org/docs/current/datatype-net-types.html).
 
-IPv4 = 7 bytes  
+IPv4 = 7 bytes
 IPv6 = 19 bytes
 
 ```php
@@ -211,7 +213,7 @@ $table->intArray(string $column);
 
 #### Array of Text
 
-The array of text data type can be used to store a list of string.
+The array of text data type can be used to store a list of strings.
 
 ```php
 $table->textArray(string $column);
@@ -222,7 +224,7 @@ $table->textArray(string $column);
 #### Compression
 
 PostgreSQL 14 introduced the possibility to specify the compression method for toast-able data types. You can choose
-between the default method `pglz`, the recently added `lz4` algorithm and the value `default` to use the server default
+between the default method `pglz`, the `lz4` algorithm and the value `default` to use the server default
 setting.
 [Doc](https://www.postgresql.org/docs/current/storage-toast.html).
 
@@ -277,14 +279,14 @@ Schema::dropViewIfExists('active_users', true);
 
 #### Partial indexes
 
-See: https://www.postgresql.org/docs/current/indexes-partial.html
+See the [PostgreSQL docs on partial indexes](https://www.postgresql.org/docs/current/indexes-partial.html).
 
 Example:
 
 ```php
-use \Php\Support\Laravel\Database\Schema\Postgres\Blueprint;
+use Php\Support\Laravel\Database\Schema\Postgres\Blueprint;
 Schema::create('table', static function (Blueprint $table) {
-    $table->string('code'); 
+    $table->string('code');
     $table->softDeletes();
     $table
         ->partial('code')
@@ -312,7 +314,7 @@ Schema::create('table', static function (Blueprint $table) {
 If you want to delete partial index, use this method:
 
 ```php
-use \Php\Support\Laravel\Database\Schema\Postgres\Blueprint;
+use Php\Support\Laravel\Database\Schema\Postgres\Blueprint;
 
 Schema::create('table', static function (Blueprint $table) {
     $table->dropPartial(['code']);
@@ -335,9 +337,9 @@ Schema::create('table', static function (Blueprint $table) {
 Example:
 
 ```php
-use \Php\Support\Laravel\Database\Schema\Postgres\Blueprint;
+use Php\Support\Laravel\Database\Schema\Postgres\Blueprint;
 Schema::create('table', static function (Blueprint $table) {
-    $table->string('code'); 
+    $table->string('code');
     $table->softDeletes();
     $table
         ->uniquePartial('code')
@@ -348,7 +350,7 @@ Schema::create('table', static function (Blueprint $table) {
 If you want to delete partial unique index, use this method:
 
 ```php
-use \Php\Support\Laravel\Database\Schema\Postgres\Blueprint;
+use Php\Support\Laravel\Database\Schema\Postgres\Blueprint;
 
 Schema::create('table', static function (Blueprint $table) {
     $table->dropUniquePartial(['code']);
@@ -371,25 +373,25 @@ when you try to delete such an index, Constraint will be deleted first, then Uni
 
 #### Create like another table
 
-Create a table from a source-table. Creates a structure only.  
+Create a table from a source-table. Creates a structure only.
 `includingAll` copies all dependencies from source-table.
 
-Creating will be without a data.
+The table is created without data.
 
 ```php
 Schema::create('target_table', function (Blueprint $table) {
-    $table->like('source_table')->includingAll(); 
+    $table->like('source_table')->includingAll();
     $table->ifNotExists();
 });
 ```
 
 #### Create as another table with full data
 
-Copy a table from a source-table. Copy only columns and a data. Without indexes and so on...
+Copy a table from a source-table. Copies only the columns and the data. Without indexes and so on...
 
 ```php
 Schema::create('target_table', function (Blueprint $table) {
-    $table->fromTable('source_table'); 
+    $table->fromTable('source_table');
 });
 ```
 
@@ -494,7 +496,7 @@ Schema::createExtensionIfNotExists('uuid-ossp');
 
 To remove extensions, you may use the `dropExtensionIfExists` methods provided by the Schema facade:
 
-```php 
+```php
 Schema::dropExtensionIfExists('tablefunc');
 ```
 
@@ -504,7 +506,7 @@ You may drop many extensions at once by passing multiple extension names:
 Schema::dropExtensionIfExists('tablefunc', 'fuzzystrmatch');
 ```
 
------
+---
 
 ## Usage
 
@@ -523,7 +525,7 @@ Schema::create(
         $table->generateUUID('id', null);
         $table->tsRange('range');
         $table->numeric('num');
-        
+
     }
 );
 ```
@@ -534,13 +536,17 @@ The package targets **PostgreSQL** only, so a running PostgreSQL instance is req
 
 ### With Docker (recommended)
 
-A `docker-compose.yml` ships a disposable **PostgreSQL 18** instance and a PHP 8.5 runner.
-No local PHP/PostgreSQL installation is needed:
+A `docker-compose.yml` ships a disposable PostgreSQL instance and a PHP runner, so no local
+PHP or PostgreSQL is needed:
 
 ```bash
 composer test:docker
 # equivalent to:
 # docker compose up --build --abort-on-container-exit --exit-code-from app
+
+# Both versions are overridable:
+POSTGRES_VERSION=15 composer test:docker
+PHP_VERSION=8.5 composer test:docker
 ```
 
 ### Locally

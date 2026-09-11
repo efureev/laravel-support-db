@@ -168,7 +168,8 @@ partial и unique-partial индексы с `WHERE` · views, включая mat
   PostgreSQL порядок здесь не гарантирует.
 - **Точные строки PG-деparse.** `CreateIndexTest.php:56,68` с зашитым префиксом `public.`,
   при том что строка 86 в том же файле использует терпимую регулярку `(public.)?`.
-  `CreateViewTest.php:32,46,56,76` зависят от pretty-printer'а PostgreSQL.
+  (Определения view уже нормализуются — PostgreSQL 16 перестал квалифицировать имена колонок,
+  и без нормализации сьют не запускался на 15 и ниже.)
 - **`tearDown`, который сам падает.** `CreateViewTest.php:18-23` делает
   `Schema::dropIfExists('test_table')` без cascade: если тест прервётся до `dropView`, зависимая
   view переживёт, и `tearDown` упадёт, замаскировав исходную ошибку. Соседние
@@ -206,61 +207,27 @@ PHPStan стоит на level 5 с larastan, покрывает `src` и `tests`
 - `Generic.ControlStructures.InlineControlStructure` объявлен дважды (строки 22 и 30-34).
 - Нет `basepath`, `cache`, `parallel`, `colors`, `<config name="php_version">`.
 
-### 5.6. CI
+### 5.6. CI и Docker
 
-`.github/workflows/ci.yml` — 4 job'а, матрица `setup: [basic, lowest, stable] × php: [8.5]`.
-Job `lint` помимо PHPCS гоняет unit-сьют (без БД).
+Закрыто: матрица PostgreSQL 13–18 (все прогнаны локально перед тем, как попасть в конфиг),
+PHPStan и `composer audit` в job `lint`, отдельный job `coverage` с выгрузкой отчёта артефактом,
+`concurrency`-группа, `permissions: contents: write` и релиз на любой `v*`-тег вместо только
+`v*.0`, `composer validate --strict`, дубль `stable` убран. В Docker: bind mount больше не затирает
+собранный `vendor` (анонимный том), `composer.lock` попадает в образ, зависимости ставятся до
+копирования исходников, версии PHP и PostgreSQL параметризованы, порт PG не публикуется на хост.
 
-- **Нет coverage.** `phpunit.xml:6-13` настраивает clover/html/text/xml, Dockerfile ставит pcov,
-  `composer phpunit-cover` определён — но все job'ы ставят `coverage: none`, а `composer test`
-  запускает `phpunit --no-coverage`. CodeClimate убран в 4.0.0 без замены.
-- **`basic` и `stable` функционально идентичны:** `composer update --prefer-dist` против
-  `composer update --prefer-dist --prefer-stable`; `minimum-stability` в `composer.json`
-  не задан, значит stable и так дефолт. 1 из 3 job'ов — чистое дублирование.
-- **`lowest` + PHP 8.5 скорее всего не резолвится:** `--prefer-lowest` тянет
-  `orchestra/testbench` 11.0.0, чьё ограничение по PHP предшествует 8.5.
-- **Одна версия PostgreSQL** (`postgres:18`) при том, что ассерты завязаны на PG-специфичный
-  deparse. Регрессии на PG 15-17 будут не видны.
-- PHPCS выполняется **7 раз**: один раз отдельным job'ом и ещё 6 внутри `composer test`.
-- **Нет блока `permissions`.** Job `release` вызывает `softprops/action-gh-release@v2`
-  с `GITHUB_TOKEN`; при read-only дефолте организации релиз не создастся. Нужен `contents: write`.
-- **`release` срабатывает только на теги, оканчивающиеся на `.0`** (строка 135) — все патч-релизы
-  (`v4.0.1`) молча остаются без GitHub-релиза.
-- `on: [push, pull_request]` без `concurrency`-группы → PR из того же репозитория гоняет
-  всю матрицу дважды.
-- Ключ кэша по `hashFiles('**/composer.json')` при `composer update` и незакоммиченном
-  `composer.lock` даёт невоспроизводимую резолюцию зависимостей.
+Осталось:
 
-### 5.7. Docker
+- Ключ кэша Composer построен на `hashFiles('**/composer.json')` при `composer update` — точность
+  кэша невысока, но `composer.lock` для библиотеки не коммитится, так что это осознанный компромисс.
 
-`docker-compose.yml:6-7` монтирует `.:/app`, **затеняя собранный в образе `/app/vendor`**.
-Поскольку `vendor` исключён в `.dockerignore:3`, на чистом клоне без локального
-`composer install` bind mount подставит пустой `/app/vendor`, и `composer test` упадёт
-на «vendor/bin/phpcs not found». Сейчас работает только потому, что на машине разработчика
-`vendor/` собран локально.
-
-Прочее:
-
-- `.dockerignore:8` исключает `composer.lock` → `composer install` в образе деградирует
-  до полного `update`. Сборки невоспроизводимы и не совпадают с локальной резолюцией.
-- `.docker/Dockerfile:30` — `COPY . /app` **до** `composer install` на строке 32:
-  любая правка исходника инвалидирует слой зависимостей.
-- База образа `php:8.4-cli-alpine` — только 8.4, без `ARG PHP_VERSION`, тогда как CI
-  тестирует 8.4 и 8.5.
-- `docker-compose.yml:25-26` публикует 5432 на хост — конфликт с локальным PostgreSQL.
-  Тестовым контейнерам публикация не нужна.
-- `postgres:18-alpine` в compose против `postgres:18` (Debian) в CI: разные базовые образы,
-  а значит потенциально разные locale/collation — ровно то, на чём завязаны строковые
-  сравнения в `CreatePartialIndexTest`.
-- Запуск от root без `COMPOSER_ALLOW_SUPERUSER=1`.
-
-### 5.8. Зависимости и безопасность
+### 5.7. Зависимости и безопасность
 
 `composer audit` чист и запускается в CI. Уязвимый `squizlabs/php_codesniffer` поднят
 до `^3.13.6`. Остальные advisory приходили транзитивно через `orchestra/testbench` в dev
 и на потребителей библиотеки не влияли.
 
-### 5.9. Гигиена репозитория
+### 5.8. Гигиена репозитория
 
 - `.gitignore` в состоянии `MM`: в рабочем дереве игнорируется `phpunit.xml.dist`,
   в индексе — `phpunit.xml`. При этом `phpunit.xml` **отслеживается** git'ом, то есть
@@ -330,19 +297,11 @@ fetch mode и диспатчат `StatementPrepared`; регистр SQL выр�
 
 ### Инфраструктура
 
-- PHPStan level 6+ (аннотации типов массивов).
-
-- Матрица PostgreSQL 15/16/17/18 — ассерты завязаны на PG-специфичный deparse.
-- Coverage-репорт в CI; `permissions: contents: write` для `release`;
-  `release` на любой `v*`-тег, а не только `*.0`; `concurrency`-группа;
-  схлопнуть дублирующие `basic`/`stable`.
-- `phpunit.xml.dist` в репозиторий, `phpunit.xml` — в `.gitignore`; развести расхождение
-  индекса и рабочего дерева.
-- Docker: анонимный volume на `/app/vendor` (или `composer install` в entrypoint),
-  `composer.lock` внутрь образа, `COPY composer.json` перед `composer install`,
-  `ARG PHP_VERSION`, убрать публикацию порта 5432.
-- Обновить регулярку дат в `.github/workflows/lint/rules/changelog.js:16` — сейчас
-  ломается с 2030 года.
+- PHPStan level 6+ — ~90 находок, почти все `missingType.iterableValue` на сигнатурах,
+  форму которых диктует фреймворк.
+- Точные строки PG-деparse в `CreateIndexTest` (см. 5.3) и позиционный доступ к неупорядоченной
+  выборке `pg_indexes` в `CreateTableLikeTest`.
+- Транзакционная изоляция тестов вместо `db:wipe` в `setUp()`.
 
 ### Стратегическая рекомендация
 

@@ -32,6 +32,14 @@ Check MD [online][check-online].
   in `ArrayOfTextTest`, now fixed along with converting the test migration to the anonymous-class
   form Laravel has used since 9.
 - PHPUnit fails on warnings, notices, deprecations, risky tests and output during tests.
+- CI runs the suite against PostgreSQL 13 through 18 — it used to test one version while the
+  assertions depend on PostgreSQL's own SQL rendering. It also publishes a coverage report as an
+  artifact, cancels superseded runs, and creates a release for every `v*` tag rather than only
+  `v*.0`, which silently skipped every patch release.
+- `composer test:docker` works on a fresh clone. The bind mount used to shadow the `vendor/`
+  built into the image, so the run died on a missing binary unless you happened to have installed
+  dependencies on the host. PHP and PostgreSQL versions are now overridable:
+  `POSTGRES_VERSION=15 composer test:docker`.
 - `readme.md` gains a description, a requirements table (including the PostgreSQL versions the
   features need), sections for `numeric()` and GIN indexes, a note on what Laravel 13 now does
   natively, and Contributing/License sections.
@@ -41,6 +49,12 @@ Check MD [online][check-online].
 
 ### Fixed
 
+- `CompressionTest` asserted only that the table exists, so the compression modifier was
+  effectively untested. It now reads `pg_attribute.attcompression` back, covers `lz4` as well as
+  `pglz`, and skips below PostgreSQL 14 — the version the feature needs.
+- View assertions no longer depend on how a particular PostgreSQL renders a view: 15 qualifies
+  column names in `pg_get_viewdef()` output and 16 does not, which stopped the suite from running
+  on anything below 16.
 - `RETURNING` rows from `updateAndReturn()` / `deleteAndReturn()` were fetched with a hardcoded
   `PDO::FETCH_ASSOC` that bypassed `Connection::prepared()`. They were the only result set on the
   connection shaped as arrays, a configured fetch mode was ignored, and the `StatementPrepared`
