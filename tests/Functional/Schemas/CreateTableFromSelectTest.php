@@ -12,7 +12,6 @@ use Php\Support\Laravel\Database\Tests\Helpers\IndexAssertions;
 use Php\Support\Laravel\Database\Tests\Helpers\TableAssertions;
 use PHPUnit\Framework\Attributes\Test;
 
-
 class CreateTableFromSelectTest extends AbstractTestCase
 {
     use TableAssertions;
@@ -24,9 +23,12 @@ class CreateTableFromSelectTest extends AbstractTestCase
     #[Test]
     public function createTableFromSelect(): void
     {
-        Schema::create(self::TGT_TABLE, function (Blueprint $table) {
-            $table->fromSelect('select t1.id, t1.name from ' . self::SRC_TABLE . ' t1');
-        });
+        Schema::create(
+            self::TGT_TABLE,
+            function (Blueprint $table) {
+                $table->fromSelect('select t1.id, t1.name from ' . self::SRC_TABLE . ' t1');
+            }
+        );
 
         $this->seeTable(self::TGT_TABLE);
 
@@ -54,26 +56,32 @@ class CreateTableFromSelectTest extends AbstractTestCase
             ->insert(
                 [
                     [
-                        'extra' => 'extra text',
-                        'src_id' => 1,
+                        'extra'   => 'extra text',
+                        'src_id'  => 1,
                         'enabled' => true,
                     ],
                     [
-                        'extra' => 'dis text',
-                        'src_id' => 2,
+                        'extra'   => 'dis text',
+                        'src_id'  => 2,
                         'enabled' => false,
                     ],
                 ]
             );
 
 
-        Schema::create(self::TGT_TABLE, function (Blueprint $table) use ($tbl) {
-            $table->fromSelect(
-                'select t1.id, t2.enabled, t2.extra from ' . self::SRC_TABLE . ' t1 ' .
-                'join ' . $tbl . ' t2 on t1.id = t2.src_id ' .
-                'where t2.enabled = true'
-            );
-        });
+        Schema::create(
+            self::TGT_TABLE,
+            function (Blueprint $table) use ($tbl) {
+                $sql = <<<'SQL'
+                    select t1.id, t2.enabled, t2.extra
+                    from %s t1
+                    join %s t2 on t1.id = t2.src_id
+                    where t2.enabled = true
+                    SQL;
+
+                $table->fromSelect(sprintf($sql, self::SRC_TABLE, $tbl));
+            }
+        );
 
         $this->seeTable(self::TGT_TABLE);
 
@@ -102,23 +110,26 @@ class CreateTableFromSelectTest extends AbstractTestCase
             ->insert(
                 [
                     [
-                        'key' => 'ru',
+                        'key'   => 'ru',
                         'title' => 'RU',
-                        'sort' => 1,
+                        'sort'  => 1,
                     ],
                     [
-                        'key' => 'en',
+                        'key'   => 'en',
                         'title' => 'EN',
-                        'sort' => 2,
+                        'sort'  => 2,
                     ],
                 ]
             );
 
-        Schema::create(self::TGT_TABLE, function (Blueprint $table) use ($tbl) {
-            $table->fromSelect(
-                'select gen_random_uuid() as id, key, title, sort from ' . $tbl
-            );
-        });
+        Schema::create(
+            self::TGT_TABLE,
+            function (Blueprint $table) use ($tbl) {
+                $table->fromSelect(
+                    'select gen_random_uuid() as id, key, title, sort from ' . $tbl
+                );
+            }
+        );
 
         $this->seeTable(self::TGT_TABLE);
 
@@ -130,11 +141,14 @@ class CreateTableFromSelectTest extends AbstractTestCase
         $this->assertDatabaseCount(self::TGT_TABLE, 2);
 
 
-        Schema::create(self::TGT_TABLE . '_1', function (Blueprint $table) use ($tbl) {
-            $table->fromSelect(
-                'select gen_random_uuid() as id, * from ' . $tbl
-            );
-        });
+        Schema::create(
+            self::TGT_TABLE . '_1',
+            function (Blueprint $table) use ($tbl) {
+                $table->fromSelect(
+                    'select gen_random_uuid() as id, * from ' . $tbl
+                );
+            }
+        );
 
         $this->seeTable(self::TGT_TABLE . '_1');
 

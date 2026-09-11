@@ -167,7 +167,7 @@ trait WheresBuilder
         return preg_replace('/^(and|or)\s+/i', '', $value, 1);
     }
 
-    private static function build(Grammar $grammar, BaseBlueprint $blueprint, Fluent $command): array
+    protected static function build(Grammar $grammar, BaseBlueprint $blueprint, Fluent $command): array
     {
         return array_map(
             static function (array $where) use ($grammar, $blueprint): string {

@@ -18,7 +18,7 @@ class CreatePartialIndexTest extends AbstractTestCase
 {
     use TableAssertions;
     use IndexAssertions;
-    
+
     #[Test]
     #[DataProvider('provideIndexes')]
     public function createPartial(string $expected, Closure $callback): void

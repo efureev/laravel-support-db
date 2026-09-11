@@ -17,9 +17,12 @@ final class CreateTableTest extends UnitTestCase
     #[Test]
     public function doubleSpacesInsideADefaultValueAredPreserved(): void
     {
-        $sql = $this->sqlForCreate('t', static function (Blueprint $table): void {
-            $table->string('greeting')->default('hello  world');
-        });
+        $sql = $this->sqlForCreate(
+            't',
+            static function (Blueprint $table): void {
+                $table->string('greeting')->default('hello  world');
+            }
+        );
 
         self::assertStringContainsString("default 'hello  world'", $sql[0]);
     }
@@ -27,10 +30,13 @@ final class CreateTableTest extends UnitTestCase
     #[Test]
     public function doubleSpacesInsideFromSelectAreaPreserved(): void
     {
-        $sql = $this->sqlFor('t', static function (Blueprint $table): void {
-            $table->create();
-            $table->fromSelect("select 'a  b' as label from src");
-        });
+        $sql = $this->sqlFor(
+            't',
+            static function (Blueprint $table): void {
+                $table->create();
+                $table->fromSelect("select 'a  b' as label from src");
+            }
+        );
 
         self::assertStringContainsString("select 'a  b' as label from src", $sql[0]);
     }
@@ -42,26 +48,41 @@ final class CreateTableTest extends UnitTestCase
     #[DataProvider('tableVariants')]
     public function tableStatementLayoutIsUnchanged(bool $temporary, bool $ifNotExists, string $expected): void
     {
-        $sql = $this->sqlForCreate('t', static function (Blueprint $table) use ($temporary, $ifNotExists): void {
-            if ($temporary) {
-                $table->temporary();
-            }
+        $sql = $this->sqlForCreate(
+            't',
+            static function (Blueprint $table) use ($temporary, $ifNotExists): void {
+                if ($temporary) {
+                    $table->temporary();
+                }
 
-            if ($ifNotExists) {
-                $table->ifNotExists();
-            }
+                if ($ifNotExists) {
+                    $table->ifNotExists();
+                }
 
-            $table->string('c');
-        });
+                $table->string('c');
+            }
+        );
 
         self::assertSame($expected, $sql[0]);
     }
 
     public static function tableVariants(): iterable
     {
-        yield 'plain' => [false, false, 'create table "t" ("c" varchar(255) not null)'];
-        yield 'if not exists' => [false, true, 'create table if not exists "t" ("c" varchar(255) not null)'];
-        yield 'temporary' => [true, false, 'create temporary table "t" ("c" varchar(255) not null)'];
+        yield 'plain' => [
+            false,
+            false,
+            'create table "t" ("c" varchar(255) not null)',
+        ];
+        yield 'if not exists' => [
+            false,
+            true,
+            'create table if not exists "t" ("c" varchar(255) not null)',
+        ];
+        yield 'temporary' => [
+            true,
+            false,
+            'create temporary table "t" ("c" varchar(255) not null)',
+        ];
         yield 'both' => [
             true,
             true,
@@ -72,10 +93,14 @@ final class CreateTableTest extends UnitTestCase
     #[Test]
     public function fromTableAppliesThePrefixAndQuotesTheSource(): void
     {
-        $sql = $this->sqlFor('t', static function (Blueprint $table): void {
-            $table->create();
-            $table->fromTable('src');
-        }, 'pref_');
+        $sql = $this->sqlFor(
+            't',
+            static function (Blueprint $table): void {
+                $table->create();
+                $table->fromTable('src');
+            },
+            'pref_'
+        );
 
         self::assertSame('create table "pref_t" as table "pref_src"', $sql[0]);
     }
@@ -83,10 +108,14 @@ final class CreateTableTest extends UnitTestCase
     #[Test]
     public function likeAppliesThePrefixAndQuotesTheSource(): void
     {
-        $sql = $this->sqlFor('t', static function (Blueprint $table): void {
-            $table->create();
-            $table->like('src');
-        }, 'pref_');
+        $sql = $this->sqlFor(
+            't',
+            static function (Blueprint $table): void {
+                $table->create();
+                $table->like('src');
+            },
+            'pref_'
+        );
 
         self::assertSame('create table "pref_t" (like "pref_src")', $sql[0]);
     }

@@ -47,5 +47,4 @@ class BuilderTest extends AbstractTestCase
         Schema::dropExtensionIfExists('uuid-ossp');
         $this->assertHasNotExtension('uuid-ossp');
     }
-
 }

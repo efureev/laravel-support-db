@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Functional\Types;
+namespace Php\Support\Laravel\Database\Tests\Functional\Types;
 
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
@@ -42,5 +42,4 @@ class ArrayOfTextTest extends AbstractTestCase
 
         $this->assertTypeColumn('test_table', 'test_col', ColumnType::TextArray);
     }
-
 }

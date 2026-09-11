@@ -38,5 +38,4 @@ class GeoPointTest extends AbstractTestCase
 
         static::assertEquals($expected, $value->geo);
     }
-
 }

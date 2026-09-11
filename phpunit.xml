@@ -2,7 +2,10 @@
 <phpunit xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" backupGlobals="false" bootstrap="vendor/autoload.php"
          colors="true" processIsolation="false" executionOrder="random" resolveDependencies="true" stopOnFailure="false"
          xsi:noNamespaceSchemaLocation="https://schema.phpunit.de/13.0/phpunit.xsd" cacheDirectory=".phpunit.cache"
-         backupStaticProperties="false">
+         backupStaticProperties="false"
+         failOnWarning="true" failOnNotice="true" failOnDeprecation="true" failOnRisky="true"
+         failOnEmptyTestSuite="true" beStrictAboutOutputDuringTests="true"
+         displayDetailsOnPhpunitDeprecations="true" displayDetailsOnTestsThatTriggerDeprecations="true">
     <coverage>
         <report>
             <clover outputFile="./storage/coverage/clover.xml"/>

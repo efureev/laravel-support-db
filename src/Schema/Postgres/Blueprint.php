@@ -41,27 +41,18 @@ class Blueprint extends BaseBlueprint
             return $defCol;
         }
 
-        switch (true) {
-            case $default === true:
-                // Native, extension-less UUID generation (PostgreSQL >= 13).
-                $defaultExpression = new Expression('gen_random_uuid()');
-                break;
-
-            case is_callable($default):
-                $defaultExpression = new Expression($default($column));
-                break;
-
-            case $default === null:
-                $defaultExpression = null;
-                $defCol->nullable();
-                break;
-            case $default instanceof Expression:
-                $defaultExpression = $default;
-                break;
+        if ($default === null) {
+            return $defCol->nullable()->default(null);
         }
 
+        $defaultExpression = match (true) {
+            // Native, extension-less UUID generation (PostgreSQL >= 13).
+            $default === true          => new Expression('gen_random_uuid()'),
+            $default instanceof Expression => $default,
+            default                    => new Expression($default($column)),
+        };
 
-        return $defCol->default($defaultExpression ?? null);
+        return $defCol->default($defaultExpression);
     }
 
 
@@ -162,11 +153,14 @@ class Blueprint extends BaseBlueprint
     #[\Override]
     public function addColumn($type, $name, array $parameters = []): ColumnDefinition
     {
-        return $this->addColumnDefinition(
+        /** @var ColumnDefinition $definition the parent returns whatever definition it is given */
+        $definition = $this->addColumnDefinition(
             new ColumnDefinition(
                 array_merge(compact('type', 'name'), $parameters)
             )
         );
+
+        return $definition;
     }
 
     public function createView(string $view, string $select, bool $materialize = false): ViewDefinition

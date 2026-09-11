@@ -40,18 +40,26 @@ final class ModifiersTest extends UnitTestCase
 
         $modifiers = $this->modifiersOf($grammar);
 
-        self::assertSame(['Compression'], array_values(array_filter(
-            $modifiers,
-            static fn(string $modifier): bool => $modifier === 'Compression'
-        )));
+        self::assertSame(
+            ['Compression'],
+            array_values(
+                array_filter(
+                    $modifiers,
+                    static fn(string $modifier): bool => $modifier === 'Compression'
+                )
+            )
+        );
     }
 
     #[Test]
     public function collationSurvivesOnTheCreatePath(): void
     {
-        $sql = $this->sqlForCreate('t', static function (Blueprint $table): void {
-            $table->string('name')->collation('C');
-        });
+        $sql = $this->sqlForCreate(
+            't',
+            static function (Blueprint $table): void {
+                $table->string('name')->collation('C');
+            }
+        );
 
         self::assertStringContainsString('collate "C"', $sql[0]);
     }

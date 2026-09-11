@@ -28,16 +28,25 @@ final class ColumnDefinitionTest extends UnitTestCase
 
     public static function removedModifiers(): iterable
     {
-        yield 'ginIndex' => ['ginIndex', 'Use $table->ginIndex($columns)'];
-        yield 'algorithm' => ['algorithm', 'Use $table->index($columns, $name, $algorithm)'];
+        yield 'ginIndex' => [
+            'ginIndex',
+            'Use $table->ginIndex($columns)',
+        ];
+        yield 'algorithm' => [
+            'algorithm',
+            'Use $table->index($columns, $name, $algorithm)',
+        ];
     }
 
     #[Test]
     public function supportedModifiersStillWork(): void
     {
-        $sql = $this->sqlForCreate('t', static function (Blueprint $table): void {
-            $table->string('c')->compression('lz4')->nullable()->comment('hi');
-        });
+        $sql = $this->sqlForCreate(
+            't',
+            static function (Blueprint $table): void {
+                $table->string('c')->compression('lz4')->nullable()->comment('hi');
+            }
+        );
 
         self::assertStringContainsString('compression lz4', $sql[0]);
         self::assertStringContainsString('null', $sql[0]);
@@ -58,10 +67,13 @@ final class ColumnDefinitionTest extends UnitTestCase
     #[Test]
     public function theTableLevelGinIndexStillWorks(): void
     {
-        $sql = $this->sqlForCreate('t', static function (Blueprint $table): void {
-            $table->textArray('tags');
-            $table->ginIndex('tags');
-        });
+        $sql = $this->sqlForCreate(
+            't',
+            static function (Blueprint $table): void {
+                $table->textArray('tags');
+                $table->ginIndex('tags');
+            }
+        );
 
         self::assertStringContainsString('create index "t_tags_index" on "t" using gin ("tags")', $sql[1]);
     }

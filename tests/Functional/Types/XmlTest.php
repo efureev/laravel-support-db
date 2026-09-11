@@ -28,5 +28,4 @@ class XmlTest extends AbstractTestCase
         static::assertTrue(Schema::hasTable('test_table'));
         $this->assertTypeColumn('test_table', 'xml', ColumnType::Xml);
     }
-
 }

@@ -12,7 +12,6 @@ use Php\Support\Laravel\Database\Tests\Helpers\IndexAssertions;
 use Php\Support\Laravel\Database\Tests\Helpers\TableAssertions;
 use PHPUnit\Framework\Attributes\Test;
 
-
 class CreateTableFromTableTest extends AbstractTestCase
 {
     use TableAssertions;
@@ -24,10 +23,13 @@ class CreateTableFromTableTest extends AbstractTestCase
     #[Test]
     public function createTableFromTable(): void
     {
-        Schema::create(self::TGT_TABLE, function (Blueprint $table) {
-            $table->fromTable(self::SRC_TABLE);
-            $table->ifNotExists();
-        });
+        Schema::create(
+            self::TGT_TABLE,
+            function (Blueprint $table) {
+                $table->fromTable(self::SRC_TABLE);
+                $table->ifNotExists();
+            }
+        );
 
         $this->seeTable(self::TGT_TABLE);
 

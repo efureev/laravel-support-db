@@ -18,7 +18,7 @@ jobs:
           args: './CHANGELOG.md'
 
   lint:
-    name: Coding Standards (PHPCS) and unit tests
+    name: Static analysis and unit tests
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
@@ -49,6 +49,12 @@ jobs:
 
       - name: Run PHPCS
         run: composer phpcs
+
+      - name: Run PHPStan
+        run: composer phpstan
+
+      - name: Audit dependencies
+        run: composer audit
 
       # The unit suite asserts on generated SQL and needs no database, so it gates here
       # rather than behind the PostgreSQL matrix.

@@ -38,5 +38,4 @@ class GeoPathTest extends AbstractTestCase
 
         $this->assertTypeColumn('test_table', 'path', ColumnType::GeoPath);
     }
-
 }

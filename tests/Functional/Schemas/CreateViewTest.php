@@ -10,7 +10,6 @@ use Php\Support\Laravel\Database\Tests\AbstractTestCase;
 use Php\Support\Laravel\Database\Tests\Helpers\ViewAssertions;
 use PHPUnit\Framework\Attributes\Test;
 
-
 class CreateViewTest extends AbstractTestCase
 {
     use ViewAssertions;
@@ -99,6 +98,4 @@ class CreateViewTest extends AbstractTestCase
         );
         //        Facade::clearResolvedInstances();
     }
-
-
 }

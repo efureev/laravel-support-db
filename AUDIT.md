@@ -187,18 +187,6 @@ partial и unique-partial индексы с `WHERE` · views, включая mat
 
 ### 5.2. Структурные пробелы
 
-**Нарушение PSR-4.** `tests/Functional/Types/ArrayOfTextTest.php:5` объявляет
-`namespace Functional\Types;` вместо `Php\Support\Laravel\Database\Tests\Functional\Types`.
-Проверено:
-
-```
-$ composer dump-autoload --optimize --classmap-authoritative
-Class Functional\Types\ArrayOfTextTest ... does not comply with psr-4 autoloading standard. Skipping.
-Class CreateTestTable ... does not comply with psr-4 autoloading standard. Skipping.
-```
-
-Сейчас тест проходит только потому, что PHPUnit подхватывает файлы напрямую.
-
 **Что не покрыто вообще:** `CompressionModifier::compileChange()`; materialized views (ни одного
 вхождения `materialize` в `tests/`); ветка `bindValues()` для `ATTR_EMULATE_PREPARES`;
 `$blueprint->temporary`; параметр `$algorithm`; `hasIndex($index, 'primary')`;
@@ -240,54 +228,18 @@ Class CreateTestTable ... does not comply with psr-4 autoloading standard. Skipp
 
 ### 5.4. Статический анализ
 
-`phpstan.neon`: **level 1** (второй снизу из 0-10 + max), только `src`, без baseline, без larastan.
-**В CI не запускается вообще** — хотя скрипт `composer phpstan` определён (`composer.json:39`).
+PHPStan стоит на level 5 с larastan, покрывает `src` и `tests`, запускается в CI и зелёный.
+Исключения прописаны точечно и только для `tests/` — это поверхность расширения пакета
+(фасад `Schema`, магия `Fluent`), которую анализатор не видит; `src/` разбирается без единого
+исключения.
 
-**`composer phpstan` красный прямо сейчас, на самом низком уровне.** Проверено на текущем HEAD:
-
-```
-src/ServiceProvider.php:40: Call to an undefined method Illuminate\Database\Query\Builder::addUpdatedAtColumn().
-src/ServiceProvider.php:40: Call to an undefined method Illuminate\Database\Query\Builder::toBase().
-src/ServiceProvider.php:47: Call to an undefined method Illuminate\Database\Query\Builder::toBase().
-[ERROR] Found 3 errors
-```
-
-Причина — макросы на `Eloquent\Builder` (`ServiceProvider.php:37-49`): внутри замыканий PHPStan
-выводит `$this` как `Query\Builder`. Лечится larastan либо явным `@var` в замыкании. Важен сам
-факт: команда падает, и этого никто не замечает ровно потому, что она не в CI.
-
-На level 6 — **142 ошибки**:
-
-| Количество | Идентификатор |
-|---|---|
-| 58 | `missingType.iterableValue` |
-| 34 | `missingType.generics` |
-| 16 | `missingType.parameter` |
-| 14 | `method.notFound` |
-| 5 | `return.type` |
-| 4 | `argument.templateType` |
-| 3 | `missingType.return` |
-| 2 | `staticClassAccess.privateMethod` |
-| 2 | `property.notFound` |
-| по 1 | `instanceof.alwaysTrue`, `isset.property`, `deadCode.unreachable`, `argument.type` |
-
-Содержательные среди них — `return.type` на методах `Blueprint`, чьи `@return`-теги обещают
-`*Definition`-заглушки вместо реального `Fluent`, и `property.notFound` там, где грамматика
-читает атрибуты Fluent. Остальные `method.notFound` — ожидаемые следствия расширения
-фреймворка и лечатся через larastan + честные типы.
-
-> Замер сделан на момент аудита; часть ошибок с тех пор ушла вместе с правками. Порядок
-> величины остаётся тот же, точное число стоит перемерить перед поднятием level.
+Осталось: **level 6+** добавляет ~90 находок, почти все `missingType.iterableValue` на сигнатурах,
+форму которых диктует фреймворк. Отдельный проход.
 
 ### 5.5. PHPCS
 
 `.phpcs.xml`:
 
-- Строка 5: `<file>src</file>` — **`tests/` не проверяется**. Отсюда и нарушение PSR-4,
-  и закомментированные блоки кода в тестах. Исключение для `tests/bootstrap.php`
-  на строках 95-97 — мёртвая конфигурация.
-- Строки 2-3: ruleset называется «PSR2» и описан как «The PSR2 coding standard»,
-  а на строке 4 подключает `PSR12`.
 - `Generic.Formatting.MultipleStatementAlignment` (строки 64-69, `error=true`) требует
   выравнивания `=` по вертикали — этого нет ни в PSR-12, ни в PER-CS 2.0, и php-cs-fixer
   с большинством IDE-форматтеров активно это ломают обратно.
@@ -303,7 +255,6 @@ src/ServiceProvider.php:47: Call to an undefined method Illuminate\Database\Quer
 `.github/workflows/ci.yml` — 4 job'а, матрица `setup: [basic, lowest, stable] × php: [8.5]`.
 Job `lint` помимо PHPCS гоняет unit-сьют (без БД).
 
-- **Нет шага PHPStan.** Статический анализ не enforced.
 - **Нет coverage.** `phpunit.xml:6-13` настраивает clover/html/text/xml, Dockerfile ставит pcov,
   `composer phpunit-cover` определён — но все job'ы ставят `coverage: none`, а `composer test`
   запускает `phpunit --no-coverage`. CodeClimate убран в 4.0.0 без замены.
@@ -349,20 +300,9 @@ Job `lint` помимо PHPCS гоняет unit-сьют (без БД).
 
 ### 5.8. Зависимости и безопасность
 
-`composer audit` на текущей резолюции показывает **22 advisory в 4 пакетах**:
-
-| Пакет | Advisories | Тяжесть для пакета |
-|---|---|---|
-| `league/commonmark` | 10 (DoS, XSS в `AttributesExtension`) | транзитивная dev-зависимость через `laravel/framework` |
-| `guzzlehttp/guzzle` | 9 (обход host-проверок, утечка cookie/Proxy-Authorization) | транзитивная dev-зависимость |
-| `guzzlehttp/psr7` | 2 (host confusion, CRLF-инъекция) | транзитивная dev-зависимость |
-| `squizlabs/php_codesniffer` | 1 — CVE-2026-67434, OS command injection, затронуты `<3.13.6` | **прямая dev-зависимость**, в `composer.json` стоит `^3.11` |
-
-На потребителей библиотеки это не влияет: в `require` только `illuminate/database` и `ext-pdo`,
-все перечисленные пакеты приходят через `orchestra/testbench` → `laravel/framework` в dev.
-Но `squizlabs/php_codesniffer` стоит поднять до `^3.13.6` явно — сейчас `^3.11` разрешает
-уязвимую версию, а CI делает `composer update` без lock-файла, то есть резолюция каждый раз
-непредсказуема. Заодно стоит добавить шаг `composer audit` в CI.
+`composer audit` чист и запускается в CI. Уязвимый `squizlabs/php_codesniffer` поднят
+до `^3.13.6`. Остальные advisory приходили транзитивно через `orchestra/testbench` в dev
+и на потребителей библиотеки не влияли.
 
 ### 5.9. Гигиена репозитория
 
@@ -443,13 +383,7 @@ CREATE TABLE. Любое улучшение Laravel в этом методе т�
 
 ### v5.0.0 — следующий релиз (BC break, без deprecation-периода)
 
-**Блок 1. Качество.** Починить три текущие ошибки `composer phpstan` (5.4); PHPStan level 6
-+ larastan, **в CI**; `composer audit` в CI и явный `squizlabs/php_codesniffer: ^3.13.6` (5.8);
-PHPCS на `tests` в дополнение к `src`; `#[CoversClass]` и
-`failOnWarning`/`failOnDeprecation`/`failOnRisky` в `phpunit.xml`; починить PSR-4
-в `ArrayOfTextTest`.
-
-**Блок 2. Документация.** Переписать `readme.md`: заполнить Description, добавить Requirements
+**Блок 1. Документация.** Переписать `readme.md`: заполнить Description, добавить Requirements
 (PHP, Laravel, минимальные PG для `gen_random_uuid()` и `COMPRESSION`), починить оставшиеся неработающие
 примеры из 4.1, задокументировать пропущенные методы и факт подмены connection factory,
 добавить раздел «что теперь умеет сам Laravel 13» (3.2). Восстановить блок `Query\Builder`
@@ -463,8 +397,10 @@ PHPCS на `tests` в дополнение к `src`; `#[CoversClass]` и
 
 ### Инфраструктура
 
+- PHPStan level 6+ (аннотации типов массивов).
+
 - Матрица PostgreSQL 15/16/17/18 — ассерты завязаны на PG-специфичный deparse.
-- PHPStan и coverage-репорт в CI; `permissions: contents: write` для `release`;
+- Coverage-репорт в CI; `permissions: contents: write` для `release`;
   `release` на любой `v*`-тег, а не только `*.0`; `concurrency`-группа;
   схлопнуть дублирующие `basic`/`stable`.
 - `phpunit.xml.dist` в репозиторий, `phpunit.xml` — в `.gitignore`; развести расхождение

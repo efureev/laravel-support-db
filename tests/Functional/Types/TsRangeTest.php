@@ -29,7 +29,6 @@ class TsRangeTest extends AbstractTestCase
 
         static::assertTrue(Schema::hasTable('test_table'));
         $this->assertTypeColumn('test_table', 'range', ColumnType::TsRange);
-
     }
 
     #[Test]
@@ -45,6 +44,5 @@ class TsRangeTest extends AbstractTestCase
 
         static::assertTrue(Schema::hasTable('test_table'));
         $this->assertTypeColumn('test_table', 'range', ColumnType::TsRange);
-
     }
 }

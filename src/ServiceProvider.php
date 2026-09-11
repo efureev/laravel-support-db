@@ -7,6 +7,7 @@ namespace Php\Support\Laravel\Database;
 use Illuminate\Database\Connection;
 use Illuminate\Database\DatabaseServiceProvider;
 use Illuminate\Database\Eloquent\Builder;
+use Php\Support\Laravel\Database\Query\Builder as QueryBuilder;
 use Php\Support\Laravel\Database\Schema\Postgres\Connection as PostgresConnection;
 
 class ServiceProvider extends DatabaseServiceProvider
@@ -48,15 +49,21 @@ class ServiceProvider extends DatabaseServiceProvider
     {
         Builder::macro(
             'updateAndReturn',
-            function ($values, string ...$columns) {
-                return $this->toBase()->updateAndReturn($this->addUpdatedAtColumn($values), ...$columns);
+            function (array $values, string ...$columns): array {
+                /** @var QueryBuilder $query */
+                $query = $this->toBase();
+
+                return $query->updateAndReturn($this->addUpdatedAtColumn($values), ...$columns);
             }
         );
 
         Builder::macro(
             'deleteAndReturn',
-            function (string ...$columns) {
-                return $this->toBase()->deleteAndReturn(...$columns);
+            function (string ...$columns): array {
+                /** @var QueryBuilder $query */
+                $query = $this->toBase();
+
+                return $query->deleteAndReturn(...$columns);
             }
         );
     }

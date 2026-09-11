@@ -17,6 +17,7 @@ use Php\Support\Laravel\Database\ServiceProvider;
 use Php\Support\Laravel\Database\Tests\AbstractTestCase;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\Attributes\Test;
+use Generator;
 use ReflectionMethod;
 
 class ConnectionTest extends AbstractTestCase
@@ -80,9 +81,7 @@ class ConnectionTest extends AbstractTestCase
     public function boolTrueBindingsWorks($value): void
     {
         $table = 'test_table';
-        $data = [
-            'field' => $value,
-        ];
+        $data  = ['field' => $value];
 
         Schema::create(
             $table,
@@ -103,9 +102,7 @@ class ConnectionTest extends AbstractTestCase
     public function intBindingsWorks($value): void
     {
         $table = 'test_table';
-        $data = [
-            'field' => $value,
-        ];
+        $data  = ['field' => $value];
         Schema::create(
             $table,
             static function (Blueprint $table) {
@@ -123,9 +120,7 @@ class ConnectionTest extends AbstractTestCase
     public function stringBindingsWorks(): void
     {
         $table = 'test_table';
-        $data = [
-            'field' => 'string',
-        ];
+        $data  = ['field' => 'string'];
         Schema::create(
             $table,
             static function (Blueprint $table) {
@@ -142,9 +137,7 @@ class ConnectionTest extends AbstractTestCase
     public function nullBindingsWorks(): void
     {
         $table = 'test_table';
-        $data = [
-            'field' => null,
-        ];
+        $data  = ['field' => null];
         Schema::create(
             $table,
             static function (Blueprint $table) {
@@ -163,9 +156,7 @@ class ConnectionTest extends AbstractTestCase
     public function dateTimeBindingsWorks($value): void
     {
         $table = 'test_table';
-        $data = [
-            'field' => $value,
-        ];
+        $data  = ['field' => $value];
         Schema::create(
             $table,
             static function (Blueprint $table) {
@@ -179,30 +170,19 @@ class ConnectionTest extends AbstractTestCase
     }
 
 
-    /**
-     * @return void
-     */
-    /*protected function setUp(): void
-    {
-        parent::setUp();
-
-        Facade::clearResolvedInstances();
-    }*/
-
-
-    public static function boolDataProvider(): ?\Generator
+    public static function boolDataProvider(): Generator
     {
         yield 'true' => [true];
         yield 'false' => [false];
     }
 
-    public static function intDataProvider(): ?\Generator
+    public static function intDataProvider(): Generator
     {
         yield 'zero' => [0];
         yield 'non-zero' => [10];
     }
 
-    public static function dateDataProvider(): ?\Generator
+    public static function dateDataProvider(): Generator
     {
         yield 'as string' => ['2019-01-01 13:12:22'];
         yield 'as Carbon object' => [new Carbon('2019-01-01 13:12:22')];

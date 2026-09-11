@@ -25,7 +25,7 @@ class ArrayOfUuidTest extends AbstractTestCase
             'test_table',
             static function (Blueprint $table) {
                 $table->increments('id');
-//                $table->string('data')->compression('lz4');
+            //                $table->string('data')->compression('lz4');
                 $table->uuidArray('test_col');
                 $table->ginIndex('test_col');
             }
@@ -43,5 +43,4 @@ class ArrayOfUuidTest extends AbstractTestCase
 
         $this->assertTypeColumn('test_table', 'test_col', ColumnType::UuidArray);
     }
-
 }

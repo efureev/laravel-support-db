@@ -55,7 +55,7 @@ class NumericTest extends AbstractTestCase
             'test_table',
             static function (Blueprint $table) {
                 $table->increments('id');
-                $table->numeric('num', 10,2);
+                $table->numeric('num', 10, 2);
             }
         );
 

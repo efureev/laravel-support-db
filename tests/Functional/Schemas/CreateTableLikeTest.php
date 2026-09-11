@@ -12,7 +12,6 @@ use Php\Support\Laravel\Database\Tests\Helpers\IndexAssertions;
 use Php\Support\Laravel\Database\Tests\Helpers\TableAssertions;
 use PHPUnit\Framework\Attributes\Test;
 
-
 class CreateTableLikeTest extends AbstractTestCase
 {
     use TableAssertions;
@@ -24,10 +23,13 @@ class CreateTableLikeTest extends AbstractTestCase
     #[Test]
     public function createTableLikeOtherTable(): void
     {
-        Schema::create(self::TGT_TABLE, function (Blueprint $table) {
-            $table->like(self::SRC_TABLE);
-            $table->ifNotExists();
-        });
+        Schema::create(
+            self::TGT_TABLE,
+            function (Blueprint $table) {
+                $table->like(self::SRC_TABLE);
+                $table->ifNotExists();
+            }
+        );
 
         $this->assertCompareTables(self::SRC_TABLE, self::TGT_TABLE);
 
@@ -41,10 +43,13 @@ class CreateTableLikeTest extends AbstractTestCase
     #[Test]
     public function createTableLikeOtherTableIncludeAll(): void
     {
-        Schema::create(self::TGT_TABLE, function (Blueprint $table) {
-            $table->like(self::SRC_TABLE)->includingAll();
-            $table->ifNotExists();
-        });
+        Schema::create(
+            self::TGT_TABLE,
+            function (Blueprint $table) {
+                $table->like(self::SRC_TABLE)->includingAll();
+                $table->ifNotExists();
+            }
+        );
 
         $this->assertCompareTables(self::SRC_TABLE, self::TGT_TABLE);
 

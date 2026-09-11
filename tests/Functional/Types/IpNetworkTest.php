@@ -33,14 +33,11 @@ class IpNetworkTest extends AbstractTestCase
         $value = '192.168/24';
         DB::insert(
             'INSERT INTO test_table VALUES (?)',
-            [
-                $value,
-            ]
+            [$value]
         );
 
         $value = DB::selectOne('select "ip" from test_table');
 
         static::assertEquals("192.168.0.0/24", $value->ip);
     }
-
 }

@@ -10,7 +10,7 @@ use Php\Support\Laravel\Database\Tests\Models\TestModel;
 class TestModelFactory extends Factory
 {
     /**
-     * @var string
+     * @var class-string<TestModel>
      */
     protected $model = TestModel::class;
 

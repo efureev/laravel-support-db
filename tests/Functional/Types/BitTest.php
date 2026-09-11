@@ -30,5 +30,4 @@ class BitTest extends AbstractTestCase
         $this->assertLaravelTypeColumn('test_table', 'blob', 'bit(11)');
         $this->assertPostgresTypeColumn('test_table', 'blob', 'bit');
     }
-
 }

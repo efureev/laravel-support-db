@@ -6,20 +6,35 @@ namespace Php\Support\Laravel\Database\Schema\Postgres;
 
 use Closure;
 use Illuminate\Container\Container;
+use Illuminate\Database\Connection as BaseConnection;
 use Illuminate\Database\Schema\PostgresBuilder;
 
+/**
+ * @property Grammar $grammar
+ */
 class Builder extends PostgresBuilder
 {
-    #[\Override]
-    protected function createBlueprint($table, ?Closure $callback = null)
+    /**
+     * Point the parent's `createBlueprint()` at this package's Blueprint.
+     *
+     * Registering a resolver rather than overriding `createBlueprint()` keeps the framework's
+     * own implementation in play — the override was a verbatim copy of it.
+     */
+    public function __construct(BaseConnection $connection)
     {
-        $connection = $this->connection;
+        parent::__construct($connection);
 
-        if (isset($this->resolver)) {
-            return ($this->resolver)($connection, $table, $callback);
-        }
-
-        return Container::getInstance()->make(Blueprint::class, compact('connection', 'table', 'callback'));
+        $this->blueprintResolver(
+            static fn(BaseConnection $conn, string $table, ?Closure $callback = null): Blueprint
+                => Container::getInstance()->make(
+                    Blueprint::class,
+                    [
+                        'connection' => $conn,
+                        'table'      => $table,
+                        'callback'   => $callback,
+                    ]
+                )
+        );
     }
 
     /**
@@ -29,18 +44,17 @@ class Builder extends PostgresBuilder
      */
     public function dropIfExistsCascade(string $table): void
     {
-        $this->build(
-            tap(
-                $this->createBlueprint($table),
-                static function ($blueprint) {
-                    $blueprint->dropIfExists()->cascade();
-                }
-            )
-        );
+        /** @var Blueprint $blueprint */
+        $blueprint = $this->createBlueprint($table);
+
+        $blueprint->dropIfExists()['cascade'] = true;
+
+        $this->build($blueprint);
     }
 
     public function createView(string $view, string $select, bool $materialize = false): void
     {
+        /** @var Blueprint $blueprint */
         $blueprint = $this->createBlueprint($view);
         $blueprint->createView($view, $select, $materialize);
         $this->build($blueprint);
@@ -48,6 +62,7 @@ class Builder extends PostgresBuilder
 
     public function createViewOrReplace(string $view, string $select, bool $materialize = false): void
     {
+        /** @var Blueprint $blueprint */
         $blueprint = $this->createBlueprint($view);
         $blueprint->createViewOrReplace($view, $select, $materialize);
         $this->build($blueprint);
@@ -55,6 +70,7 @@ class Builder extends PostgresBuilder
 
     public function dropView(string $view, bool $materialize = false): void
     {
+        /** @var Blueprint $blueprint */
         $blueprint = $this->createBlueprint($view);
         $blueprint->dropView($view, $materialize);
         $this->build($blueprint);
@@ -62,6 +78,7 @@ class Builder extends PostgresBuilder
 
     public function dropViewIfExists(string $view, bool $materialize = false): void
     {
+        /** @var Blueprint $blueprint */
         $blueprint = $this->createBlueprint($view);
         $blueprint->dropViewIfExists($view, $materialize);
         $this->build($blueprint);
@@ -74,7 +91,7 @@ class Builder extends PostgresBuilder
     public function refreshMaterializedView(string $view, bool $concurrently = false): void
     {
         $this->getConnection()->statement(
-            $this->getConnection()->getSchemaGrammar()->compileRefreshMaterializedView($view, $concurrently)
+            $this->grammar->compileRefreshMaterializedView($view, $concurrently)
         );
     }
 
@@ -121,19 +138,19 @@ class Builder extends PostgresBuilder
 
     public function createExtension(string $name): void
     {
-        $name = $this->getConnection()->getSchemaGrammar()->wrap($name);
+        $name = $this->grammar->wrap($name);
         $this->getConnection()->statement("create extension $name");
     }
 
     public function createExtensionIfNotExists(string $name): void
     {
-        $name = $this->getConnection()->getSchemaGrammar()->wrap($name);
+        $name = $this->grammar->wrap($name);
         $this->getConnection()->statement("create extension if not exists $name");
     }
 
     public function dropExtensionIfExists(string ...$name): void
     {
-        $names = $this->getConnection()->getSchemaGrammar()->naming($name);
+        $names = $this->grammar->naming($name);
         $this->getConnection()->statement("drop extension if exists $names");
     }
 }

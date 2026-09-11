@@ -131,10 +131,11 @@ class CreateIndexTest extends AbstractTestCase
             }
         );
 
+        // The lookup is by index name, so the pattern only needs the parts under test:
+        // the access method and the predicate.
         $this->assertRegExpIndex(
             'test_table_tags_partial',
-            '/CREATE INDEX test_table_tags_partial ON (public\.)?test_table USING gin \(tags\)'
-            . ' WHERE \(deleted_at IS NULL\)/'
+            '/USING gin \(tags\) WHERE \(deleted_at IS NULL\)/'
         );
     }
 

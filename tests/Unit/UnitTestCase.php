@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace Php\Support\Laravel\Database\Tests\Unit;
 
+use LogicException;
+use PDO;
 use PHPUnit\Framework\TestCase;
 use Php\Support\Laravel\Database\Schema\Postgres\Blueprint;
 use Php\Support\Laravel\Database\Schema\Postgres\Connection;
@@ -19,10 +21,14 @@ abstract class UnitTestCase extends TestCase
     protected function connection(string $prefix = ''): Connection
     {
         $connection = new Connection(
-            static fn() => null,
+            // Never invoked: `toSql()` does not reach the PDO instance.
+            static fn(): PDO => throw new LogicException('A unit test must not open a connection.'),
             'testing',
             $prefix,
-            ['driver' => 'pgsql', 'prefix_indexes' => true]
+            [
+                'driver'         => 'pgsql',
+                'prefix_indexes' => true,
+            ]
         );
 
         $connection->useDefaultSchemaGrammar();
@@ -56,10 +62,14 @@ abstract class UnitTestCase extends TestCase
      */
     protected function sqlForCreate(string $table, callable $definition, string $prefix = ''): array
     {
-        return $this->sqlFor($table, static function (Blueprint $blueprint) use ($definition): void {
-            $blueprint->create();
-            $definition($blueprint);
-        }, $prefix);
+        return $this->sqlFor(
+            $table,
+            static function (Blueprint $blueprint) use ($definition): void {
+                $blueprint->create();
+                $definition($blueprint);
+            },
+            $prefix
+        );
     }
 
     /**

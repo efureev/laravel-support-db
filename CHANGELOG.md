@@ -23,6 +23,15 @@ Check MD [online][check-online].
 - `dropView()` accepts a `$materialize` flag, so materialized views can finally be dropped.
 - A database-free `Unit` test suite asserting on generated SQL, split out from `Functional`
   in `phpunit.xml`. Run it with `composer phpunit-unit`.
+- PHPStan is on level 5 with larastan, covers `src` and `tests`, and runs in CI — it used to sit
+  on level 1, never run there, and fail when it did. `src` is analysed without a single
+  exemption; the handful of ignores are scoped to `tests` and cover only the extension points
+  static analysis cannot follow through the `Schema` facade and `Fluent`'s magic dispatch.
+- `composer audit` runs in CI, and `squizlabs/php_codesniffer` is pinned past CVE-2026-67434.
+- PHPCS now lints `tests` as well as `src` — which is how a PSR-4 violation had gone unnoticed
+  in `ArrayOfTextTest`, now fixed along with converting the test migration to the anonymous-class
+  form Laravel has used since 9.
+- PHPUnit fails on warnings, notices, deprecations, risky tests and output during tests.
 
 ### Removed
 

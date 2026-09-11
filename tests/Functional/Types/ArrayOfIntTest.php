@@ -30,5 +30,4 @@ class ArrayOfIntTest extends AbstractTestCase
 
         $this->assertTypeColumn('test_table', 'numbers', ColumnType::IntArray);
     }
-
 }

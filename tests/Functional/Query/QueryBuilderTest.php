@@ -15,9 +15,7 @@ use PHPUnit\Framework\Attributes\Test;
 
 class QueryBuilderTest extends AbstractTestCase
 {
-    protected array $migrations = [
-        '2021_11_15_000000_create_test_table.php',
-    ];
+    protected array $migrations = ['2021_11_15_000000_create_test_table.php'];
 
     #[Test]
     public function createCustomQuery(): void

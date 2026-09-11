@@ -1,8 +1,43 @@
+includes:
+    - vendor/larastan/larastan/extension.neon
+
 parameters:
-  level: '1'
-  paths:
-    - src
-#    - tests
-#  ignoreErrors:
-#    -
-#      identifier: trait.unused
+    level: 5
+    paths:
+        - src
+        - tests
+
+    # Level 6+ adds ~90 findings, nearly all `missingType.iterableValue` on signatures whose shape
+    # the framework dictates. Worth a pass of its own — tracked in AUDIT.md.
+
+    ignoreErrors:
+        # This package extends the framework at points PHPStan cannot follow: the Schema facade
+        # resolves to our Builder only at runtime, `$table->string()` is typed as the framework's
+        # ColumnDefinition, and the index builders dispatch through `__call`. `src/` is analysed
+        # without any of these exemptions — they exist because the test suite calls the package
+        # the way its users do, through the facade.
+        -
+            identifier: staticMethod.notFound
+            message: '#Call to an undefined static method Illuminate\\Support\\Facades\\Schema::#'
+            path: tests/*
+        -
+            identifier: method.notFound
+            message: '#Call to an undefined method Illuminate\\Database\\Schema\\ColumnDefinition::#'
+            path: tests/*
+        -
+            identifier: method.notFound
+            message: '#Call to an undefined method Illuminate\\Database\\Schema\\Grammars\\Grammar::compile#'
+            path: tests/*
+        -
+            identifier: method.notFound
+            message: '#Call to an undefined method .*Builders\\Indexes\\.*::#'
+            path: tests/*
+        -
+            identifier: method.notFound
+            message: '#Call to an undefined method Illuminate\\Database\\(Query|Eloquent)\\Builder.*::(updateAndReturn|deleteAndReturn)\(\)#'
+            path: tests/*
+        # Testbench builds its environment before any config is cached, which is the situation
+        # this rule exists to prevent.
+        -
+            identifier: larastan.noEnvCallsOutsideOfConfig
+            path: tests/AbstractTestCase.php
