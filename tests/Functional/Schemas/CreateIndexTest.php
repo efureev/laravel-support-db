@@ -51,9 +51,9 @@ class CreateIndexTest extends AbstractTestCase
     public function createIndexWithSchema(): void
     {
         $this->createIndexDefinition();
-        $this->assertSameIndex(
+        $this->assertRegExpIndex(
             'test_table_name_unique',
-            'CREATE UNIQUE INDEX test_table_name_unique ON public.test_table USING btree (name)'
+            '/CREATE UNIQUE INDEX test_table_name_unique ON (public\.)?test_table USING btree \(name\)/'
         );
     }
 
@@ -62,9 +62,9 @@ class CreateIndexTest extends AbstractTestCase
     public function createIndexWithoutSchema(): void
     {
         $this->createIndexDefinition();
-        $this->assertSameIndex(
+        $this->assertRegExpIndex(
             'test_table_name_unique',
-            'CREATE UNIQUE INDEX test_table_name_unique ON public.test_table USING btree (name)'
+            '/CREATE UNIQUE INDEX test_table_name_unique ON (public\.)?test_table USING btree \(name\)/'
         );
     }
 

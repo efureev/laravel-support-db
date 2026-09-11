@@ -156,32 +156,21 @@ partial и unique-partial индексы с `WHERE` · views, включая mat
 
 ### 5.3. Хрупкость
 
-- **Нет транзакционной изоляции.** Ни `RefreshDatabase`, ни `DatabaseTransactions`.
-  Изоляция держится на `artisan db:wipe` в `setUp()` (`AbstractTestCase.php:78`), результат
-  которого не проверяется. `AbstractTestCase` не определяет `tearDown()` вообще.
-- **`executionOrder="random"`** (`phpunit.xml:3`) при общей нетранзакционной БД и глобальных
-  мутациях (создание/удаление `uuid-ossp` в `BuilderTest.php:19,31,41,47`) — порядко-зависимо
-  по построению.
-- **Позиционный доступ к неупорядоченной выборке.** `tests/Helpers/IndexAssertions.php:72` —
-  `SELECT * FROM pg_indexes WHERE tablename = ?` **без `ORDER BY`**, а
-  `CreateTableLikeTest.php:56-63` индексирует результат как `$srcList[0]`, `[1]`, `[2]`.
-  PostgreSQL порядок здесь не гарантирует.
-- **Точные строки PG-деparse.** `CreateIndexTest.php:56,68` с зашитым префиксом `public.`,
-  при том что строка 86 в том же файле использует терпимую регулярку `(public.)?`.
-  (Определения view уже нормализуются — PostgreSQL 16 перестал квалифицировать имена колонок,
-  и без нормализации сьют не запускался на 15 и ниже.)
-- **`tearDown`, который сам падает.** `CreateViewTest.php:18-23` делает
-  `Schema::dropIfExists('test_table')` без cascade: если тест прервётся до `dropView`, зависимая
-  view переживёт, и `tearDown` упадёт, замаскировав исходную ошибку. Соседние
-  `CreateTableFromSelectTest.php:181` и `CreateTableLikeTest.php:96` делают это правильно —
-  через `dropIfExistsCascade`.
-- `tests/bootstrap.php` — мёртвый файл: `phpunit.xml:2` подключает `vendor/autoload.php`.
-- `tests/Helpers/Helper.php:9-20` возвращает `null` для неизвестного класса, после чего
-  `ColumnAssertions.php:46-48` вызывает `->phpType()` на `null` → фатал вместо читаемого провала.
-- `tests/Models/TestModel.php:16` задаёт `$keyType = 'string'` для UUID-ключа, но не ставит
-  `public $incrementing = false`.
-- `tests/database/migrations/2021_11_15_000000_create_test_table.php:7` — именованный класс
-  миграции в стиле до Laravel 9, `up()`/`down()` без типов.
+Закрыто: `pg_indexes` читается с `ORDER BY`, а позиционный доступ к нему заменён сравнением
+множеств (он ассертил порядок, которого PostgreSQL не обещает — правка это и вскрыла);
+точные строки PG-деparse с зашитым `public.` заменены терпимыми регулярками во всех четырёх
+местах; `tearDown` в `CreateViewTest` делает cascade и больше не маскирует исходную ошибку
+зависимой view; результат `db:wipe` проверяется; `TestModel` объявляет `$incrementing = false`
+для UUID-ключа; мёртвый `tests/bootstrap.php` и мёртвое исключение под него в `.phpcs.xml`
+удалены.
+
+Осталось:
+
+- **Нет транзакционной изоляции.** Держится на `db:wipe` в `setUp()`. Перевод на
+  `DatabaseTransactions` упрётся в `refreshMaterializedView(concurrently: true)`, который
+  PostgreSQL запрещает внутри транзакционного блока, — потребуется исключение для этого теста.
+- **`executionOrder="random"`** при общей нетранзакционной БД и глобальных мутациях
+  (создание/удаление `uuid-ossp` в `BuilderTest`).
 
 ### 5.4. Статический анализ
 

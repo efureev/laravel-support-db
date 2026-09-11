@@ -16,7 +16,9 @@ class CreateViewTest extends AbstractTestCase
 
     protected function tearDown(): void
     {
-        Schema::dropIfExists('test_table');
+        // Cascade: a test aborting before it drops its view would otherwise leave a dependency
+        // behind, and the failing tearDown would mask the original failure.
+        Schema::dropIfExistsCascade('test_table');
 
         parent::tearDown();
     }

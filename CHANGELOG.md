@@ -52,6 +52,12 @@ Check MD [online][check-online].
 - `CompressionTest` asserted only that the table exists, so the compression modifier was
   effectively untested. It now reads `pg_attribute.attcompression` back, covers `lz4` as well as
   `pglz`, and skips below PostgreSQL 14 — the version the feature needs.
+- The index helper read `pg_indexes` without an `ORDER BY` while `CreateTableLikeTest` indexed
+  the result positionally, asserting on an order PostgreSQL does not promise. Adding the ordering
+  is what exposed it; the test now compares sets of index names.
+- Index assertions no longer hardcode the `public.` schema prefix, and `CreateViewTest` drops its
+  table with cascade so an aborted test cannot leave a dependent view behind and have the failing
+  teardown mask the original error.
 - View assertions no longer depend on how a particular PostgreSQL renders a view: 15 qualifies
   column names in `pg_get_viewdef()` output and 16 does not, which stopped the suite from running
   on anything below 16.

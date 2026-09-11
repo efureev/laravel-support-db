@@ -75,7 +75,9 @@ abstract class AbstractTestCase extends TestCase
 
         Facade::clearResolvedInstances();
 
-        $this->artisan('db:wipe');
+        // Asserted: a failed wipe would otherwise surface as a confusing error in whichever
+        // test happened to run next.
+        $this->artisan('db:wipe')->assertSuccessful();
 
         $this->installMigrations();
     }
