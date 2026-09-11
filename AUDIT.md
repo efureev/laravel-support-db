@@ -114,64 +114,20 @@ partial и unique-partial индексы с `WHERE` · views, включая mat
 
 ## 4. Документация
 
-### 4.1. `readme.md` — примеры, которые не работают
+Закрыто: неработающие примеры readme, пустой `## Description`, секция Requirements,
+`.meta.php` (миксины для `Query\Builder` и `ColumnDefinition`, лишние `@method` убраны),
+бэкфилл семи пропущенных версий CHANGELOG с датами и compare-ссылками, регулярка дат
+в линтере, которая ломалась с 2030 года.
 
-| Строка | Проблема |
-|---|---|
-| `readme.md:73` | В секции «Geo Path» показан `$table->geoPoint(...)` вместо `geoPath()`. Копипаст из предыдущей секции — создаст колонку неверного типа |
-| `readme.md:55` | `$table->bit(string $column, int $length = 1)` — дефолта в коде нет (`Blueprint.php:21`), `$table->bit('col')` даёт `ArgumentCountError` |
-| `readme.md:345` | `'select gen_random_uuid() as id, * ' . $tbl` — **пропущено `from`**, невалидный SQL |
-| `readme.md:130` | `uuid_generate_v5()` вызван без обязательных аргументов (namespace, name) |
-| `readme.md:133` | `uuid_generate_v2()` — такой функции в `uuid-ossp` не существует (есть v1, v1mc, v3, v4, v5) |
-| `readme.md:120,123` | Комментарии обещают колонку `cid`, код создаёт `id` и `fk_id` |
-| `readme.md:335,343` | `self::TGT_TABLE` — неопределённая константа, перенесённая дословно из теста |
+Осталось:
 
-### 4.2. `readme.md` — пробелы
-
-- `readme.md:10` — заголовок `## Description` **пустой**. У пакета нигде нет описания в одну фразу.
-- Нет секции Requirements. Минимальные версии PostgreSQL разбросаны по тексту и нигде не сведены:
-  `gen_random_uuid()` требует **PG >= 13**, `COMPRESSION` — **PG >= 14**.
-- Не документированы: `ginIndex()`, `numeric()`, второй параметр `primaryUUID()`.
-- Не сказано главного архитектурного факта: пакет **подменяет connection factory**, и все
-  `pgsql`-соединения становятся `Php\Support\...\Postgres\Connection`. Это важно для всех,
-  у кого стоит другой пакет, делающий то же самое.
-- Не описано расхождение: Eloquent-макрос `updateAndReturn` автоматически добавляет `updated_at`
-  (`ServiceProvider.php:40`), путь через `toBase()` — нет.
-- `readme.md:43` — в оглавлении «deleted» вместо «updated» (копипаст соседней строки).
-- Нет секций Contributing и License, хотя `LICENSE` (MIT) в репозитории есть.
-- `readme.md:273` — «PostgresSQL» (лишняя `S`).
-- `readme.md:5` — Codacy-бейдж на мёртвом хосте `api.codacy.com` и ссылка на устаревшую схему
-  URL `/manual/`.
-
-### 4.3. `.meta.php`
-
-- Строки 40-49: блок mixin для `Illuminate\Database\Query\Builder` **закомментирован**.
-  Из-за этого основная документированная форма `Model::toBase()->updateAndReturn(...)`
-  (`readme.md:364,374`) не имеет подсказок в IDE вообще.
-- Нет mixin для `Illuminate\Database\Schema\ColumnDefinition` → `->compression()` невидим
-  в IDE на любой стандартной колонке. Это ровно та задача, ради которой `.meta.php` и существует.
-- В списке `@method` для `Blueprint` отсутствуют ~20 публичных методов (все типы колонок,
-  `fromSelect`, `fromTable`, `dropPartial`, `dropUniquePartial`, `ginIndex`, `hasIndex`).
-  Частично компенсируется `@mixin` на строке 34 — что делает строки 26-32 избыточным дублированием.
-- Строки 28-31 обещают возврат `PartialDefinition`/`UniqueDefinition`/`ViewDefinition`;
-  в реальности возвращаются `PartialBuilder`/`UniqueBuilder`/голый `Fluent`.
-
-### 4.4. `CHANGELOG.md`
-
-Актуален для последнего релиза: все заявления в `[4.0.0] - 2026-06-04` проверены и верны,
-`[unreleased]` пуст корректно.
-
-Проблемы накопленные:
-
-- **Нет записей для 7 выпущенных тегов:** `v0.0.2`, `v1.0.1`, `v1.3.1`, `v1.4.1`, `v1.6.1`,
-  `v2.2.0`, `v2.2.1`.
-- Расхождение дат: `[2.0.0] - 2024-03-13` против тега `v2.0.0` от **2024-04-07** (25 дней);
-  `[1.1.0]` и `[1.8.0]` — на день.
-- Из-за пропущенных версий compare-ссылки перескакивают релизы: `[3.0.0]` сравнивает
-  `v2.1.0...v3.0.0`, пропуская 2.2.0 и 2.2.1.
-- Висячее определение ссылки `[0.0.2]` на строке 207 без соответствующей секции.
-- `.github/workflows/lint/rules/changelog.js:16` — регулярка дат зашита как `20[12][0-9]`,
-  то есть начиная с 2030 года любой заголовок будет отвергаться.
+- Оглавление readme не перечисляет подсекции `#### Create views` / `#### Dropping views`
+  и подобные — только их родителей.
+- Мелочи разметки: голый URL на `readme.md` в секции Partial indexes (MD034), `-----`
+  вместо `---` как тематический разделитель, `use \Php\Support\...` с ведущим слешем
+  в примерах, висящие пробелы в конце строк.
+- Английский: «store a list of string» → strings; «Creating will be without a data.»;
+  «Copy only columns and a data.»; «recently added `lz4`» — lz4 появился в PG 14 в 2021.
 
 ---
 
@@ -383,11 +339,8 @@ CREATE TABLE. Любое улучшение Laravel в этом методе т�
 
 ### v5.0.0 — следующий релиз (BC break, без deprecation-периода)
 
-**Блок 1. Документация.** Переписать `readme.md`: заполнить Description, добавить Requirements
-(PHP, Laravel, минимальные PG для `gen_random_uuid()` и `COMPRESSION`), починить оставшиеся неработающие
-примеры из 4.1, задокументировать пропущенные методы и факт подмены connection factory,
-добавить раздел «что теперь умеет сам Laravel 13» (3.2). Восстановить блок `Query\Builder`
-и добавить mixin `ColumnDefinition` в `.meta.php`. Забэкфиллить 7 пропущенных версий в CHANGELOG.
+**Блок 1. Документация — остаток.** Подсекции в оглавлении readme, мелочи разметки
+и английского (см. §4).
 
 ### v5.1+ — функциональное развитие
 

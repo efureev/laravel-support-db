@@ -1,24 +1,50 @@
 # PHP Laravel Database Support
 
-![](https://img.shields.io/badge/php->=8.5-blue.svg)
-![](https://img.shields.io/badge/Laravel->=13.0-red.svg)
-[![Codacy Badge](https://api.codacy.com/project/badge/Grade/5c8b9e85897f4c65b5a017d16f6af6cb)](https://app.codacy.com/manual/efureev/laravel-support-db)
-![PHP Database Laravel Package](https://github.com/efureev/laravel-support-db/workflows/PHP%20Database%20Laravel%20Package/badge.svg)
+![PHP >= 8.5](https://img.shields.io/badge/php->=8.5-blue.svg)
+![Laravel >= 13.0](https://img.shields.io/badge/Laravel->=13.0-red.svg)
+[![Codacy Badge](https://app.codacy.com/project/badge/Grade/5c8b9e85897f4c65b5a017d16f6af6cb)](https://app.codacy.com/gh/efureev/laravel-support-db/dashboard)
+[![CI](https://github.com/efureev/laravel-support-db/actions/workflows/ci.yml/badge.svg)](https://github.com/efureev/laravel-support-db/actions/workflows/ci.yml)
 [![Latest Stable Version](https://poser.pugx.org/efureev/laravel-support-db/v/stable?format=flat)](https://packagist.org/packages/efureev/laravel-support-db)
 [![Total Downloads](https://poser.pugx.org/efureev/laravel-support-db/downloads)](https://packagist.org/packages/efureev/laravel-support-db)
 
 ## Description
 
+Laravel's schema builder covers what every database can do. This package adds the PostgreSQL
+parts it leaves out: partial and partial-unique indexes, views (including materialized ones),
+`CREATE TABLE ... LIKE / AS SELECT / AS TABLE`, extensions, column compression, `RETURNING` on
+`UPDATE` and `DELETE`, and shorthands for PostgreSQL-only column types.
+
+It is an extension, not a replacement — everything the framework already does keeps working
+exactly as before.
+
+## Requirements
+
+| | Version | Notes |
+|---|---|---|
+| PHP | >= 8.5 | |
+| Laravel | >= 13.0 | `illuminate/database` |
+| PostgreSQL | >= 13 | `generateUUID()` uses the native `gen_random_uuid()` |
+| | >= 14 | only for `compression()` |
+
+The package targets PostgreSQL and takes effect on `pgsql` connections only.
+
 ## Install
 
 ```bash
-composer require efureev/laravel-support-db "^4.0"
+composer require efureev/laravel-support-db
 ```
+
+It registers itself through package discovery. On boot it points `pgsql` connections at its own
+connection class via `Illuminate\Database\Connection::resolverFor()`, so `DB::connection()`
+returns `Php\Support\Laravel\Database\Schema\Postgres\Connection` and `Schema::` reaches the
+extended builder. Worth knowing if another package resolves the same driver — the last one
+registered wins.
 
 ## Contents
 
 - [Ext Column Types](#ext-column-types)
     - [Bit](#bit)
+    - [Numeric](#numeric)
     - [GeoPoint](#geo-point)
     - [GeoPath](#geo-path)
     - [IP Network](#ip-network)
@@ -44,9 +70,10 @@ composer require efureev/laravel-support-db "^4.0"
     - [Create as another table with data from select query](#create-as-another-table-with-data-from-select-query)
     - [Drop Cascade If Exists](#drop-cascade-if-exists)
 - [Extended Query Builder](#extended-query-builder)
-    - [Update records and return deleted records` columns](#update-records-and-return-updated-records-columns)
-    - [Delete records and return deleted records` columns](#delete-records-and-return-deleted-records-columns)
+    - [Update records and return updated records' columns](#update-records-and-return-updated-records-columns)
+    - [Delete records and return deleted records' columns](#delete-records-and-return-deleted-records-columns)
 - [Extensions](#extensions)
+- [Already in Laravel 13](#already-in-laravel-13)
 
 ### Ext Column Types
 
@@ -56,7 +83,7 @@ Bit String.
 [Doc](https://www.postgresql.org/docs/current/datatype-bit.html).
 
 ```php
-$table->bit(string $column, int $length = 1);
+$table->bit(string $column, int $length);
 ```
 
 #### Geo Point
@@ -74,7 +101,7 @@ Paths are represented by lists of connected points.
 [Doc](https://www.postgresql.org/docs/current/datatype-geometric.html#id-1.5.7.16.9).
 
 ```php
-$table->geoPoint(string $column);
+$table->geoPath(string $column);
 ```
 
 #### IP Network
@@ -101,41 +128,61 @@ $table->tsRange(string $column);
 $table->timestampRange(string $column);
 ```
 
+#### Numeric
+
+Like `decimal`, but the precision and the scale are both optional — omit them for an unconstrained
+`numeric`.
+[Doc](https://www.postgresql.org/docs/current/datatype-numeric.html).
+
+```php
+$table->numeric('amount');          // numeric
+$table->numeric('amount', 10);      // numeric(10)
+$table->numeric('amount', 10, 2);   // numeric(10, 2)
+```
+
 #### UUID
 
 The `primaryUUID` can be used to store UUID-type as primary key.
 
 ```php
-$table->primaryUUID(); // create PK UUID-column with name `id`
-$table->primaryUUID('custom_name'); // create PK UUID-column with name `custom_name`
+$table->primaryUUID();                 // PK UUID column named `id`
+$table->primaryUUID('custom_name');    // PK UUID column named `custom_name`
+$table->primaryUUID('id', false);      // no generated default — you supply the value
 ```
+
+The second argument is passed straight to `generateUUID()` below, so it accepts the same values.
 
 The `generateUUID` can be used to store UUID-type with/without index (or FK).
 
 On a row creating generates a value with the native `gen_random_uuid()` function (PostgreSQL >= 13, no extension required).
 
 ```php
-// create UUID-column with name `id`. Generate UUID-value by DB (gen_random_uuid()).
+use Illuminate\Database\Query\Expression;
+
+// `id`, generated by the database with gen_random_uuid().
 $table->generateUUID();
 
-// create UUID-column with name `cid`. Generate UUID-value by DB.
+// `cid`, generated by the database.
 $table->generateUUID('cid');
 
-// create UUID-column with name `cid`. NOT generate UUID-value by DB. Set `nullable`. Default value: `NULL`. 
+// `id`, nullable, no generated value — default NULL.
 $table->generateUUID('id', null);
 
-// create UUID-column with name `cid`. NOT generate UUID-value by DB. Set `nullable`. Default value: `NULL`. Create Index by this column.
+// `fk_id`, nullable with no generated value, plus an index.
 $table->generateUUID('fk_id', null)->index();
 
- // create UUID-column with name `fk_id`. NOT generate UUID-value by DB.
+// `fk_id`, not null and with no generated value — you supply it.
 $table->generateUUID('fk_id', false);
 
-// create UUID-column with name `fk_id`. Generate UUID-value by DB with custom value.
-$table->generateUUID('fk_id', fn($column)=>'uuid_generate_v5()');
+// `fk_id`, generated by an expression you build from the column name.
+$table->generateUUID('fk_id', fn(string $column) => "uuid_generate_v5(uuid_ns_url(), '$column')");
 
-// create UUID-column with name `fk_id`. Generate UUID-value by DB with custom value.
-$table->generateUUID('fk_id', new Expression('uuid_generate_v2()'));
+// `fk_id`, generated by an expression you pass verbatim.
+$table->generateUUID('fk_id', new Expression('uuid_generate_v4()'));
 ```
+
+> The last two use `uuid-ossp` functions, which need the extension:
+> `Schema::createExtensionIfNotExists('uuid-ossp')`. The default `gen_random_uuid()` does not.
 
 #### XML
 
@@ -317,7 +364,7 @@ ALTER TABLE examples
     ADD CONSTRAINT examples_unique_constraint USING INDEX examples_new_col_idx;
 ```
 
-When you create a unique index without conditions, PostgresSQL will create Unique Constraint automatically for you, and
+When you create a unique index without conditions, PostgreSQL will create Unique Constraint automatically for you, and
 when you try to delete such an index, Constraint will be deleted first, then Unique Index.
 
 ### Extended Schema
@@ -365,7 +412,7 @@ Schema::create('target_table', function (Blueprint $table) {
     );
 });
 
-// or
+// The two examples below need this source table first:
 
 $tbl = 'source_table';
 Schema::create(
@@ -379,7 +426,7 @@ Schema::create(
 
 // or
 
-Schema::create(self::TGT_TABLE, function (Blueprint $table) use ($tbl) {
+Schema::create('target_table', function (Blueprint $table) use ($tbl) {
     $table->fromSelect(
         'select gen_random_uuid() as id, key, title, sort from ' . $tbl
     );
@@ -387,9 +434,9 @@ Schema::create(self::TGT_TABLE, function (Blueprint $table) use ($tbl) {
 
 // or
 
-Schema::create(self::TGT_TABLE, function (Blueprint $table) use ($tbl) {
+Schema::create('target_table', function (Blueprint $table) use ($tbl) {
     $table->fromSelect(
-        'select gen_random_uuid() as id, * ' . $tbl
+        'select gen_random_uuid() as id, * from ' . $tbl
     );
 });
 ```
@@ -405,7 +452,7 @@ Schema::dropIfExistsCascade('table');
 
 ### Extended Query Builder
 
-#### Update records and return updated records` columns
+#### Update records and return updated records' columns
 
 ```php
 $list = Model::toBase()->updateAndReturn(['deleted_at' => now()], 'id', 'name');
@@ -415,7 +462,12 @@ $list = Model::toBase()->updateAndReturn(['deleted_at' => now()], 'id', 'name');
 $list = Model::where(['enabled' => true])->updateAndReturn(['enabled' => false], 'id');
 ```
 
-#### Delete records and return deleted records` columns
+> The two forms differ: through Eloquent the model's `updated_at` is maintained as usual, while
+> `toBase()` drops to the query builder and writes only the columns you pass.
+
+Rows come back as associative arrays, not `stdClass` — unlike `DB::select()`.
+
+#### Delete records and return deleted records' columns
 
 ```php
 $list = Model::toBase()->deleteAndReturn('id', 'name');
@@ -499,3 +551,33 @@ Provide DB connection settings via environment variables (defaults: `forge` / `f
 composer test        # PHPCS + PHPUnit
 composer test-cover  # with coverage (pcov)
 ```
+
+## Already in Laravel 13
+
+Some of what this package used to be needed for now ships with the framework. Reach for these
+first — they are not duplicated here:
+
+| Feature | Native form |
+|---|---|
+| Partial-free unique index options | `$table->unique($cols)->nullsNotDistinct()->deferrable()->initiallyImmediate()` |
+| Index without locking the table | `$table->index($cols)->online()` — `CREATE INDEX CONCURRENTLY` |
+| Index access method | `$table->index($cols, $name, 'gin')` |
+| Arbitrary column type | `$table->rawColumn('c', 'tstzrange')` |
+| Vector / full-text | `$table->vector('embedding', 3)`, `$table->vectorIndex('embedding')`, `$table->tsvector('doc')` |
+| Table and column comments | `$table->comment('...')`, `$table->string('c')->comment('...')` |
+
+## Contributing
+
+Issues and pull requests are welcome. Before opening a PR run the full gate:
+
+```bash
+composer phpcs      # PSR-12 over src and tests
+composer phpstan    # level 5 with larastan
+composer test       # PHPCS + the whole suite, needs PostgreSQL
+```
+
+`composer phpunit-unit` runs the unit suite alone and needs no database.
+
+## License
+
+MIT — see [LICENSE](LICENSE).

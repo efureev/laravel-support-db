@@ -32,6 +32,23 @@ Check MD [online][check-online].
   in `ArrayOfTextTest`, now fixed along with converting the test migration to the anonymous-class
   form Laravel has used since 9.
 - PHPUnit fails on warnings, notices, deprecations, risky tests and output during tests.
+- `readme.md` gains a description, a requirements table (including the PostgreSQL versions the
+  features need), sections for `numeric()` and GIN indexes, a note on what Laravel 13 now does
+  natively, and Contributing/License sections.
+- `.meta.php` covers `Query\Builder` — the block was commented out, so the documented
+  `Model::toBase()->updateAndReturn(...)` had no IDE support at all — and `ColumnDefinition`,
+  which is what makes `->compression()` visible on an ordinary column.
+
+### Fixed
+
+- Broken `readme.md` examples: the Geo Path section showed `geoPoint()`, `bit()` was documented
+  with a default it never had, a `fromSelect()` example was missing its `from`, the UUID examples
+  called `uuid_generate_v2()` (no such function) and `uuid_generate_v5()` without its arguments,
+  and two snippets referenced a constant lifted out of the test suite.
+- `CHANGELOG.md`: seven released tags had no entry (0.0.2, 1.0.1, 1.3.1, 1.4.1, 1.6.1, 2.2.0,
+  2.2.1), three dates disagreed with their tags, and the compare links skipped the missing
+  releases. The changelog linter's date pattern was hardcoded to `20[12][0-9]` and would have
+  rejected every header from 2030 on.
 
 ### Removed
 
@@ -124,6 +141,22 @@ Check MD [online][check-online].
 - Remove the implicit `uuid-ossp` extension dependency from `generateUUID()`
 - Remove the obsolete `.travis.yml`
 
+## [2.2.1] - 2025-02-24
+
+### Added
+
+- Allow `illuminate/database` `^12.0` and `orchestra/testbench` `^10.0` alongside 11.x.
+
+## [2.2.0] - 2024-12-25
+
+### Added
+
+- PHPStan configuration.
+
+### Changed
+
+- Reworked the PHPUnit configuration and the test environment setup.
+
 ## [3.0.0] - 2025-02-24
 
 ### Added
@@ -136,7 +169,7 @@ Check MD [online][check-online].
 
 - Add `TextArrayType`
 
-## [2.0.0] - 2024-03-13
+## [2.0.0] - 2024-04-07
 
 ### Added
 
@@ -177,7 +210,7 @@ Check MD [online][check-online].
 
 - Fixed type declarations
 
-## [1.8.0] - 2022-08-18
+## [1.8.0] - 2022-08-17
 
 ### Added
 
@@ -190,6 +223,12 @@ Check MD [online][check-online].
 - Add ext-column types
 - Geo Point (native PG `point` type)
 - Geo Path (native PG `path` type)
+
+## [1.6.1] - 2021-11-17
+
+### Fixed
+
+- `deleteAndReturn` on the service provider side.
 
 ## [1.6.0] - 2021-11-15
 
@@ -205,12 +244,24 @@ Check MD [online][check-online].
 - Add to `Blueprint` method `fromTable`: Create a table from another table and fills it data from the source-table
 - Add to `Blueprint` method `fromSelect`: Create a table from select query
 
+## [1.4.1] - 2021-11-04
+
+### Changed
+
+- Code style.
+
 ## [1.4.0] - 2021-11-04
 
 ### Added
 
 - Add to `Schema` method `dropIfExistsCascade`
 - Add to `Blueprint` method `like`: Create a table from another table
+
+## [1.3.1] - 2021-10-17
+
+### Changed
+
+- CI runs against a newer PostgreSQL.
 
 ## [1.3.0] - 2021-10-16
 
@@ -227,7 +278,7 @@ Check MD [online][check-online].
   - Array of UUID
   - Array of Integer
 
-## [1.1.0] - 2021-09-27
+## [1.1.0] - 2021-09-28
 
 ### Added
 
@@ -241,6 +292,12 @@ Check MD [online][check-online].
   - `createExtensionIfNotExists`
   - `dropExtensionIfExists`
 
+## [1.0.1] - 2021-04-28
+
+### Fixed
+
+- GitHub Actions workflow.
+
 ## [1.0.0] - 2021-04-28
 
 ### Changed
@@ -253,6 +310,12 @@ Check MD [online][check-online].
 
 - Add Bool `wheres` on Partial index
 
+## [0.0.2] - 2021-01-27
+
+### Added
+
+- Unique partial indexes, the where-clause builder behind them, and the view definitions.
+
 ## [0.0.1] - 2021-01-27
 
 ### Added
@@ -263,7 +326,7 @@ Check MD [online][check-online].
 
 [4.0.0]: https://github.com/efureev/laravel-support-db/compare/v3.0.0...v4.0.0
 
-[3.0.0]: https://github.com/efureev/laravel-support-db/compare/v2.1.0...v3.0.0
+[3.0.0]: https://github.com/efureev/laravel-support-db/compare/v2.2.1...v3.0.0
 
 [2.1.0]: https://github.com/efureev/laravel-support-db/compare/v2.0.0...v2.1.0
 
@@ -279,25 +342,25 @@ Check MD [online][check-online].
 
 [1.8.0]: https://github.com/efureev/laravel-support-db/compare/v1.7.0...v1.8.0
 
-[1.7.0]: https://github.com/efureev/laravel-support-db/compare/v1.6.0...v1.7.0
+[1.7.0]: https://github.com/efureev/laravel-support-db/compare/v1.6.1...v1.7.0
 
 [1.6.0]: https://github.com/efureev/laravel-support-db/compare/v1.5.0...v1.6.0
 
-[1.5.0]: https://github.com/efureev/laravel-support-db/compare/v1.4.0...v1.5.0
+[1.5.0]: https://github.com/efureev/laravel-support-db/compare/v1.4.1...v1.5.0
 
-[1.4.0]: https://github.com/efureev/laravel-support-db/compare/v1.3.0...v1.4.0
+[1.4.0]: https://github.com/efureev/laravel-support-db/compare/v1.3.1...v1.4.0
 
 [1.3.0]: https://github.com/efureev/laravel-support-db/compare/v1.2.0...v1.3.0
 
 [1.2.0]: https://github.com/efureev/laravel-support-db/compare/v1.1.0...v1.2.0
 
-[1.1.0]: https://github.com/efureev/laravel-support-db/compare/v1.0.0...v1.1.0
+[1.1.0]: https://github.com/efureev/laravel-support-db/compare/v1.0.1...v1.1.0
 
 [1.0.0]: https://github.com/efureev/laravel-support-db/releases/tag/v1.0.0
 
-[0.0.3]: https://github.com/efureev/laravel-support-db/releases/tag/v0.0.3
+[0.0.3]: https://github.com/efureev/laravel-support-db/compare/v0.0.2...v0.0.3
 
-[0.0.2]: https://github.com/efureev/laravel-support-db/releases/tag/v0.0.2
+[0.0.2]: https://github.com/efureev/laravel-support-db/compare/v0.0.1...v0.0.2
 
 [0.0.1]: https://github.com/efureev/laravel-support-db/releases/tag/v0.0.1
 
@@ -306,3 +369,9 @@ Check MD [online][check-online].
 [semver]:https://semver.org/spec/v2.0.0.html
 
 [check-online]:https://dlaa.me/markdownlint
+[2.2.1]: https://github.com/efureev/laravel-support-db/compare/v2.2.0...v2.2.1
+[2.2.0]: https://github.com/efureev/laravel-support-db/compare/v2.1.0...v2.2.0
+[1.6.1]: https://github.com/efureev/laravel-support-db/compare/v1.6.0...v1.6.1
+[1.4.1]: https://github.com/efureev/laravel-support-db/compare/v1.4.0...v1.4.1
+[1.3.1]: https://github.com/efureev/laravel-support-db/compare/v1.3.0...v1.3.1
+[1.0.1]: https://github.com/efureev/laravel-support-db/compare/v1.0.0...v1.0.1
