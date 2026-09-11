@@ -36,6 +36,11 @@ Check MD [online][check-online].
   in `ArrayOfTextTest`, now fixed along with converting the test migration to the anonymous-class
   form Laravel has used since 9.
 - PHPUnit fails on warnings, notices, deprecations, risky tests and output during tests.
+- Each test runs inside a transaction that is rolled back, so isolation no longer depends on the
+  order tests happen to run in and the suite is roughly twice as fast. `CREATE EXTENSION` rolls
+  back with everything else, where it used to outlive the run — `db:wipe` does not drop
+  extensions. The wipe still happens, once per process, because without it a single stray table
+  left by an earlier crash cascades into dozens of confusing failures.
 - CI runs the suite against PostgreSQL 13 through 18 — it used to test one version while the
   assertions depend on PostgreSQL's own SQL rendering. It also publishes a coverage report as an
   artifact, cancels superseded runs, and creates a release for every `v*` tag rather than only

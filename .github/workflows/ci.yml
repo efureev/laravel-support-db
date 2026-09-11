@@ -45,9 +45,13 @@ jobs:
         uses: actions/cache@v4
         with:
           path: ${{ steps.composer-cache.outputs.dir }}
-          key: ${{ runner.os }}-composer-${{ hashFiles('**/composer.json') }}
+          # composer.lock is not committed for a library, so the manifest plus the resolution
+          # mode is the most specific key available; restore-keys still warm-starts from a
+          # neighbouring entry.
+          key: ${{ runner.os }}-php${{ matrix.php || '8.5' }}-composer-${{ hashFiles('composer.json') }}
           restore-keys: |
-            ${{ runner.os }}-composer-
+            ${{ runner.os }}-php${{ matrix.php || '8.5' }}-composer-
+            ${{ runner.os }}-
 
       - name: Install Composer dependencies
         run: composer update --prefer-dist --no-interaction
@@ -123,9 +127,13 @@ jobs:
         uses: actions/cache@v4
         with:
           path: ${{ steps.composer-cache.outputs.dir }}
-          key: ${{ runner.os }}-composer-${{ hashFiles('**/composer.json') }}
+          # composer.lock is not committed for a library, so the manifest plus the resolution
+          # mode is the most specific key available; restore-keys still warm-starts from a
+          # neighbouring entry.
+          key: ${{ runner.os }}-php${{ matrix.php || '8.5' }}-composer-${{ hashFiles('composer.json') }}
           restore-keys: |
-            ${{ runner.os }}-composer-
+            ${{ runner.os }}-php${{ matrix.php || '8.5' }}-composer-
+            ${{ runner.os }}-
 
       - name: Validate composer.json
         run: composer validate --strict

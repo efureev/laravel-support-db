@@ -6,6 +6,7 @@ namespace Php\Support\Laravel\Database\Tests;
 
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Testing\Concerns\InteractsWithDatabase;
+use Illuminate\Foundation\Testing\DatabaseTransactions;
 use Illuminate\Support\Facades\Facade;
 use Orchestra\Testbench\TestCase;
 use Php\Support\Laravel\Database\ServiceProvider;
@@ -16,9 +17,25 @@ use Php\Support\Laravel\Database\ServiceProvider;
 abstract class AbstractTestCase extends TestCase
 {
     use InteractsWithDatabase;
+    use DatabaseTransactions {
+        beginDatabaseTransaction as private beginTransactionForTest;
+    }
 
     /** @var list<string> */
     protected array $migrations = [];
+
+    /**
+     * Each test runs inside a transaction that is rolled back afterwards, which is both faster
+     * than wiping the schema and immune to the order tests happen to run in.
+     *
+     * Statements PostgreSQL forbids inside a transaction block — `REFRESH MATERIALIZED VIEW
+     * CONCURRENTLY`, `CREATE INDEX CONCURRENTLY` — cannot use it; such a test opts out and gets
+     * the wipe instead.
+     */
+    protected bool $transactional = true;
+
+    /** Wiping once per process is enough; each test is isolated by its own transaction. */
+    private static bool $databaseWiped = false;
 
     /**
      * Define environment setup.
@@ -76,11 +93,26 @@ abstract class AbstractTestCase extends TestCase
 
         Facade::clearResolvedInstances();
 
-        // Asserted: a failed wipe would otherwise surface as a confusing error in whichever
-        // test happened to run next.
-        $this->artisan('db:wipe')->assertSuccessful();
-
         $this->installMigrations();
+    }
+
+    public function beginDatabaseTransaction(): void
+    {
+        // Rolling back leaves whatever was in the database before the run untouched, so the
+        // suite is no longer self-healing on its own. One wipe per process restores that:
+        // a crashed earlier run, or a stray table, cannot cascade into 30 confusing failures.
+        if (!self::$databaseWiped) {
+            $this->artisan('db:wipe')->assertSuccessful();
+            self::$databaseWiped = true;
+        }
+
+        if ($this->transactional) {
+            $this->beginTransactionForTest();
+
+            return;
+        }
+
+        $this->artisan('db:wipe')->assertSuccessful();
     }
 
     protected function installMigrations(): void

@@ -114,20 +114,10 @@ partial и unique-partial индексы с `WHERE` · views, включая mat
 
 ## 4. Документация
 
-Закрыто: неработающие примеры readme, пустой `## Description`, секция Requirements,
-`.meta.php` (миксины для `Query\Builder` и `ColumnDefinition`, лишние `@method` убраны),
-бэкфилл семи пропущенных версий CHANGELOG с датами и compare-ссылками, регулярка дат
-в линтере, которая ломалась с 2030 года.
-
-Осталось:
-
-- Оглавление readme не перечисляет подсекции `#### Create views` / `#### Dropping views`
-  и подобные — только их родителей.
-- Мелочи разметки: голый URL на `readme.md` в секции Partial indexes (MD034), `-----`
-  вместо `---` как тематический разделитель, `use \Php\Support\...` с ведущим слешем
-  в примерах, висящие пробелы в конце строк.
-- Английский: «store a list of string» → strings; «Creating will be without a data.»;
-  «Copy only columns and a data.»; «recently added `lz4`» — lz4 появился в PG 14 в 2021.
+Закрыто. Неработающие примеры readme, пустой `## Description`, секция Requirements,
+подсекции в оглавлении, мелочи разметки и английского, `.meta.php` (миксины для `Query\Builder`
+и `ColumnDefinition`), бэкфилл семи пропущенных версий CHANGELOG с датами и compare-ссылками,
+регулярка дат в линтере, которая ломалась с 2030 года.
 
 ---
 
@@ -156,21 +146,18 @@ partial и unique-partial индексы с `WHERE` · views, включая mat
 
 ### 5.3. Хрупкость
 
-Закрыто: `pg_indexes` читается с `ORDER BY`, а позиционный доступ к нему заменён сравнением
-множеств (он ассертил порядок, которого PostgreSQL не обещает — правка это и вскрыла);
-точные строки PG-деparse с зашитым `public.` заменены терпимыми регулярками во всех четырёх
-местах; `tearDown` в `CreateViewTest` делает cascade и больше не маскирует исходную ошибку
-зависимой view; результат `db:wipe` проверяется; `TestModel` объявляет `$incrementing = false`
-для UUID-ключа; мёртвый `tests/bootstrap.php` и мёртвое исключение под него в `.phpcs.xml`
-удалены.
+Закрыто. Каждый тест идёт в транзакции, которая откатывается, — изоляция больше не зависит
+от порядка, а `CREATE EXTENSION` в `BuilderTest` откатывается вместе со всем остальным
+(раньше расширение переживало прогон, потому что `db:wipe` расширения не трогает).
+`db:wipe` остался, но выполняется **один раз на процесс**: без него сьют перестаёт
+самовосстанавливаться — проверено, одна мусорная таблица давала 29 ошибок.
 
-Осталось:
+`MaterializedViewTest` от транзакции отказывается: PostgreSQL запрещает
+`REFRESH MATERIALIZED VIEW CONCURRENTLY` внутри транзакционного блока.
 
-- **Нет транзакционной изоляции.** Держится на `db:wipe` в `setUp()`. Перевод на
-  `DatabaseTransactions` упрётся в `refreshMaterializedView(concurrently: true)`, который
-  PostgreSQL запрещает внутри транзакционного блока, — потребуется исключение для этого теста.
-- **`executionOrder="random"`** при общей нетранзакционной БД и глобальных мутациях
-  (создание/удаление `uuid-ossp` в `BuilderTest`).
+Ранее закрыто: `pg_indexes` с `ORDER BY` и сравнение множеств вместо позиций; терпимые
+регулярки вместо зашитого `public.`; `tearDown` с cascade; `TestModel` с `$incrementing = false`;
+удалён мёртвый `tests/bootstrap.php`.
 
 ### 5.4. Статический анализ
 
@@ -201,11 +188,6 @@ PHPStan и `composer audit` в job `lint`, отдельный job `coverage` с 
 `v*.0`, `composer validate --strict`, дубль `stable` убран. В Docker: bind mount больше не затирает
 собранный `vendor` (анонимный том), `composer.lock` попадает в образ, зависимости ставятся до
 копирования исходников, версии PHP и PostgreSQL параметризованы, порт PG не публикуется на хост.
-
-Осталось:
-
-- Ключ кэша Composer построен на `hashFiles('**/composer.json')` при `composer update` — точность
-  кэша невысока, но `composer.lock` для библиотеки не коммитится, так что это осознанный компромисс.
 
 ### 5.7. Зависимости и безопасность
 
@@ -270,29 +252,18 @@ fetch mode и диспатчат `StatementPrepared`; регистр SQL выр�
 
 ## 8. План развития
 
-### v5.0.0 — следующий релиз (BC break, без deprecation-периода)
-
-**Блок 1. Документация — остаток.** Подсекции в оглавлении readme, мелочи разметки
-и английского (см. §4).
-
 ### v5.1+ — функциональное развитие
 
 - `CONCURRENTLY` для partial-индексов — Laravel 13 уже умеет `online()` для обычных.
 - `nullsNotDistinct` для partial-unique — по аналогии с нативным.
 - `orWhere*` в `WhereBuilderTrait`: сейчас есть `$boolean`-параметр, но нет удобных обёрток.
 
-### Инфраструктура
-
-- Транзакционная изоляция тестов вместо `db:wipe` в `setUp()`. Упрётся в
-  `refreshMaterializedView(concurrently: true)`, который PostgreSQL запрещает внутри
-  транзакционного блока, — потребуется исключение для этого теста.
-- Ключ кэша Composer в CI построен на `hashFiles('**/composer.json')` при `composer update`.
-
 ### Стратегическая рекомендация
 
 Главный системный риск пакета — **копирование методов фреймворка вместо расширения**.
-`registerConnectionServices()`, `createBlueprint()`, `affectingStatement()`, `compileCreate()`,
-`removeLeadingBoolean()` скопированы целиком; один из них уже разошёлся с оригиналом.
+На момент аудита целиком скопированы были `registerConnectionServices()`, `createBlueprint()`,
+`affectingStatement()`, `compileCreate()` и `removeLeadingBoolean()`, и один из них уже разошёлся
+с оригиналом. Сейчас копий не осталось: первые четыре либо удалены, либо делегируют родителю.
 Каждое такое место — мина, которая сработает на очередном мажоре Laravel.
 
 Правило на будущее: **не копировать — вызывать `parent::` и дописывать.** Образец есть

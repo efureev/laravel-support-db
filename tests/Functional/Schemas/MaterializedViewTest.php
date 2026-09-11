@@ -21,6 +21,9 @@ class MaterializedViewTest extends AbstractTestCase
 {
     use ViewAssertions;
 
+    // refreshMaterializedView(concurrently: true) cannot run inside a transaction block.
+    protected bool $transactional = false;
+
     protected function setUp(): void
     {
         parent::setUp();
