@@ -6,7 +6,7 @@ namespace Php\Support\Laravel\Database\Tests\Functional\Types;
 
 use Illuminate\Support\Facades\Schema;
 use Php\Support\Laravel\Database\Schema\Postgres\Blueprint;
-use Php\Support\Laravel\Database\Schema\Postgres\Types\NumericType;
+use Php\Support\Laravel\Database\Schema\Postgres\ColumnType;
 use Php\Support\Laravel\Database\Tests\AbstractTestCase;
 use Php\Support\Laravel\Database\Tests\Helpers\ColumnAssertions;
 use PHPUnit\Framework\Attributes\Test;
@@ -28,7 +28,7 @@ class NumericTest extends AbstractTestCase
 
         static::assertTrue(Schema::hasTable('test_table'));
 
-        $this->assertTypeColumn('test_table', 'num', NumericType::class);
+        $this->assertTypeColumn('test_table', 'num', ColumnType::Numeric);
     }
 
     #[Test]
@@ -44,8 +44,8 @@ class NumericTest extends AbstractTestCase
 
         static::assertTrue(Schema::hasTable('test_table'));
 
-        $this->assertLaravelTypeColumn('test_table', 'num', NumericType::TYPE_NAME . '(10,0)');
-        $this->assertPostgresTypeColumn('test_table', 'num', NumericType::TYPE_NAME);
+        $this->assertLaravelTypeColumn('test_table', 'num', ColumnType::Numeric->value . '(10,0)');
+        $this->assertPostgresTypeColumn('test_table', 'num', ColumnType::Numeric->value);
     }
 
     #[Test]
@@ -61,7 +61,7 @@ class NumericTest extends AbstractTestCase
 
         static::assertTrue(Schema::hasTable('test_table'));
 
-        $this->assertLaravelTypeColumn('test_table', 'num', NumericType::TYPE_NAME . '(10,2)');
-        $this->assertPostgresTypeColumn('test_table', 'num', NumericType::TYPE_NAME);
+        $this->assertLaravelTypeColumn('test_table', 'num', ColumnType::Numeric->value . '(10,2)');
+        $this->assertPostgresTypeColumn('test_table', 'num', ColumnType::Numeric->value);
     }
 }

@@ -5,13 +5,14 @@ declare(strict_types=1);
 namespace Php\Support\Laravel\Database\Schema\Postgres\Builders\Indexes\Unique;
 
 use Illuminate\Support\Fluent;
+use Php\Support\Laravel\Database\Schema\Postgres\Builders\Indexes\PartialBuilder;
 
 class UniqueBuilder extends Fluent
 {
     /**
      * Route where-clause calls to the partial-index constraint builder.
      *
-     * Only methods actually declared on `UniquePartialBuilder` are rerouted — `method_exists()`
+     * Only methods actually declared on `PartialBuilder` are rerouted — `method_exists()`
      * is false for Fluent's magic attribute setters, so calls such as `->algorithm('btree')`
      * keep their normal Fluent behaviour and the index stays a plain unique index.
      *
@@ -20,11 +21,11 @@ class UniqueBuilder extends Fluent
      */
     public function __call($method, $parameters)
     {
-        if (!method_exists(UniquePartialBuilder::class, $method)) {
+        if (!method_exists(PartialBuilder::class, $method)) {
             return parent::__call($method, $parameters);
         }
 
-        $constraints = $this->attributes['constraints'] ??= new UniquePartialBuilder();
+        $constraints = $this->attributes['constraints'] ??= new PartialBuilder();
 
         $constraints->$method(...$parameters);
 

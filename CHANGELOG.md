@@ -26,6 +26,17 @@ Check MD [online][check-online].
 
 ### Removed
 
+- The package's `ConnectionFactory`. `pgsql` connections are now routed with
+  `Connection::resolverFor()`, which the framework's own factory consults first, so there is
+  nothing left to subclass. This also drops the hand-copied `registerConnectionServices()` that
+  had drifted from Laravel 13's and silently skipped the `ConcurrencyErrorDetector` and
+  `LostConnectionDetector` bindings.
+- The eleven `Schema\Postgres\Types\*` classes, replaced by the `Schema\Postgres\ColumnType`
+  backed enum. `phpType()` is renamed `laravelType()` — it returns what `Schema::getColumnType()`
+  reports, never a PHP type.
+- `PartialDefinition` and `UniqueDefinition`: `partial()` and `uniquePartial()` return the real
+  `PartialBuilder` / `UniqueBuilder`, which is what the signatures now say.
+- `UniquePartialBuilder`, which was byte-identical to `PartialBuilder`.
 - `Blueprint::hasIndex()`. It resolved the `Schema` facade, i.e. the default connection, ignoring
   the blueprint's own — use the framework's `Schema::hasIndex($table, $index, $type)`, or
   `Schema::connection($name)->hasIndex(...)` to be explicit about the connection.
@@ -66,6 +77,9 @@ Check MD [online][check-online].
 
 ### Changed
 
+- `like()` returns a `LikeDefinition` and `createView()` / `createViewOrReplace()` return a
+  `ViewDefinition` instead of a bare `Fluent`, so the documented return types are now the real
+  ones and `->includingAll()` / `->materialize()` are visible to IDEs.
 - `createViewOrReplace(..., materialize: true)` throws a `LogicException`: PostgreSQL has no
   `CREATE OR REPLACE` for materialized views. It previously emitted invalid SQL.
 - Generated SQL is lowercase throughout, matching the rest of the framework.

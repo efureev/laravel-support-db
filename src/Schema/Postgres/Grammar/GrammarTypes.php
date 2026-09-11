@@ -5,16 +5,7 @@ declare(strict_types=1);
 namespace Php\Support\Laravel\Database\Schema\Postgres\Grammar;
 
 use Php\Support\Laravel\Database\Schema\Definitions\ColumnDefinition;
-use Php\Support\Laravel\Database\Schema\Postgres\Types\DateRangeType;
-use Php\Support\Laravel\Database\Schema\Postgres\Types\GeoPathType;
-use Php\Support\Laravel\Database\Schema\Postgres\Types\GeoPointType;
-use Php\Support\Laravel\Database\Schema\Postgres\Types\IntArrayType;
-use Php\Support\Laravel\Database\Schema\Postgres\Types\IpNetworkType;
-use Php\Support\Laravel\Database\Schema\Postgres\Types\NumericType;
-use Php\Support\Laravel\Database\Schema\Postgres\Types\TextArrayType;
-use Php\Support\Laravel\Database\Schema\Postgres\Types\TsRangeType;
-use Php\Support\Laravel\Database\Schema\Postgres\Types\UuidArrayType;
-use Php\Support\Laravel\Database\Schema\Postgres\Types\XmlType;
+use Php\Support\Laravel\Database\Schema\Postgres\ColumnType;
 
 trait GrammarTypes
 {
@@ -28,7 +19,7 @@ trait GrammarTypes
 
     protected function typeNumeric(ColumnDefinition $column): string
     {
-        $type      = NumericType::TYPE_NAME;
+        $type      = ColumnType::Numeric->value;
         $precision = $column->get('precision');
         $scale     = $column->get('scale');
 
@@ -41,27 +32,27 @@ trait GrammarTypes
 
     protected function typeDateRange(ColumnDefinition $column): string
     {
-        return DateRangeType::TYPE_NAME;
+        return ColumnType::DateRange->value;
     }
 
     protected function typeUuidArray(ColumnDefinition $column): string
     {
-        return UuidArrayType::TYPE_NAME;
+        return ColumnType::UuidArray->value;
     }
 
     protected function typeTextArray(ColumnDefinition $column): string
     {
-        return TextArrayType::TYPE_NAME;
+        return ColumnType::TextArray->value;
     }
 
     protected function typeIntArray(ColumnDefinition $column): string
     {
-        return IntArrayType::TYPE_NAME;
+        return ColumnType::IntArray->value;
     }
 
     protected function typeTsrange(ColumnDefinition $column): string
     {
-        return TsRangeType::TYPE_NAME;
+        return ColumnType::TsRange->value;
     }
 
     /**
@@ -69,7 +60,7 @@ trait GrammarTypes
      */
     protected function typeXml(ColumnDefinition $column): string
     {
-        return XmlType::TYPE_NAME;
+        return ColumnType::Xml->value;
     }
 
     /**
@@ -77,16 +68,16 @@ trait GrammarTypes
      */
     protected function typeIpNetwork(ColumnDefinition $column): string
     {
-        return IpNetworkType::TYPE_NAME;
+        return ColumnType::IpNetwork->value;
     }
 
     protected function typeGeoPoint(ColumnDefinition $column): string
     {
-        return GeoPointType::TYPE_NAME;
+        return ColumnType::GeoPoint->value;
     }
 
     protected function typeGeoPath(ColumnDefinition $column): string
     {
-        return GeoPathType::TYPE_NAME;
+        return ColumnType::GeoPath->value;
     }
 }

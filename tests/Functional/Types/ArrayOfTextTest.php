@@ -7,8 +7,7 @@ namespace Functional\Types;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 use Php\Support\Laravel\Database\Schema\Postgres\Blueprint;
-use Php\Support\Laravel\Database\Schema\Postgres\Types\TextArrayType;
-use Php\Support\Laravel\Database\Schema\Postgres\Types\UuidArrayType;
+use Php\Support\Laravel\Database\Schema\Postgres\ColumnType;
 use Php\Support\Laravel\Database\Tests\AbstractTestCase;
 use Php\Support\Laravel\Database\Tests\Helpers\ColumnAssertions;
 use Php\Support\Laravel\Database\Tests\Helpers\IndexAssertions;
@@ -41,7 +40,7 @@ class ArrayOfTextTest extends AbstractTestCase
             $definition->indexdef
         );
 
-        $this->assertTypeColumn('test_table', 'test_col', TextArrayType::class);
+        $this->assertTypeColumn('test_table', 'test_col', ColumnType::TextArray);
     }
 
 }

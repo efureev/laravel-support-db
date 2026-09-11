@@ -9,8 +9,6 @@ use Illuminate\Database\Schema\Blueprint as BaseBlueprint;
 use Illuminate\Support\Fluent;
 use Php\Support\Laravel\Database\Schema\Definitions\ColumnDefinition;
 use Php\Support\Laravel\Database\Schema\Definitions\LikeDefinition;
-use Php\Support\Laravel\Database\Schema\Definitions\PartialDefinition;
-use Php\Support\Laravel\Database\Schema\Definitions\UniqueDefinition;
 use Php\Support\Laravel\Database\Schema\Definitions\ViewDefinition;
 use Php\Support\Laravel\Database\Schema\Postgres\Builders\Indexes\PartialBuilder;
 use Php\Support\Laravel\Database\Schema\Postgres\Builders\Indexes\Unique\UniqueBuilder;
@@ -170,21 +168,25 @@ class Blueprint extends BaseBlueprint
         );
     }
 
-    /**
-     * @param string $view
-     * @param string $select
-     * @param bool $materialize
-     *
-     * @return ViewDefinition|Fluent
-     */
-    public function createView(string $view, string $select, bool $materialize = false): Fluent
+    public function createView(string $view, string $select, bool $materialize = false): ViewDefinition
     {
-        return $this->addCommand('createView', compact('view', 'select', 'materialize'));
+        return $this->addExtendedCommand(
+            ViewDefinition::class,
+            'createView',
+            compact('view', 'select', 'materialize')
+        );
     }
 
-    public function createViewOrReplace(string $view, string $select, bool $materialize = false): Fluent
-    {
-        return $this->addCommand('createViewOrReplace', compact('view', 'select', 'materialize'));
+    public function createViewOrReplace(
+        string $view,
+        string $select,
+        bool $materialize = false
+    ): ViewDefinition {
+        return $this->addExtendedCommand(
+            ViewDefinition::class,
+            'createViewOrReplace',
+            compact('view', 'select', 'materialize')
+        );
     }
 
     /**
@@ -206,12 +208,9 @@ class Blueprint extends BaseBlueprint
         return $this->addCommand('ifNotExists');
     }
 
-    /**
-     * @return LikeDefinition
-     */
-    public function like(string $table): Fluent
+    public function like(string $table): LikeDefinition
     {
-        return $this->addCommand('like', compact('table'));
+        return $this->addExtendedCommand(LikeDefinition::class, 'like', compact('table'));
     }
 
     /**
@@ -245,12 +244,8 @@ class Blueprint extends BaseBlueprint
 
     /**
      * @param array|string $columns
-     * @param string|null $index
-     * @param string|null $algorithm
-     *
-     * @return UniqueDefinition|UniqueBuilder
      */
-    public function uniquePartial($columns, ?string $index = null, ?string $algorithm = null): Fluent
+    public function uniquePartial($columns, ?string $index = null, ?string $algorithm = null): UniqueBuilder
     {
         $columns = (array)$columns;
 
@@ -268,9 +263,8 @@ class Blueprint extends BaseBlueprint
      * @param string|null $index
      * @param string|null $algorithm
      *
-     * @return PartialDefinition|PartialBuilder
      */
-    public function partial($columns, ?string $index = null, ?string $algorithm = null): Fluent
+    public function partial($columns, ?string $index = null, ?string $algorithm = null): PartialBuilder
     {
         $columns = (array)$columns;
 
@@ -298,6 +292,13 @@ class Blueprint extends BaseBlueprint
         return $this->dropIndexCommand('dropIndex', 'partial', $index);
     }
 
+    /**
+     * @template T of Fluent
+     *
+     * @param class-string<T> $fluent
+     *
+     * @return T
+     */
     private function addExtendedCommand(string $fluent, string $name, array $parameters = []): Fluent
     {
         $command          = new $fluent(array_merge(compact('name'), $parameters));

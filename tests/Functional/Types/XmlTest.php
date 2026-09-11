@@ -6,7 +6,7 @@ namespace Php\Support\Laravel\Database\Tests\Functional\Types;
 
 use Illuminate\Support\Facades\Schema;
 use Php\Support\Laravel\Database\Schema\Postgres\Blueprint;
-use Php\Support\Laravel\Database\Schema\Postgres\Types\XmlType;
+use Php\Support\Laravel\Database\Schema\Postgres\ColumnType;
 use Php\Support\Laravel\Database\Tests\AbstractTestCase;
 use Php\Support\Laravel\Database\Tests\Helpers\ColumnAssertions;
 use PHPUnit\Framework\Attributes\Test;
@@ -26,7 +26,7 @@ class XmlTest extends AbstractTestCase
         );
 
         static::assertTrue(Schema::hasTable('test_table'));
-        $this->assertTypeColumn('test_table', 'xml', XmlType::class);
+        $this->assertTypeColumn('test_table', 'xml', ColumnType::Xml);
     }
 
 }

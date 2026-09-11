@@ -89,20 +89,17 @@ PHPStan на level 1 этого не видит.
 
 ## 3. Что Laravel 13 уже умеет сам
 
-### 3.1. Кандидаты на удаление
+### 3.1. Проверено и решено не удалять
 
-| Что удалить | Чем заменяется в Laravel 13 |
+Всё, что действительно дублировало фреймворк, уже удалено. Ниже — кандидаты, которые при
+проверке оказались обоснованными; они оставлены сознательно, чтобы к ним не возвращались.
+
+| Кандидат | Почему остаётся |
 |---|---|
-| `src/Schema/ConnectionFactory.php` целиком + `ServiceProvider::registerConnectionServices()` | Базовый `ConnectionFactory::createConnection()` **уже сам** проверяет `Connection::getResolver($driver)` первым делом (`vendor/.../Connectors/ConnectionFactory.php:270-283`). Достаточно одного `Connection::resolverFor('pgsql', fn(...) => new Postgres\Connection(...))` в `register()` |
 | ~~`Builder::hasView()`~~ — **удалять не нужно** | Нативный `Schema\Builder::hasView()` (`vendor/.../Schema/Builder.php:194`) читает `pg_views` и **не видит materialized views**, поэтому переопределение пакета обосновано. Доработать в нём стоит лишь разбор `schema.view` через `parseSchemaAndTable()` |
-| `Builder::getViewDefinition()` (`Builder.php:75`) | `Schema::getViews()` уже возвращает поле `definition` (`vendor/.../Schema/Grammars/PostgresGrammar.php:108`) |
-| `Blueprint::ginIndex()` (`Blueprint.php:288`) | Нативный `$table->index($cols, $name, 'gin')` — `compileIndex()` печатает `using gin` (`PostgresGrammar.php:379`) |
-| 10 классов `src/Schema/Postgres/Types/*` + `AbstractType` | Backed enum. `phpType()`/`postgresType()` **не вызываются из `src/` вообще** — только из `tests/Helpers/ColumnAssertions.php:48-49`. Продакшн-код использует лишь константу `TYPE_NAME`. У `IntArrayType`/`TextArrayType`/`UuidArrayType` переопределение `phpType()` дословно повторяет собственный `TYPE_NAME` — no-op копипаст |
-| `LikeDefinition`, `PartialDefinition`, `UniqueDefinition`, `ViewDefinition` | Ни разу не инстанцируются нигде в `src/` — чистые phpdoc-заглушки, на которые ссылаются только `@return`-теги, лгущие о реальном типе. `PartialDefinition` и `UniqueDefinition` вдобавок дословно дублируют друг у друга 12 строк `@method` |
-| `UniquePartialBuilder` | Байт-в-байт копия `PartialBuilder` с точностью до имени класса |
-| `Connection::updateAndReturn()` / `deleteAndReturn()` | Идентичные тела, обе — однострочные делегаты к `affectingStatementArray()` |
-
-Ориентировочный эффект: минус ~20 файлов и ~400 строк из 1629 без потери функциональности.
+| ~~`Builder::getViewDefinition()`~~ — **удалять не нужно** | Нативный `compileViews()` читает только `pg_views` (`relkind = 'v'`), а materialized views лежат в `pg_matviews` (`relkind = 'm'`) — множества непересекающиеся. Та же причина, что у `hasView()` |
+| ~~`Blueprint::ginIndex()`~~ — **удалять не нужно** | Нативный аналог `$table->index($cols, $name, 'gin')` есть, но это не копия фреймворка, а однострочный шорткат над `indexCommand()`. Стоит лишь добавить ему проброс `$operatorClass`, который нативный `index()` умеет |
+| ~~`Connection::updateAndReturn()` / `deleteAndReturn()`~~ — **удалять не нужно** | Живой публичный API: 4 вызова в `src/`, 11 ассертов в тестах, `.meta.php` и readme. Схлопнуть можно разве что `affectingStatementArray()`, у которого нет внешних вызовов |
 
 ### 3.2. Что Laravel 13 добавил, а пакет ещё не использует
 
@@ -472,22 +469,17 @@ CREATE TABLE. Любое улучшение Laravel в этом методе т�
 
 ### v5.0.0 — следующий релиз (BC break, без deprecation-периода)
 
-**Блок 1. Удаление избыточного** (раздел 3.1): `ConnectionFactory` и
-`registerConnectionServices()` → один `Connection::resolverFor('pgsql', ...)`;
-`getViewDefinition()` и `ginIndex()` → нативные аналоги Laravel 13; `Types\*` → backed enum; четыре `*Definition`-заглушки и
-`UniquePartialBuilder` → удалить. Ожидаемо −20 файлов, −400 строк.
-
-**Блок 2. Типобезопасность.** Расширить сужённые типы до базовых `Blueprint`/`Fluent`
+**Блок 1. Типобезопасность.** Расширить сужённые типы до базовых `Blueprint`/`Fluent`
 (раздел 2); проставить `#[\Override]` на все переопределения; добить недостающие типы
 параметров и возврата.
 
-**Блок 3. Качество.** Починить три текущие ошибки `composer phpstan` (5.4); PHPStan level 6
+**Блок 2. Качество.** Починить три текущие ошибки `composer phpstan` (5.4); PHPStan level 6
 + larastan, **в CI**; `composer audit` в CI и явный `squizlabs/php_codesniffer: ^3.13.6` (5.8);
 PHPCS на `tests` в дополнение к `src`; `#[CoversClass]` и
 `failOnWarning`/`failOnDeprecation`/`failOnRisky` в `phpunit.xml`; починить PSR-4
 в `ArrayOfTextTest`.
 
-**Блок 4. Документация.** Переписать `readme.md`: заполнить Description, добавить Requirements
+**Блок 3. Документация.** Переписать `readme.md`: заполнить Description, добавить Requirements
 (PHP, Laravel, минимальные PG для `gen_random_uuid()` и `COMPRESSION`), починить оставшиеся неработающие
 примеры из 4.1, задокументировать пропущенные методы и факт подмены connection factory,
 добавить раздел «что теперь умеет сам Laravel 13» (3.2). Восстановить блок `Query\Builder`

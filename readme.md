@@ -36,6 +36,7 @@ composer require efureev/laravel-support-db "^4.0"
     - [Dropping views](#dropping-views)
 - [Indexes](#indexes)
     - [Partial indexes](#partial-indexes)
+    - [GIN indexes](#gin-indexes)
     - [Unique Partial indexes](#unique-partial-indexes)
 - [Extended Schema](#extended-schema)
     - [Create like another table](#create-like-another-table)
@@ -268,6 +269,17 @@ use \Php\Support\Laravel\Database\Schema\Postgres\Blueprint;
 
 Schema::create('table', static function (Blueprint $table) {
     $table->dropPartial(['code']);
+});
+```
+
+#### GIN indexes
+
+A shortcut for `$table->index($columns, $name, 'gin')`, handy for the array and `jsonb` columns:
+
+```php
+Schema::create('table', static function (Blueprint $table) {
+    $table->textArray('tags');
+    $table->ginIndex('tags');
 });
 ```
 

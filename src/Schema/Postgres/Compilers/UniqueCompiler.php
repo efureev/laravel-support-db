@@ -7,7 +7,7 @@ namespace Php\Support\Laravel\Database\Schema\Postgres\Compilers;
 use LogicException;
 use Php\Support\Laravel\Database\Schema\Postgres\Blueprint;
 use Php\Support\Laravel\Database\Schema\Postgres\Builders\Indexes\Unique\UniqueBuilder;
-use Php\Support\Laravel\Database\Schema\Postgres\Builders\Indexes\Unique\UniquePartialBuilder;
+use Php\Support\Laravel\Database\Schema\Postgres\Builders\Indexes\PartialBuilder;
 use Php\Support\Laravel\Database\Schema\Postgres\Grammar;
 
 class UniqueCompiler
@@ -19,7 +19,7 @@ class UniqueCompiler
         Grammar $grammar,
         Blueprint $blueprint,
         UniqueBuilder $fluent,
-        UniquePartialBuilder $command
+        PartialBuilder $command
     ): string {
         $wheres = static::build($grammar, $blueprint, $command);
 
