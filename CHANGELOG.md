@@ -94,6 +94,12 @@ Check MD [online][check-online].
 
 ### Fixed
 
+- `whereBetween()` accepted any number of values: none produced `between false and false`, one
+  produced `between 1 and 1`, and three silently dropped the middle. It now insists on exactly two
+- `partial([])` and `uniquePartial([])` compiled to `on "t" ()`, which PostgreSQL rejects; they now
+  refuse an empty column list
+- `dropExtensionIfExists()` with no arguments emitted `drop extension if exists` and nothing else
+
 - `CompressionTest` asserted only that the table exists, so the compression modifier was effectively
   untested. It now reads `pg_attribute.attcompression` back, covers `lz4` as well as `pglz`, and
   skips below PostgreSQL 14 — the version the feature needs

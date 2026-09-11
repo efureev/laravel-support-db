@@ -7,6 +7,7 @@ namespace Php\Support\Laravel\Database\Schema\Postgres;
 use Illuminate\Database\Query\Expression;
 use Illuminate\Database\Schema\Blueprint as BaseBlueprint;
 use Illuminate\Support\Fluent;
+use InvalidArgumentException;
 use Php\Support\Laravel\Database\Schema\Definitions\ColumnDefinition;
 use Php\Support\Laravel\Database\Schema\Definitions\LikeDefinition;
 use Php\Support\Laravel\Database\Schema\Definitions\ViewDefinition;
@@ -283,7 +284,12 @@ class Blueprint extends BaseBlueprint
         ?string $algorithm
     ): Fluent {
         $columns = (array)$columns;
-        $index   = $index ?: $this->createIndexName($nameType, $columns);
+
+        if ($columns === []) {
+            throw new InvalidArgumentException('A partial index needs at least one column.');
+        }
+
+        $index = $index ?: $this->createIndexName($nameType, $columns);
 
         return $this->addExtendedCommand($builder, $command, compact('columns', 'index', 'algorithm'));
     }

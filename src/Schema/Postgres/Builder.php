@@ -8,6 +8,7 @@ use Closure;
 use Illuminate\Container\Container;
 use Illuminate\Database\Connection as BaseConnection;
 use Illuminate\Database\Schema\PostgresBuilder;
+use InvalidArgumentException;
 
 /**
  * @property Grammar $grammar
@@ -132,8 +133,8 @@ class Builder extends PostgresBuilder
     /** @return list<string|null> */
     private function viewBindings(string $view): array
     {
-        // `getCurrentSchemaName()` issues a `show search_path` every time; the schema cannot
-        // change under a single builder instance.
+        // Laravel 13 resolves this from config rather than from the server, so memoising saves
+        // parsing rather than a round-trip; the schema cannot change under one builder anyway.
         $schema = $this->currentSchema ??= $this->getCurrentSchemaName();
         $name   = $this->connection->getTablePrefix() . $view;
 
@@ -159,6 +160,10 @@ class Builder extends PostgresBuilder
 
     public function dropExtensionIfExists(string ...$name): void
     {
+        if ($name === []) {
+            throw new InvalidArgumentException('Name at least one extension to drop.');
+        }
+
         $names = $this->grammar->naming($name);
         $this->getConnection()->statement("drop extension if exists $names");
     }

@@ -94,6 +94,54 @@ class QueryBuilderTest extends AbstractTestCase
         self::assertNotEmpty($seen, 'StatementPrepared must fire for RETURNING statements too');
     }
 
+    /**
+     * The only behavioural difference between the two entry points: through Eloquent the macro
+     * stamps `updated_at`, through `toBase()` it does not. Nothing asserted it, so dropping
+     * `addUpdatedAtColumn()` from the macro broke nothing.
+     */
+    #[Test]
+    public function theEloquentMacroStampsUpdatedAtAndToBaseDoesNot(): void
+    {
+        TestModelFactory::times(1)->create(['enabled' => true]);
+
+        DB::table('tests')->update(['updated_at' => '2020-01-01 00:00:00']);
+        self::assertSame('2020-01-01 00:00:00', $this->updatedAt());
+
+        TestModel::query()->updateAndReturn(['enabled' => false], 'id');
+        self::assertNotSame('2020-01-01 00:00:00', $this->updatedAt(), 'Eloquent maintains it');
+
+        DB::table('tests')->update(['updated_at' => '2020-01-01 00:00:00']);
+        TestModel::toBase()->updateAndReturn(['enabled' => true], 'id');
+        self::assertSame('2020-01-01 00:00:00', $this->updatedAt(), 'the query builder does not');
+    }
+
+    /**
+     * `beforeQuery` callbacks must reach the RETURNING paths exactly as they reach update().
+     */
+    #[Test]
+    public function beforeQueryCallbacksApplyToReturningStatements(): void
+    {
+        TestModelFactory::times(3)->create(['enabled' => true]);
+        TestModelFactory::times(2)->create(['enabled' => false]);
+
+        $rows = TestModel::toBase()
+            ->beforeQuery(
+                static function ($query): void {
+                    $query->where('enabled', true);
+                }
+            )
+            ->updateAndReturn(['name' => 'touched'], 'id');
+
+        // Without the callback this would have updated all five rows.
+        self::assertCount(3, $rows);
+        self::assertSame(2, TestModel::where('name', '!=', 'touched')->count());
+    }
+
+    private function updatedAt(): string
+    {
+        return (string)DB::table('tests')->value('updated_at');
+    }
+
     #[Test]
     public function returnColsOnUpdateFromBaseQuery(): void
     {

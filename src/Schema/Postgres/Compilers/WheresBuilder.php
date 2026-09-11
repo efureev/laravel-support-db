@@ -137,14 +137,24 @@ trait WheresBuilder
     /** @param WhereClause $where */
     protected static function whereBetween(Grammar $grammar, BaseBlueprint $blueprint, array $where): string
     {
+        $values = array_values((array)($where['values'] ?? []));
+
+        // Without exactly two bounds this silently produced `between false and false`, or dropped
+        // everything between the first and last value.
+        if (count($values) !== 2) {
+            throw new InvalidArgumentException(
+                sprintf('A between predicate needs exactly two values, %d given.', count($values))
+            );
+        }
+
         return implode(
             ' ',
             [
                 $grammar->wrap($where['column']),
                 $where['not'] ? 'not between' : 'between',
-                static::wrapValue(reset($where['values'])),
+                static::wrapValue($values[0]),
                 'and',
-                static::wrapValue(end($where['values'])),
+                static::wrapValue($values[1]),
             ]
         );
     }
