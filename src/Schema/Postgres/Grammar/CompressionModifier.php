@@ -22,6 +22,11 @@ trait CompressionModifier
      * the changed column is `$command->column`. Iterating over every changed column here would
      * emit each statement N times.
      */
+    /**
+     * @param Fluent<string, mixed> $command
+     *
+     * @return list<string>
+     */
     #[\Override]
     public function compileChange(BaseBlueprint $blueprint, Fluent $command)
     {
@@ -47,6 +52,8 @@ trait CompressionModifier
      * Only applies while creating or adding a column: on the change path PostgreSQL requires a
      * standalone `ALTER COLUMN ... SET COMPRESSION` statement (emitted by `compileChange()`
      * above), and the inline fragment the parent grammar would build is not valid syntax.
+     *
+     * @param Fluent<string, mixed> $column
      */
     protected function modifyCompression(BaseBlueprint $blueprint, Fluent $column): ?string
     {
@@ -61,6 +68,8 @@ trait CompressionModifier
 
     /**
      * Resolve the compression method configured on a column, if any.
+     *
+     * @param Fluent<string, mixed> $column
      */
     protected static function compressionValue(Fluent $column): ?string
     {

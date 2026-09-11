@@ -26,6 +26,7 @@ final class ColumnDefinitionTest extends UnitTestCase
         $this->blueprint('t')->string('c')->{$modifier}('whatever');
     }
 
+    /** @return iterable<string, array{string, string}> */
     public static function removedModifiers(): iterable
     {
         yield 'ginIndex' => [

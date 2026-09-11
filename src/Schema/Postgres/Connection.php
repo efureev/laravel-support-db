@@ -43,6 +43,7 @@ class Connection extends BasePostgresConnection
         return new QueryPostgresGrammar($this);
     }
 
+    /** @param array<array-key, mixed> $bindings */
     #[\Override]
     public function bindValues($statement, $bindings): void
     {
@@ -64,17 +65,32 @@ class Connection extends BasePostgresConnection
         }
     }
 
-    public function updateAndReturn($query, $bindings = []): array
+    /**
+     * @param array<array-key, mixed> $bindings
+     *
+     * @return list<mixed>
+     */
+    public function updateAndReturn(string $query, array $bindings = []): array
     {
         return $this->affectingStatementArray($query, $bindings);
     }
 
-    public function deleteAndReturn($query, $bindings = []): array
+    /**
+     * @param array<array-key, mixed> $bindings
+     *
+     * @return list<mixed>
+     */
+    public function deleteAndReturn(string $query, array $bindings = []): array
     {
         return $this->affectingStatementArray($query, $bindings);
     }
 
-    public function affectingStatementArray($query, $bindings = []): array
+    /**
+     * @param array<array-key, mixed> $bindings
+     *
+     * @return list<mixed>
+     */
+    public function affectingStatementArray(string $query, array $bindings = []): array
     {
         return $this->run(
             $query,

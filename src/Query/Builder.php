@@ -25,6 +25,11 @@ class Builder extends BaseQuery
      *
      * @return array
      */
+    /**
+     * @param array<string, mixed> $values
+     *
+     * @return list<mixed>
+     */
     public function updateAndReturn(array $values, string ...$columns): array
     {
         $this->applyBeforeQueryCallbacks();
@@ -46,6 +51,8 @@ class Builder extends BaseQuery
      * @param string ...$columns
      *
      * @return array
+     *
+     * @return list<mixed>
      */
     public function deleteAndReturn(string ...$columns): array
     {

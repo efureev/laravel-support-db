@@ -8,6 +8,7 @@ use Illuminate\Database\Query\Grammars\PostgresGrammar as BasePostgresGrammar;
 
 class PostgresGrammar extends BasePostgresGrammar
 {
+    /** @param array<array-key, string> $cols */
     public function compileReturns(array $cols): string
     {
         $cols = array_unique(array_filter($cols));

@@ -78,7 +78,7 @@ class ConnectionTest extends AbstractTestCase
 
     #[Test]
     #[DataProvider('boolDataProvider')]
-    public function boolTrueBindingsWorks($value): void
+    public function boolTrueBindingsWorks(bool $value): void
     {
         $table = 'test_table';
         $data  = ['field' => $value];
@@ -99,7 +99,7 @@ class ConnectionTest extends AbstractTestCase
 
     #[Test]
     #[DataProvider('intDataProvider')]
-    public function intBindingsWorks($value): void
+    public function intBindingsWorks(int $value): void
     {
         $table = 'test_table';
         $data  = ['field' => $value];
@@ -153,7 +153,7 @@ class ConnectionTest extends AbstractTestCase
 
     #[Test]
     #[DataProvider('dateDataProvider')]
-    public function dateTimeBindingsWorks($value): void
+    public function dateTimeBindingsWorks(mixed $value): void
     {
         $table = 'test_table';
         $data  = ['field' => $value];

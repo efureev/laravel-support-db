@@ -52,7 +52,7 @@ trait ColumnAssertions
         static::assertSame($expected, $this->getTypeListing($table, $column));
     }
 
-    private function getCommentListing(string $table, string $column)
+    private function getCommentListing(string $table, string $column): ?string
     {
         $definition = DB::selectOne(
             '
@@ -89,7 +89,7 @@ trait ColumnAssertions
         return $definition ? $definition->data_type : null;
     }
 
-    private function getDefaultListing(string $table, string $column)
+    private function getDefaultListing(string $table, string $column): ?string
     {
         $definition = DB::selectOne(
             '

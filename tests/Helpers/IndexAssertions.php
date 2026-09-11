@@ -60,7 +60,7 @@ trait IndexAssertions
         static::assertTrue($this->existConstraintOnTable($table, $index));
     }
 
-    private function getIndexListing($index): ?string
+    private function getIndexListing(string $index): ?string
     {
         $definition = DB::selectOne('SELECT * FROM pg_indexes WHERE indexname = ?', [$index]);
 
@@ -71,6 +71,7 @@ trait IndexAssertions
       * Ordered on purpose: `pg_indexes` has no inherent order, and callers index the result
       * positionally.
       */
+    /** @return list<object> */
     protected function getIndexListByTable(string $table): array
     {
         return DB::select('SELECT * FROM pg_indexes WHERE tablename = ? ORDER BY indexname', [$table]);

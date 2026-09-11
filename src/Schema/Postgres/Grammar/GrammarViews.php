@@ -10,11 +10,13 @@ use LogicException;
 
 trait GrammarViews
 {
+    /** @param Fluent<string, mixed> $command */
     public function compileCreateView(BaseBlueprint $blueprint, Fluent $command): string
     {
         return $this->compileView('create', $command);
     }
 
+    /** @param Fluent<string, mixed> $command */
     public function compileCreateViewOrReplace(BaseBlueprint $blueprint, Fluent $command): string
     {
         if ($command->get('materialize')) {
@@ -26,6 +28,7 @@ trait GrammarViews
         return $this->compileView('create or replace', $command);
     }
 
+    /** @param Fluent<string, mixed> $command */
     public function compileDropView(BaseBlueprint $blueprint, Fluent $command): string
     {
         return implode(
@@ -79,6 +82,7 @@ trait GrammarViews
             SQL;
     }
 
+    /** @param Fluent<string, mixed> $command */
     private function compileView(string $verb, Fluent $command): string
     {
         return implode(

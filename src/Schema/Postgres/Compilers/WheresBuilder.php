@@ -12,6 +12,23 @@ use Illuminate\Database\Schema\Blueprint as BaseBlueprint;
 use Php\Support\Laravel\Database\Schema\Postgres\Grammar;
 use Stringable;
 
+/**
+ * The shape `WhereBuilderTrait` records and this trait renders.
+ *
+ * @phpstan-type WhereClause array{
+ *     type: string,
+ *     boolean: string,
+ *     column?: string,
+ *     operator?: string,
+ *     value?: mixed,
+ *     values?: array<array-key, mixed>,
+ *     first?: string,
+ *     second?: string,
+ *     not?: bool,
+ *     sql?: string,
+ *     bindings?: array<array-key, mixed>,
+ * }
+ */
 trait WheresBuilder
 {
     /**
@@ -20,8 +37,10 @@ trait WheresBuilder
      * Bindings are substituted one placeholder at a time instead of through `sprintf()`, so a
      * literal `%` in the SQL (`like 'a%b'`) is not mistaken for a format specifier. The offset
      * advances past each replacement so a value containing `?` is not re-scanned.
+     *
+     * @param WhereClause $where
      */
-    protected static function whereRaw(Grammar $grammar, BaseBlueprint $blueprint, array $where = []): string
+    protected static function whereRaw(Grammar $grammar, BaseBlueprint $blueprint, array $where): string
     {
         $sql    = (string)($where['sql'] ?? '');
         $offset = 0;
@@ -39,6 +58,7 @@ trait WheresBuilder
         return $sql;
     }
 
+    /** @param WhereClause $where */
     protected static function whereBasic(Grammar $grammar, BaseBlueprint $blueprint, array $where): string
     {
         return implode(
@@ -51,6 +71,7 @@ trait WheresBuilder
         );
     }
 
+    /** @param WhereClause $where */
     protected static function whereColumn(Grammar $grammar, BaseBlueprint $blueprint, array $where): string
     {
         return implode(
@@ -63,7 +84,8 @@ trait WheresBuilder
         );
     }
 
-    protected static function whereIn(Grammar $grammar, BaseBlueprint $blueprint, array $where = []): string
+    /** @param WhereClause $where */
+    protected static function whereIn(Grammar $grammar, BaseBlueprint $blueprint, array $where): string
     {
         if (!empty($where['values'])) {
             return implode(
@@ -78,7 +100,8 @@ trait WheresBuilder
         return '0 = 1';
     }
 
-    protected static function whereNotIn(Grammar $grammar, BaseBlueprint $blueprint, array $where = []): string
+    /** @param WhereClause $where */
+    protected static function whereNotIn(Grammar $grammar, BaseBlueprint $blueprint, array $where): string
     {
         if (!empty($where['values'])) {
             return implode(
@@ -93,21 +116,25 @@ trait WheresBuilder
         return '1 = 1';
     }
 
+    /** @param WhereClause $where */
     protected static function whereBoolean(Grammar $grammar, BaseBlueprint $blueprint, array $where): string
     {
         return implode(' ', [$grammar->wrap($where['column']), 'is ' . static::wrapValueForBool($where['value'])]);
     }
 
+    /** @param WhereClause $where */
     protected static function whereNull(Grammar $grammar, BaseBlueprint $blueprint, array $where): string
     {
         return implode(' ', [$grammar->wrap($where['column']), 'is null']);
     }
 
+    /** @param WhereClause $where */
     protected static function whereNotNull(Grammar $grammar, BaseBlueprint $blueprint, array $where): string
     {
         return implode(' ', [$grammar->wrap($where['column']), 'is not null']);
     }
 
+    /** @param WhereClause $where */
     protected static function whereBetween(Grammar $grammar, BaseBlueprint $blueprint, array $where): string
     {
         return implode(
@@ -122,6 +149,11 @@ trait WheresBuilder
         );
     }
 
+    /**
+     * @param array<array-key, mixed> $values
+     *
+     * @return list<string>
+     */
     protected static function wrapValues(array $values = []): array
     {
         return array_map(static::wrapValue(...), $values);
@@ -167,6 +199,11 @@ trait WheresBuilder
         return preg_replace('/^(and|or)\s+/i', '', $value, 1);
     }
 
+    /**
+     * @param Fluent<string, mixed> $command
+     *
+     * @return list<string>
+     */
     protected static function build(Grammar $grammar, BaseBlueprint $blueprint, Fluent $command): array
     {
         return array_map(

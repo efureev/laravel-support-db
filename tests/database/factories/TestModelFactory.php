@@ -7,6 +7,9 @@ namespace Php\Support\Laravel\Database\Tests\Database\Factories;
 use Illuminate\Database\Eloquent\Factories\Factory;
 use Php\Support\Laravel\Database\Tests\Models\TestModel;
 
+/**
+ * @extends Factory<TestModel>
+ */
 class TestModelFactory extends Factory
 {
     /**

@@ -18,6 +18,7 @@ use stdClass;
 
 class QueryBuilderTest extends AbstractTestCase
 {
+    /** @var list<string> */
     protected array $migrations = ['2021_11_15_000000_create_test_table.php'];
 
     #[Test]

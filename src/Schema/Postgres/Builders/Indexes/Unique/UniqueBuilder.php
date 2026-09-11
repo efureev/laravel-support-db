@@ -7,6 +7,9 @@ namespace Php\Support\Laravel\Database\Schema\Postgres\Builders\Indexes\Unique;
 use Illuminate\Support\Fluent;
 use Php\Support\Laravel\Database\Schema\Postgres\Builders\Indexes\PartialBuilder;
 
+/**
+ * @extends Fluent<string, mixed>
+ */
 class UniqueBuilder extends Fluent
 {
     /**

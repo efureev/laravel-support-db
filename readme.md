@@ -579,7 +579,7 @@ Issues and pull requests are welcome. Before opening a PR run the full gate:
 
 ```bash
 composer phpcs      # PSR-12 over src and tests
-composer phpstan    # level 5 with larastan
+composer phpstan    # level 6 with larastan
 composer test       # PHPCS + the whole suite, needs PostgreSQL
 ```
 

@@ -17,6 +17,8 @@ trait CompilesIndexAlgorithm
      *
      * Placement matches the framework's own `PostgresGrammar::compileIndex()`: right after the
      * table name and before the column list, unquoted.
+     *
+     * @param Fluent<string, mixed> $fluent
      */
     protected static function algorithmClause(Fluent $fluent): string
     {

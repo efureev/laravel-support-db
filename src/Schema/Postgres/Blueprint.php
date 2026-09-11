@@ -34,6 +34,7 @@ class Blueprint extends BaseBlueprint
         return $this->addColumn('numeric', $column, compact('precision', 'scale'));
     }
 
+    /** @param bool|callable(string): string|Expression<literal-string>|null $default */
     public function generateUUID(string $column = 'id', bool|callable|Expression|null $default = true): ColumnDefinition
     {
         $defCol = $this->addColumn('uuid', $column);
@@ -56,8 +57,11 @@ class Blueprint extends BaseBlueprint
     }
 
 
-    public function primaryUUID(string $column = 'id', $generate = true): ColumnDefinition
-    {
+    /** @param bool|callable(string): string|Expression<literal-string>|null $generate */
+    public function primaryUUID(
+        string $column = 'id',
+        bool|callable|Expression|null $generate = true
+    ): ColumnDefinition {
         return $this->generateUUID($column, $generate)->primary();
     }
 
@@ -148,7 +152,7 @@ class Blueprint extends BaseBlueprint
      *
      * @param string $type
      * @param string $name
-     * @param array $parameters
+     * @param array<string, mixed> $parameters
      */
     #[\Override]
     public function addColumn($type, $name, array $parameters = []): ColumnDefinition
@@ -188,16 +192,19 @@ class Blueprint extends BaseBlueprint
      * Drop a view. Materialized views require `$materialize: true` — PostgreSQL rejects
      * `DROP VIEW` on them.
      */
+    /** @return Fluent<string, mixed> */
     public function dropView(string $view, bool $materialize = false): Fluent
     {
         return $this->addCommand('dropView', compact('view', 'materialize'));
     }
 
+    /** @return Fluent<string, mixed> */
     public function dropViewIfExists(string $view, bool $materialize = false): Fluent
     {
         return $this->addCommand('dropView', compact('view', 'materialize') + ['ifExists' => true]);
     }
 
+    /** @return Fluent<string, mixed> */
     public function ifNotExists(): Fluent
     {
         return $this->addCommand('ifNotExists');
@@ -218,6 +225,7 @@ class Blueprint extends BaseBlueprint
      *
      * @example `$table->fromSelect('select t1.id, t1.name from src_table t1');`
      */
+    /** @return Fluent<string, mixed> */
     public function fromSelect(string $fromSelect): Fluent
     {
         return $this->addCommand('fromSelect', compact('fromSelect'));
@@ -232,13 +240,14 @@ class Blueprint extends BaseBlueprint
      *
      * @example `$table->fromTable('source_table');`
      */
+    /** @return Fluent<string, mixed> */
     public function fromTable(string $fromTable): Fluent
     {
         return $this->addCommand('fromTable', compact('fromTable'));
     }
 
     /**
-     * @param array|string $columns
+     * @param array<array-key, string>|string $columns
      */
     public function uniquePartial($columns, ?string $index = null, ?string $algorithm = null): UniqueBuilder
     {
@@ -251,6 +260,7 @@ class Blueprint extends BaseBlueprint
      * @param string|null $algorithm
      *
      */
+    /** @param array<array-key, string>|string $columns */
     public function partial($columns, ?string $index = null, ?string $algorithm = null): PartialBuilder
     {
         return $this->addPartialIndex(PartialBuilder::class, 'partial', 'partial', $columns, $index, $algorithm);
@@ -259,8 +269,8 @@ class Blueprint extends BaseBlueprint
     /**
      * @template T of Fluent
      *
-     * @param class-string<T> $builder
-     * @param array|string    $columns
+     * @param class-string<T>                 $builder
+     * @param array<array-key, string>|string $columns
      *
      * @return T
      */
@@ -278,17 +288,32 @@ class Blueprint extends BaseBlueprint
         return $this->addExtendedCommand($builder, $command, compact('columns', 'index', 'algorithm'));
     }
 
-    public function ginIndex($columns, ?string $name = null): Fluent
+    /**
+     * @param array<array-key, string>|string $columns
+     *
+     * @return Fluent<string, mixed>
+     */
+    public function ginIndex(array|string $columns, ?string $name = null): Fluent
     {
         return $this->indexCommand('index', $columns, $name, 'gin');
     }
 
-    public function dropUniquePartial($index): Fluent
+    /**
+     * @param array<array-key, string>|string $index
+     *
+     * @return Fluent<string, mixed>
+     */
+    public function dropUniquePartial(array|string $index): Fluent
     {
         return $this->dropIndexCommand('dropIndex', 'unique', $index);
     }
 
-    public function dropPartial($index): Fluent
+    /**
+     * @param array<array-key, string>|string $index
+     *
+     * @return Fluent<string, mixed>
+     */
+    public function dropPartial(array|string $index): Fluent
     {
         return $this->dropIndexCommand('dropIndex', 'partial', $index);
     }
@@ -296,7 +321,8 @@ class Blueprint extends BaseBlueprint
     /**
      * @template T of Fluent
      *
-     * @param class-string<T> $fluent
+     * @param class-string<T>      $fluent
+     * @param array<string, mixed> $parameters
      *
      * @return T
      */

@@ -16,10 +16,11 @@ use Stringable;
  * {@see \Php\Support\Laravel\Database\Schema\Postgres\Compilers\WheresBuilder::wrapValue()}:
  * `string|int|float|bool|BackedEnum|DateTimeInterface|Stringable|null`.
  *
- * @mixin Fluent
+ * @mixin Fluent<string, mixed>
  */
 trait WhereBuilderTrait
 {
+    /** @param array<array-key, mixed> $bindings */
     public function whereRaw(string $sql, array $bindings = [], string $boolean = 'and'): static
     {
         return $this->compileWhere('Raw', $boolean, compact('sql', 'bindings'));
@@ -54,11 +55,13 @@ trait WhereBuilderTrait
         return $this->compileWhere('Column', $boolean, compact('first', 'operator', 'second'));
     }
 
+    /** @param array<array-key, mixed> $values */
     public function whereIn(string $column, array $values, string $boolean = 'and', bool $not = false): static
     {
         return $this->compileWhere($not ? 'NotIn' : 'In', $boolean, compact('column', 'values'));
     }
 
+    /** @param array<array-key, mixed> $values */
     public function whereNotIn(string $column, array $values = [], string $boolean = 'and'): static
     {
         return $this->whereIn($column, $values, $boolean, true);
@@ -69,11 +72,13 @@ trait WhereBuilderTrait
         return $this->compileWhere($not ? 'NotNull' : 'Null', $boolean, compact('column'));
     }
 
+    /** @param array<array-key, mixed> $values */
     public function whereBetween(string $column, array $values, string $boolean = 'and', bool $not = false): static
     {
         return $this->compileWhere('Between', $boolean, compact('column', 'values', 'not'));
     }
 
+    /** @param array<array-key, mixed> $values */
     public function whereNotBetween(string $column, array $values, string $boolean = 'and'): static
     {
         return $this->whereBetween($column, $values, $boolean, true);
@@ -84,6 +89,7 @@ trait WhereBuilderTrait
         return $this->whereNull($column, $boolean, true);
     }
 
+    /** @param array<string, mixed> $parameters */
     protected function compileWhere(string $type, string $boolean, array $parameters = []): static
     {
         $this->attributes['wheres'][] = array_merge(compact('type', 'boolean'), $parameters);

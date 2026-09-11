@@ -17,6 +17,7 @@ trait TableAssertions
         static::assertSame($this->getTableDefinition($sourceTable), $this->getTableDefinition($destinationTable));
     }
 
+    /** @param list<string> $expectedDef */
     protected function assertSameTable(array $expectedDef, string $table): void
     {
         $definition = $this->getTableDefinition($table);
@@ -29,6 +30,7 @@ trait TableAssertions
         static::assertTrue(Schema::hasTable($table));
     }
 
+    /** @return list<string> */
     private function getTableDefinition(string $table): array
     {
         return Schema::getColumnListing($table);

@@ -2,13 +2,11 @@ includes:
     - vendor/larastan/larastan/extension.neon
 
 parameters:
-    level: 5
+    level: 6
     paths:
         - src
         - tests
 
-    # Level 6+ adds ~90 findings, nearly all `missingType.iterableValue` on signatures whose shape
-    # the framework dictates. Worth a pass of its own — tracked in AUDIT.md.
 
     ignoreErrors:
         # This package extends the framework at points PHPStan cannot follow: the Schema facade

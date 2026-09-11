@@ -116,7 +116,7 @@ class Builder extends PostgresBuilder
         ) > 0;
     }
 
-    public function getViewDefinition($view): string
+    public function getViewDefinition(string $view): string
     {
         $results = $this->connection->selectFromWriteConnection(
             $this->grammar->compileViewDefinition(),
@@ -129,6 +129,7 @@ class Builder extends PostgresBuilder
     /**
      * Both view queries union `pg_views` with `pg_matviews`, so schema and name are bound twice.
      */
+    /** @return list<string|null> */
     private function viewBindings(string $view): array
     {
         // `getCurrentSchemaName()` issues a `show search_path` every time; the schema cannot

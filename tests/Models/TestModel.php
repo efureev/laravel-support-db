@@ -11,7 +11,7 @@ use Illuminate\Database\Eloquent\Model;
  * @property string $id
  * @property string $name
  * @property string $enabled
- * @mixin Builder
+ * @mixin Builder<TestModel>
  */
 class TestModel extends Model
 {

@@ -12,6 +12,7 @@ use Php\Support\Laravel\Database\Schema\Postgres\Compilers\UniqueCompiler;
 
 trait GrammarIndexes
 {
+    /** @return string|list<string> */
     public function compileUniquePartial(BaseBlueprint $blueprint, UniqueBuilder $command): string|array
     {
         $constraints = $command->get('constraints');

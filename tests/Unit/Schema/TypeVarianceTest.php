@@ -53,6 +53,7 @@ final class TypeVarianceTest extends UnitTestCase
         }
     }
 
+    /** @return iterable<string, array{string}> */
     public static function dispatchedMethods(): iterable
     {
         foreach ((new ReflectionClass(Grammar::class))->getMethods() as $method) {

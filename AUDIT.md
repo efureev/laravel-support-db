@@ -174,13 +174,10 @@ partial и unique-partial индексы с `WHERE` · views, включая mat
 
 ### 5.4. Статический анализ
 
-PHPStan стоит на level 5 с larastan, покрывает `src` и `tests`, запускается в CI и зелёный.
+PHPStan стоит на **level 6** с larastan, покрывает `src` и `tests`, запускается в CI и зелёный.
 Исключения прописаны точечно и только для `tests/` — это поверхность расширения пакета
 (фасад `Schema`, магия `Fluent`), которую анализатор не видит; `src/` разбирается без единого
 исключения.
-
-Осталось: **level 6+** добавляет ~90 находок, почти все `missingType.iterableValue` на сигнатурах,
-форму которых диктует фреймворк. Отдельный проход.
 
 ### 5.5. PHPCS
 
@@ -286,11 +283,10 @@ fetch mode и диспатчат `StatementPrepared`; регистр SQL выр�
 
 ### Инфраструктура
 
-- PHPStan level 6+ — ~90 находок, почти все `missingType.iterableValue` на сигнатурах,
-  форму которых диктует фреймворк.
-- Точные строки PG-деparse в `CreateIndexTest` (см. 5.3) и позиционный доступ к неупорядоченной
-  выборке `pg_indexes` в `CreateTableLikeTest`.
-- Транзакционная изоляция тестов вместо `db:wipe` в `setUp()`.
+- Транзакционная изоляция тестов вместо `db:wipe` в `setUp()`. Упрётся в
+  `refreshMaterializedView(concurrently: true)`, который PostgreSQL запрещает внутри
+  транзакционного блока, — потребуется исключение для этого теста.
+- Ключ кэша Composer в CI построен на `hashFiles('**/composer.json')` при `composer update`.
 
 ### Стратегическая рекомендация
 

@@ -16,6 +16,8 @@ trait GrammarTable
      * Only takes over when the blueprint actually uses one of this package's extensions.
      * A plain `create table` is left to the parent, so improvements the framework makes there
      * are not silently lost — which is what a full replacement would do.
+     *
+     * @param Fluent<string, mixed> $command
      */
     #[\Override]
     public function compileCreate(Blueprint $blueprint, Fluent $command): string
@@ -39,6 +41,8 @@ trait GrammarTable
 
     /**
      * Compile a drop table (if exists) command.
+     *
+     * @param Fluent<string, mixed> $command
      */
     #[\Override]
     public function compileDropIfExists(Blueprint $blueprint, Fluent $command): string

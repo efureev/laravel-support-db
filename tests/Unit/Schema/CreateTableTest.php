@@ -66,6 +66,7 @@ final class CreateTableTest extends UnitTestCase
         self::assertSame($expected, $sql[0]);
     }
 
+    /** @return iterable<string, array{bool, bool, string}> */
     public static function tableVariants(): iterable
     {
         yield 'plain' => [

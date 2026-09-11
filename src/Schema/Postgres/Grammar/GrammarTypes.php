@@ -17,12 +17,15 @@ trait GrammarTypes
 
     /**
      * Create the column definition for a 'bit' type.
+     *
+     * @param Fluent<string, mixed> $column
      */
     protected function typeBit(Fluent $column): string
     {
         return "bit({$column->value('length')})";
     }
 
+    /** @param Fluent<string, mixed> $column */
     protected function typeNumeric(Fluent $column): string
     {
         $type      = ColumnType::Numeric->value;
@@ -36,26 +39,31 @@ trait GrammarTypes
         return $type;
     }
 
+    /** @param Fluent<string, mixed> $column */
     protected function typeDateRange(Fluent $column): string
     {
         return ColumnType::DateRange->value;
     }
 
+    /** @param Fluent<string, mixed> $column */
     protected function typeUuidArray(Fluent $column): string
     {
         return ColumnType::UuidArray->value;
     }
 
+    /** @param Fluent<string, mixed> $column */
     protected function typeTextArray(Fluent $column): string
     {
         return ColumnType::TextArray->value;
     }
 
+    /** @param Fluent<string, mixed> $column */
     protected function typeIntArray(Fluent $column): string
     {
         return ColumnType::IntArray->value;
     }
 
+    /** @param Fluent<string, mixed> $column */
     protected function typeTsrange(Fluent $column): string
     {
         return ColumnType::TsRange->value;
@@ -63,6 +71,8 @@ trait GrammarTypes
 
     /**
      * Create the column definition for a xml type.
+     *
+     * @param Fluent<string, mixed> $column
      */
     protected function typeXml(Fluent $column): string
     {
@@ -71,17 +81,21 @@ trait GrammarTypes
 
     /**
      * Create the column definition for an ip network type.
+     *
+     * @param Fluent<string, mixed> $column
      */
     protected function typeIpNetwork(Fluent $column): string
     {
         return ColumnType::IpNetwork->value;
     }
 
+    /** @param Fluent<string, mixed> $column */
     protected function typeGeoPoint(Fluent $column): string
     {
         return ColumnType::GeoPoint->value;
     }
 
+    /** @param Fluent<string, mixed> $column */
     protected function typeGeoPath(Fluent $column): string
     {
         return ColumnType::GeoPath->value;

@@ -43,6 +43,7 @@ class CompressionTest extends AbstractTestCase
         self::assertSame($expected, $this->compressionOf('test_table', 'data'));
     }
 
+    /** @return iterable<string, array{string, string}> */
     public static function methods(): iterable
     {
         // `pg_attribute.attcompression` stores the method as a single character.

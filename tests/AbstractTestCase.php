@@ -17,6 +17,7 @@ abstract class AbstractTestCase extends TestCase
 {
     use InteractsWithDatabase;
 
+    /** @var list<string> */
     protected array $migrations = [];
 
     /**

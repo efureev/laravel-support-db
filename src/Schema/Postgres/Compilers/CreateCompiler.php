@@ -10,6 +10,10 @@ use Php\Support\Laravel\Database\Schema\Postgres\Grammar;
 
 class CreateCompiler
 {
+    /**
+     * @param list<string>                      $columns
+     * @param array<string, Fluent<string, mixed>|null> $commands
+     */
     public static function compile(
         Grammar $grammar,
         BaseBlueprint $blueprint,
@@ -40,6 +44,7 @@ class CreateCompiler
         );
     }
 
+    /** @param Fluent<string, mixed> $command */
     private static function compileLike(Grammar $grammar, Fluent $command): string
     {
         $table        = $command->get('table');
@@ -47,6 +52,7 @@ class CreateCompiler
         return "(like {$grammar->wrapTable($table)}$includingAll)";
     }
 
+    /** @param Fluent<string, mixed> $command */
     private static function compileFromSelect(Fluent $command): string
     {
         $sql = $command->get('fromSelect');
@@ -54,6 +60,7 @@ class CreateCompiler
         return "as ($sql)";
     }
 
+    /** @param Fluent<string, mixed> $command */
     private static function compileFromTable(Grammar $grammar, Fluent $command): string
     {
         $table = $command->get('fromTable');
@@ -61,6 +68,7 @@ class CreateCompiler
         return "as table {$grammar->wrapTable($table)}";
     }
 
+    /** @param list<string> $columns */
     private static function compileColumns(array $columns): string
     {
         return '(' . implode(', ', $columns) . ')';
