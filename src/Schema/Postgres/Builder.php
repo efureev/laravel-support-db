@@ -38,36 +38,55 @@ class Builder extends PostgresBuilder
         );
     }
 
-    public function createView(string $view, string $select, $materialize = false): void
+    public function createView(string $view, string $select, bool $materialize = false): void
     {
         $blueprint = $this->createBlueprint($view);
         $blueprint->createView($view, $select, $materialize);
         $this->build($blueprint);
     }
 
-    public function createViewOrReplace(string $view, string $select, $materialize = false): void
+    public function createViewOrReplace(string $view, string $select, bool $materialize = false): void
     {
         $blueprint = $this->createBlueprint($view);
         $blueprint->createViewOrReplace($view, $select, $materialize);
         $this->build($blueprint);
     }
 
-    public function dropView(string $view): void
+    public function dropView(string $view, bool $materialize = false): void
     {
         $blueprint = $this->createBlueprint($view);
-        $blueprint->dropView($view);
+        $blueprint->dropView($view, $materialize);
         $this->build($blueprint);
     }
 
+    public function dropViewIfExists(string $view, bool $materialize = false): void
+    {
+        $blueprint = $this->createBlueprint($view);
+        $blueprint->dropViewIfExists($view, $materialize);
+        $this->build($blueprint);
+    }
+
+    /**
+     * Refresh a materialized view. `CONCURRENTLY` requires the view to carry a unique index
+     * and to have been populated at least once.
+     */
+    public function refreshMaterializedView(string $view, bool $concurrently = false): void
+    {
+        $this->getConnection()->statement(
+            $this->getConnection()->getSchemaGrammar()->compileRefreshMaterializedView($view, $concurrently)
+        );
+    }
+
+    /**
+     * Unlike the framework's `hasView()`, this also finds materialized views — neither
+     * `pg_views` (used by Laravel) nor `information_schema.views` lists them.
+     */
     public function hasView($view): bool
     {
         return count(
             $this->connection->selectFromWriteConnection(
                 $this->grammar->compileViewExists(),
-                [
-                    $this->getCurrentSchemaName(),
-                    $this->connection->getTablePrefix() . $view,
-                ]
+                $this->viewBindings($view)
             )
         ) > 0;
     }
@@ -76,12 +95,26 @@ class Builder extends PostgresBuilder
     {
         $results = $this->connection->selectFromWriteConnection(
             $this->grammar->compileViewDefinition(),
-            [
-                $this->getCurrentSchemaName(),
-                $this->connection->getTablePrefix() . $view,
-            ]
+            $this->viewBindings($view)
         );
-        return count($results) > 0 ? $results[0]->view_definition : '';
+
+        return count($results) > 0 ? (string)$results[0]->definition : '';
+    }
+
+    /**
+     * Both view queries union `pg_views` with `pg_matviews`, so schema and name are bound twice.
+     */
+    private function viewBindings(string $view): array
+    {
+        $schema = $this->getCurrentSchemaName();
+        $name   = $this->connection->getTablePrefix() . $view;
+
+        return [
+            $schema,
+            $name,
+            $schema,
+            $name,
+        ];
     }
 
     public function createExtension(string $name): void

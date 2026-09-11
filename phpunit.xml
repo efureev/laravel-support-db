@@ -12,8 +12,13 @@
         </report>
     </coverage>
     <testsuites>
-        <testsuite name="Main">
-            <directory suffix="Test.php">./tests</directory>
+        <!-- Asserts on generated SQL; needs no database. -->
+        <testsuite name="Unit">
+            <directory suffix="Test.php">./tests/Unit</directory>
+        </testsuite>
+        <!-- Runs migrations against a live PostgreSQL and reads the catalog back. -->
+        <testsuite name="Functional">
+            <directory suffix="Test.php">./tests/Functional</directory>
         </testsuite>
     </testsuites>
     <logging>

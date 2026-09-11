@@ -16,9 +16,13 @@ trait GrammarIndexes
     public function compileUniquePartial(Blueprint $blueprint, UniqueBuilder $command): string|array
     {
         $constraints = $command->get('constraints');
-        if ($constraints instanceof UniquePartialBuilder) {
+
+        // Without a predicate there is nothing partial about the index, so fall back to the
+        // framework's unconditional unique constraint rather than emitting a dangling `WHERE`.
+        if ($constraints instanceof UniquePartialBuilder && !empty($constraints->get('wheres'))) {
             return UniqueCompiler::compile($this, $blueprint, $command, $constraints);
         }
+
         // Since Laravel 13 `compileUnique()` returns an array of statements.
         return $this->compileUnique($blueprint, $command);
     }

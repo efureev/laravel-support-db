@@ -17,7 +17,7 @@
     }
   ],
   "require": {
-    "php": ">=8.4",
+    "php": ">=8.5",
     "ext-pdo": "*",
     "illuminate/database": "^13.0"
   },
@@ -57,6 +57,7 @@
     "phpcs": "@php ./vendor/bin/phpcs",
     "phpstan": "@php ./vendor/bin/phpstan analyze -c phpstan.neon --no-progress --ansi",
     "phpunit": "@php ./vendor/bin/phpunit --no-coverage --testdox --colors=always",
+    "phpunit-unit": "@php ./vendor/bin/phpunit --no-coverage --testdox --colors=always --testsuite=Unit",
     "phpunit-cover": "@php ./vendor/bin/phpunit --coverage-clover ./storage/coverage/clover.xml",
     "test": [
       "@phpcs",

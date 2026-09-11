@@ -6,7 +6,6 @@ namespace Php\Support\Laravel\Database\Schema\Postgres;
 
 use Illuminate\Database\Query\Expression;
 use Illuminate\Database\Schema\Blueprint as BaseBlueprint;
-use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Fluent;
 use Php\Support\Laravel\Database\Schema\Definitions\ColumnDefinition;
 use Php\Support\Laravel\Database\Schema\Definitions\LikeDefinition;
@@ -188,24 +187,23 @@ class Blueprint extends BaseBlueprint
         return $this->addCommand('createViewOrReplace', compact('view', 'select', 'materialize'));
     }
 
-    public function dropView(string $view): Fluent
+    /**
+     * Drop a view. Materialized views require `$materialize: true` — PostgreSQL rejects
+     * `DROP VIEW` on them.
+     */
+    public function dropView(string $view, bool $materialize = false): Fluent
     {
-        return $this->addCommand('dropView', compact('view'));
+        return $this->addCommand('dropView', compact('view', 'materialize'));
+    }
+
+    public function dropViewIfExists(string $view, bool $materialize = false): Fluent
+    {
+        return $this->addCommand('dropView', compact('view', 'materialize') + ['ifExists' => true]);
     }
 
     public function ifNotExists(): Fluent
     {
         return $this->addCommand('ifNotExists');
-    }
-
-    /**
-     * @param array|string $index
-     * @param string|null $type unique|primary
-     * @return bool
-     */
-    public function hasIndex(array|string $index, ?string $type = null): bool
-    {
-        return Schema::hasIndex($this->getTable(), $index, $type);
     }
 
     /**

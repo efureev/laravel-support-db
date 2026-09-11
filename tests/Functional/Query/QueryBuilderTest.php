@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Php\Support\Laravel\Database\Tests\Functional\Query;
 
+use Illuminate\Support\Facades\DB;
 use Php\Support\Laravel\Database\Query\Builder;
 use Php\Support\Laravel\Database\Query\Grammars\PostgresGrammar;
 use Php\Support\Laravel\Database\Schema\Postgres\Connection;
@@ -28,6 +29,31 @@ class QueryBuilderTest extends AbstractTestCase
         self::assertInstanceOf(Builder::class, $connection->query());
         self::assertInstanceOf(PostgresGrammar::class, $connection->getQueryGrammar());
         self::assertInstanceOf(PostgresGrammar::class, $connection->query()->getGrammar());
+    }
+
+    /**
+     * `recordsHaveBeenModified()` used to receive the row list instead of a bool, leaving an
+     * array in `Connection::$recordsModified` and skewing the sticky-connection check
+     * (AUDIT.md D11).
+     */
+    #[Test]
+    public function modificationStateStaysBoolean(): void
+    {
+        $connection = DB::connection();
+        $connection->forgetRecordModificationState();
+
+        TestModelFactory::times(2)->create(['enabled' => true]);
+        TestModel::toBase()->updateAndReturn(['enabled' => false], 'id');
+
+        self::assertTrue($connection->hasModifiedRecords());
+
+        $connection->forgetRecordModificationState();
+        self::assertFalse($connection->hasModifiedRecords());
+
+        // An update that matches nothing must not flag the connection either.
+        TestModel::toBase()->where('name', '__no_such_row__')->updateAndReturn(['enabled' => true], 'id');
+
+        self::assertFalse($connection->hasModifiedRecords());
     }
 
     #[Test]

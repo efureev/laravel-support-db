@@ -10,6 +10,7 @@ use Php\Support\Laravel\Database\Schema\Postgres\Grammar;
 
 class PartialCompiler
 {
+    use CompilesIndexAlgorithm;
     use WheresBuilder;
 
     public static function compile(
@@ -18,23 +19,17 @@ class PartialCompiler
         PartialBuilder $fluent
     ): string {
         $wheres = static::build($grammar, $blueprint, $fluent);
-        $cols   = implode(',', (array)$fluent->get('columns'));
 
-        if (count($wheres) === 0) {
-            return sprintf(
-                "CREATE INDEX %s ON %s (%s)",
-                $fluent->get('index'),
-                $blueprint->getTable(),
-                $cols,
-            );
-        }
-
+        // The table must go through `wrapTable()` so the connection's table prefix is applied:
+        // `createIndexName()` already prefixes the index name, so an unprefixed table here meant
+        // the index targeted a relation that does not exist.
         return sprintf(
-            "CREATE INDEX %s ON %s (%s) WHERE %s",
-            $fluent->get('index'),
-            $blueprint->getTable(),
-            $cols,
-            static::removeLeadingBoolean(implode(' ', $wheres))
+            'create index %s on %s%s (%s)%s',
+            $grammar->wrap($fluent->get('index')),
+            $grammar->wrapTable($blueprint),
+            static::algorithmClause($fluent),
+            $grammar->columnize((array)$fluent->get('columns')),
+            $wheres === [] ? '' : ' where ' . static::removeLeadingBoolean(implode(' ', $wheres)),
         );
     }
 }

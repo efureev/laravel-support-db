@@ -22,12 +22,20 @@ class Grammar extends PostgresGrammar
 
     public function naming(array $names): string
     {
-        return implode(', ', array_map([$this, 'wrap'], $names));
+        return implode(', ', array_map($this->wrap(...), $names));
     }
 
+    /**
+     * Prepend a column modifier to the ones inherited from the parent grammar.
+     *
+     * `$this->modifiers` is a list, so the union operator (`[$value] + $list`) would overwrite
+     * the element at key 0 instead of shifting it — silently dropping `Collate`.
+     */
     public function addModifier(string $value): static
     {
-        $this->modifiers = [$value] + $this->modifiers;
+        if (!in_array($value, $this->modifiers, true)) {
+            array_unshift($this->modifiers, $value);
+        }
 
         return $this;
     }

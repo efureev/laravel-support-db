@@ -9,6 +9,67 @@ Check MD [online][check-online].
 
 ## [unreleased]
 
+### Changed
+
+- Raise the minimum PHP version to 8.5 (BC break, targeted at 5.0.0). Laravel 13 itself only
+  requires PHP 8.3, so this is a deliberate choice by the package; no code in `src/` relies on
+  PHP 8.4/8.5-only features.
+- CI now tests PHP 8.5 only; the Docker image is based on `php:8.5-cli-alpine`.
+
+### Added
+
+- `Schema::dropViewIfExists($view, $materialize = false)` and
+  `Schema::refreshMaterializedView($view, $concurrently = false)`.
+- `dropView()` accepts a `$materialize` flag, so materialized views can finally be dropped.
+- A database-free `Unit` test suite asserting on generated SQL, split out from `Functional`
+  in `phpunit.xml`. Run it with `composer phpunit-unit`.
+
+### Removed
+
+- `Blueprint::hasIndex()`. It resolved the `Schema` facade, i.e. the default connection, ignoring
+  the blueprint's own — use the framework's `Schema::hasIndex($table, $index, $type)`, or
+  `Schema::connection($name)->hasIndex(...)` to be explicit about the connection.
+- The `ginIndex()` and `algorithm()` column modifiers. They were only ever phpdoc: Laravel turns a
+  fixed set of column attributes into index commands and neither was part of it, so the calls
+  silently did nothing. They now throw a `BadMethodCallException` pointing at the working form.
+  The table-level `$table->ginIndex($columns)` is unaffected and keeps working.
+
+### Fixed
+
+- `Grammar::addModifier()` used the array union operator on a list, silently overwriting the
+  `Collate` modifier. `->collation()` produced no `collate` clause for every user of the package.
+- `->compression()` combined with `->change()` emitted `alter column "x"  compression y`, which is
+  not valid PostgreSQL, and repeated every `SET COMPRESSION` once per changed column.
+- Dropped the dependency on `Blueprint::getChangedColumns()`, deprecated in Laravel 13.
+- `->compression()` without an argument produced `compression 1` instead of `compression pglz`.
+  The method is now validated and rejects anything that is not a bare identifier.
+- Values in partial-index predicates were interpolated without escaping, so an apostrophe broke
+  the statement, and non-strings were cast with `(int)` — turning `3.14` into `3` and `null` into `0`.
+- `whereRaw()` built a `sprintf()` format from the raw SQL, so a literal `%` raised
+  `ArgumentCountError`.
+- `CreateCompiler` collapsed every double space in the statement, corrupting default values and
+  user-supplied `fromSelect()` SQL.
+- Partial and partial-unique indexes ignored the connection's table prefix and left identifiers
+  unquoted, producing indexes that targeted a non-existent relation.
+- Any non-where call on `uniquePartial()` (such as `->algorithm()`) turned the index into a partial
+  one with an empty `WHERE`; repeated `where()` calls on the same builder discarded the earlier ones.
+- `hasView()` and `getViewDefinition()` now look in `pg_matviews` as well, so materialized views
+  are found.
+- `where()` on an index predicate accepts `int`, `float`, `bool`, `BackedEnum`, `DateTimeInterface`
+  and `null`, not only `string`.
+- The `$algorithm` argument of `partial()` and `uniquePartial()` is finally compiled into
+  `using <method>`. The fluent form `->algorithm('gin')` now also survives on a partial unique
+  index, where it used to be dropped whenever a predicate was present. The value is validated as
+  a bare identifier.
+- `updateAndReturn()` / `deleteAndReturn()` no longer leave an array in
+  `Connection::$recordsModified`, which is a bool and feeds the sticky-connection check.
+
+### Changed
+
+- `createViewOrReplace(..., materialize: true)` throws a `LogicException`: PostgreSQL has no
+  `CREATE OR REPLACE` for materialized views. It previously emitted invalid SQL.
+- Generated SQL is lowercase throughout, matching the rest of the framework.
+
 ## [4.0.0] - 2026-06-04
 
 ### Added

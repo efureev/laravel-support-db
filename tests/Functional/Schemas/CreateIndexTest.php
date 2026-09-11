@@ -26,7 +26,7 @@ class CreateIndexTest extends AbstractTestCase
                 $table->increments('id');
                 $table->string('name');
 
-                if (!$table->hasIndex(['name'], 'unique')) {
+                if (!Schema::hasIndex('test_table', ['name'], 'unique')) {
                     $table->unique(['name']);
                 }
             }
@@ -37,7 +37,7 @@ class CreateIndexTest extends AbstractTestCase
         Schema::table(
             'test_table',
             static function (Blueprint $table) {
-                if (!$table->hasIndex(['name'], 'unique')) {
+                if (!Schema::hasIndex('test_table', ['name'], 'unique')) {
                     $table->unique(['name']);
                 }
             }
@@ -95,7 +95,7 @@ class CreateIndexTest extends AbstractTestCase
                 $table->increments('id');
                 $table->string('name');
 
-                if (!$table->hasIndex(['name'])) {
+                if (!Schema::hasIndex('test_table', ['name'])) {
                     $table->unique(['name']);
                 }
             }
@@ -106,13 +106,36 @@ class CreateIndexTest extends AbstractTestCase
         Schema::table(
             'test_table',
             static function (Blueprint $table) {
-                if (!$table->hasIndex(['name'])) {
+                if (!Schema::hasIndex('test_table', ['name'])) {
                     $table->unique(['name']);
                 }
             }
         );
 
         $this->seeIndex('test_table_name_unique');
+    }
+
+    /**
+     * The `$algorithm` argument of `partial()` used to be stored and never compiled (AUDIT.md D13).
+     */
+    #[Test]
+    public function createPartialIndexWithAlgorithm(): void
+    {
+        Schema::create(
+            'test_table',
+            static function (Blueprint $table) {
+                $table->increments('id');
+                $table->textArray('tags');
+                $table->softDeletes();
+                $table->partial('tags', 'test_table_tags_partial', 'gin')->whereNull('deleted_at');
+            }
+        );
+
+        $this->assertRegExpIndex(
+            'test_table_tags_partial',
+            '/CREATE INDEX test_table_tags_partial ON (public\.)?test_table USING gin \(tags\)'
+            . ' WHERE \(deleted_at IS NULL\)/'
+        );
     }
 
     protected function tearDown(): void

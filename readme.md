@@ -1,6 +1,6 @@
 # PHP Laravel Database Support
 
-![](https://img.shields.io/badge/php->=8.4-blue.svg)
+![](https://img.shields.io/badge/php->=8.5-blue.svg)
 ![](https://img.shields.io/badge/Laravel->=13.0-red.svg)
 [![Codacy Badge](https://api.codacy.com/project/badge/Grade/5c8b9e85897f4c65b5a017d16f6af6cb)](https://app.codacy.com/manual/efureev/laravel-support-db)
 ![PHP Database Laravel Package](https://github.com/efureev/laravel-support-db/workflows/PHP%20Database%20Laravel%20Package/badge.svg)
@@ -31,6 +31,9 @@ composer require efureev/laravel-support-db "^4.0"
 - [Column Options](#column-options)
     - [Compression](#compression)
 - [Views](#views)
+    - [Create views](#create-views)
+    - [Refreshing materialized views](#refreshing-materialized-views)
+    - [Dropping views](#dropping-views)
 - [Indexes](#indexes)
     - [Partial indexes](#partial-indexes)
     - [Unique Partial indexes](#unique-partial-indexes)
@@ -186,25 +189,40 @@ $table->string('col')->compression('lz4');
 ```php
 // Facade methods:
 Schema::createView('active_users', "SELECT * FROM users WHERE active = 1");
-Schema::createView('active_users', "SELECT * FROM users WHERE active = 1", true) ;
 Schema::createViewOrReplace('active_users', "SELECT * FROM users WHERE active = 1");
 
-// Schema methods:
-use \Php\Support\Laravel\Database\Schema\Postgres\Blueprint;
+// Pass `true` as the third argument for a MATERIALIZED view:
+Schema::createView('active_users', "SELECT * FROM users WHERE active = 1", true);
 
-Schema::create('users', function (Blueprint $table) {
-    $table
-        ->createView('active_users', "SELECT * FROM users WHERE active = 1")
-        ->materialize();
+// Schema methods:
+use Php\Support\Laravel\Database\Schema\Postgres\Blueprint;
+
+Schema::table('users', function (Blueprint $table) {
+    $table->createView('active_users', "SELECT * FROM users WHERE active = 1");
 });
+```
+
+> PostgreSQL has no `CREATE OR REPLACE` for materialized views, so
+> `createViewOrReplace(..., true)` throws a `LogicException`. Drop and recreate the view instead.
+
+#### Refreshing materialized views
+
+```php
+Schema::refreshMaterializedView('active_users');
+
+// CONCURRENTLY needs a unique index on the view and a first population:
+Schema::refreshMaterializedView('active_users', true);
 ```
 
 #### Dropping views
 
 ```php
-// Facade methods:
 Schema::dropView('active_users');
 Schema::dropViewIfExists('active_users');
+
+// Materialized views must be dropped as such — `DROP VIEW` fails on them:
+Schema::dropView('active_users', true);
+Schema::dropViewIfExists('active_users', true);
 ```
 
 ### Indexes
@@ -225,6 +243,23 @@ Schema::create('table', static function (Blueprint $table) {
         ->whereNull('deleted_at');
 });
 ```
+
+Pass an index method as the third argument (or chain `->algorithm()`) to pick the access method.
+PostgreSQL places it as `USING <method>`:
+
+```php
+Schema::create('table', static function (Blueprint $table) {
+    $table->textArray('tags');
+    $table->softDeletes();
+
+    $table->partial('tags', null, 'gin')->whereNull('deleted_at');
+    // identical:
+    $table->partial('tags')->algorithm('gin')->whereNull('deleted_at');
+});
+```
+
+> The same argument works on `uniquePartial()`, but note that PostgreSQL only supports `UNIQUE`
+> for `btree` — any other access method is rejected by the server.
 
 If you want to delete partial index, use this method:
 
@@ -434,7 +469,7 @@ The package targets **PostgreSQL** only, so a running PostgreSQL instance is req
 
 ### With Docker (recommended)
 
-A `docker-compose.yml` ships a disposable **PostgreSQL 18** instance and a PHP 8.4 runner.
+A `docker-compose.yml` ships a disposable **PostgreSQL 18** instance and a PHP 8.5 runner.
 No local PHP/PostgreSQL installation is needed:
 
 ```bash

@@ -85,8 +85,10 @@ class Connection extends BasePostgresConnection
 
                 $statement->execute();
 
+                // `Connection::$recordsModified` is a bool and is stored verbatim, so passing the
+                // row list would leave an array in it and skew the sticky-connection check.
                 $this->recordsHaveBeenModified(
-                    ($list = $this->associateStatement($statement))
+                    ($list = $this->associateStatement($statement)) !== []
                 );
 
                 return $list;

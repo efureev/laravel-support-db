@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Php\Support\Laravel\Database\Schema\Postgres\Compilers;
 
+use LogicException;
 use Php\Support\Laravel\Database\Schema\Postgres\Blueprint;
 use Php\Support\Laravel\Database\Schema\Postgres\Builders\Indexes\Unique\UniqueBuilder;
 use Php\Support\Laravel\Database\Schema\Postgres\Builders\Indexes\Unique\UniquePartialBuilder;
@@ -11,6 +12,7 @@ use Php\Support\Laravel\Database\Schema\Postgres\Grammar;
 
 class UniqueCompiler
 {
+    use CompilesIndexAlgorithm;
     use WheresBuilder;
 
     public static function compile(
@@ -21,12 +23,21 @@ class UniqueCompiler
     ): string {
         $wheres = static::build($grammar, $blueprint, $command);
 
+        if ($wheres === []) {
+            // Callers are expected to fall back to the plain unique index when there is no
+            // predicate; reaching this point would produce a dangling `WHERE`.
+            throw new LogicException(
+                'A partial unique index requires at least one where clause; use unique() instead.'
+            );
+        }
+
         return sprintf(
-            'CREATE UNIQUE INDEX %s ON %s (%s) WHERE %s',
-            $fluent->get('index'),
-            $blueprint->getTable(),
-            implode(',', (array)$fluent->get('columns')),
-            static::removeLeadingBoolean(implode(' ', $wheres))
+            'create unique index %s on %s%s (%s) where %s',
+            $grammar->wrap($fluent->get('index')),
+            $grammar->wrapTable($blueprint),
+            static::algorithmClause($fluent),
+            $grammar->columnize((array)$fluent->get('columns')),
+            static::removeLeadingBoolean(implode(' ', $wheres)),
         );
     }
 }

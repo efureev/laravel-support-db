@@ -18,16 +18,16 @@ jobs:
           args: './CHANGELOG.md'
 
   lint:
-    name: Coding Standards (PHPCS)
+    name: Coding Standards (PHPCS) and unit tests
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
       - uses: actions/checkout@v6
 
-      - name: Use PHP 8.4
+      - name: Use PHP 8.5
         uses: shivammathur/setup-php@v2
         with:
-          php-version: '8.4'
+          php-version: '8.5'
           extensions: mbstring
           coverage: none
 
@@ -50,6 +50,11 @@ jobs:
       - name: Run PHPCS
         run: composer phpcs
 
+      # The unit suite asserts on generated SQL and needs no database, so it gates here
+      # rather than behind the PostgreSQL matrix.
+      - name: Run unit tests
+        run: composer phpunit-unit
+
   testing:
     name: Test on PHP ${{ matrix.php }} with ${{ matrix.setup }} dependencies
 
@@ -61,7 +66,7 @@ jobs:
       fail-fast: false
       matrix:
         setup: [ 'basic', 'lowest', 'stable' ]
-        php: [ '8.4', '8.5' ]
+        php: [ '8.5' ]
 
     services:
       postgres:
