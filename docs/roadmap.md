@@ -10,10 +10,10 @@ listed too, so none of it gets built twice.
 
 ## The shape of the work
 
-The package exists to say the PostgreSQL things Laravel's builder cannot. Three groups are done:
-the missing halves of what had already shipped, the constraint that `tsrange` and `daterange`
-exist for, and types of one's own. What remains is the physical layout of a table, which is
-larger and more opinionated than any of them.
+The package exists to say the PostgreSQL things Laravel's builder cannot. Everything planned here
+has shipped: the missing halves of what had already been sold, the constraint that `tsrange` and
+`daterange` exist for, types of one's own, and the physical layout of a table. One item remains,
+and it is the smallest of them.
 
 ## v5.1 — shipped
 
@@ -37,16 +37,19 @@ was genuinely missing.
 Enum types, domains and composite types are under [Schema operations](schema.md), together with
 adding a label to an existing enum and dropping either kind.
 
-## v6 — physical layout and operations
+## v5.4 — shipped, and not the major it was planned as
 
-Larger, more opinionated, and the first group where something may break:
+Partitioning, row-level security, unlogged tables and storage parameters are under
+[Schema operations](schema.md).
 
-- **Partitioning** — `partition by range/list/hash`, `attach partition`, `detach partition`
-- **Row-level security** — `enable row level security`, policies. Relevant here: the package
-  already does schema-qualified views for per-tenant data
-- **Storage parameters** — `fillfactor`, per-table autovacuum tuning
-- **`unlogged` tables** — for genuinely disposable data
-- **`create statistics`** — extended statistics for correlated columns the planner mis-estimates
+This group was written down as v6 because it looked like the one that would break something. It
+does not: every item turned out to be a new method beside the existing ones, and the only existing
+code touched was the create compiler, which gained two clauses. So it shipped as a minor, and the
+version number here is corrected rather than kept for appearance.
+
+`CREATE STATISTICS` is the one item of the original group still outstanding — extended statistics
+for correlated columns the planner mis-estimates. It is genuinely niche, and it is the only thing
+on this page that has not been either built or found to be unnecessary.
 
 ## Deliberately not on this list
 
@@ -73,9 +76,9 @@ ordinary SQL rather than a PostgreSQL extension, so it belongs to a cross-databa
 | v5.1 | shipped — `ON CONFLICT` with a predicate, `insertAndReturn()`, `check()` | nothing |
 | v5.2 | shipped — exclusion constraints, covering indexes | nothing |
 | v5.3 | shipped — enum types, domains, composite types | nothing |
-| v6 | partitioning, RLS, storage parameters, statistics | possibly |
+| v5.4 | shipped — partitioning, RLS, unlogged, storage parameters | nothing |
 
-Everything before v6 is additive, so a minor release carries it.
+Nothing on this page broke anything, so every group shipped as a minor.
 
 > Each item wants the same treatment as the rest of the package: a test that fails without it, the
 > emitted SQL asserted exactly, and behaviour checked against a real server rather than recalled.

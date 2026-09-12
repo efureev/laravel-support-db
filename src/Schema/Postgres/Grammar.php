@@ -8,6 +8,7 @@ use Illuminate\Database\Schema\Grammars\PostgresGrammar;
 use Php\Support\Laravel\Database\Schema\Postgres\Grammar\CompressionModifier;
 use Php\Support\Laravel\Database\Schema\Postgres\Grammar\GrammarConstraints;
 use Php\Support\Laravel\Database\Schema\Postgres\Grammar\GrammarIndexes;
+use Php\Support\Laravel\Database\Schema\Postgres\Grammar\GrammarPartitions;
 use Php\Support\Laravel\Database\Schema\Postgres\Grammar\GrammarTable;
 use Php\Support\Laravel\Database\Schema\Postgres\Grammar\GrammarTypes;
 use Php\Support\Laravel\Database\Schema\Postgres\Grammar\GrammarViews;
@@ -18,6 +19,7 @@ class Grammar extends PostgresGrammar
     use GrammarTypes;
     use GrammarIndexes;
     use GrammarConstraints;
+    use GrammarPartitions;
     use GrammarViews;
     use CompressionModifier;
 

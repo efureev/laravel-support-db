@@ -13,6 +13,8 @@ use Php\Support\Laravel\Database\Schema\Definitions\LikeDefinition;
 use Php\Support\Laravel\Database\Schema\Definitions\ViewDefinition;
 use Php\Support\Laravel\Database\Schema\Postgres\Builders\Constraints\ExclusionBuilder;
 use Php\Support\Laravel\Database\Schema\Postgres\Builders\Indexes\PartialBuilder;
+use Php\Support\Laravel\Database\Schema\Postgres\Builders\Partitions\PartitionBuilder;
+use Php\Support\Laravel\Database\Schema\Postgres\Builders\Security\PolicyBuilder;
 use Php\Support\Laravel\Database\Schema\Postgres\Builders\Indexes\Unique\UniqueBuilder;
 
 class Blueprint extends BaseBlueprint
@@ -193,8 +195,9 @@ class Blueprint extends BaseBlueprint
     /**
      * Drop a view. Materialized views require `$materialize: true` — PostgreSQL rejects
      * `DROP VIEW` on them.
+     *
+     * @return Fluent<string, mixed>
      */
-    /** @return Fluent<string, mixed> */
     public function dropView(string $view, bool $materialize = false): Fluent
     {
         return $this->addCommand('dropView', compact('view', 'materialize'));
@@ -226,8 +229,9 @@ class Blueprint extends BaseBlueprint
      * @return Fluent
      *
      * @example `$table->fromSelect('select t1.id, t1.name from src_table t1');`
+     *
+     * @return Fluent<string, mixed>
      */
-    /** @return Fluent<string, mixed> */
     public function fromSelect(string $fromSelect): Fluent
     {
         return $this->addCommand('fromSelect', compact('fromSelect'));
@@ -241,8 +245,9 @@ class Blueprint extends BaseBlueprint
      * @return Fluent
      *
      * @example `$table->fromTable('source_table');`
+     *
+     * @return Fluent<string, mixed>
      */
-    /** @return Fluent<string, mixed> */
     public function fromTable(string $fromTable): Fluent
     {
         return $this->addCommand('fromTable', compact('fromTable'));
@@ -327,6 +332,156 @@ class Blueprint extends BaseBlueprint
     }
 
     /**
+     * `UNLOGGED`: no write-ahead log, so writes are faster — and the table is emptied after a
+     * crash and never replicated. For data you can rebuild.
+     */
+    public bool $unlogged = false;
+
+    public function unlogged(bool $value = true): static
+    {
+        $this->unlogged = $value;
+
+        return $this;
+    }
+
+    /**
+     * Make this a partitioned table. It holds no rows itself; its partitions do.
+     *
+     * ```php
+     * Schema::create('events', function (Blueprint $table) {
+     *     $table->bigIncrements('id');
+     *     $table->timestamp('at');
+     *     $table->partitionBy('range', 'at');
+     * });
+     * ```
+     *
+     * @param array<array-key, string>|string $columns
+     *
+     * @return Fluent<string, mixed>
+     */
+    public function partitionBy(string $strategy, array|string $columns): Fluent
+    {
+        return $this->addCommand('partitionBy', [
+            'strategy' => $strategy,
+            'columns'  => (array)$columns,
+        ]);
+    }
+
+    /**
+     * Make this table a partition of another. It takes no column list — it inherits the parent's.
+     *
+     * ```php
+     * Schema::create('events_2026', function (Blueprint $table) {
+     *     $table->partitionOf('events')->fromTo('2026-01-01', '2027-01-01');
+     * });
+     * ```
+     */
+    public function partitionOf(string $parent): PartitionBuilder
+    {
+        return $this->addExtendedCommand(PartitionBuilder::class, 'partitionOf', compact('parent'));
+    }
+
+    /** Adopt an existing table as a partition of this one. */
+    public function attachPartition(string $partition): PartitionBuilder
+    {
+        return $this->addExtendedCommand(
+            PartitionBuilder::class,
+            'attachPartition',
+            compact('partition')
+        );
+    }
+
+    /**
+     * Release a partition back into a table of its own.
+     *
+     * `concurrently` avoids the access-exclusive lock and, like every other `CONCURRENTLY` in
+     * PostgreSQL, cannot run inside a transaction block.
+     *
+     * @return Fluent<string, mixed>
+     */
+    public function detachPartition(string $partition, bool $concurrently = false): Fluent
+    {
+        return $this->addCommand('detachPartition', compact('partition', 'concurrently'));
+    }
+
+    /**
+     * Row-level security: per-row authorisation the database enforces itself.
+     *
+     * Switching it on hides every row until a policy permits one. The table owner bypasses the
+     * policies unless `force` is used as well.
+     *
+     * @return Fluent<string, mixed>
+     */
+    public function enableRowLevelSecurity(): Fluent
+    {
+        return $this->addCommand('rowLevelSecurity', ['action' => 'enable']);
+    }
+
+    /** @return Fluent<string, mixed> */
+    public function disableRowLevelSecurity(): Fluent
+    {
+        return $this->addCommand('rowLevelSecurity', ['action' => 'disable']);
+    }
+
+    /**
+     * Make the table owner obey the policies too.
+     *
+     * @return Fluent<string, mixed>
+     */
+    public function forceRowLevelSecurity(): Fluent
+    {
+        return $this->addCommand('rowLevelSecurity', ['action' => 'force']);
+    }
+
+    /** @return Fluent<string, mixed> */
+    public function noForceRowLevelSecurity(): Fluent
+    {
+        return $this->addCommand('rowLevelSecurity', ['action' => 'no force']);
+    }
+
+    /**
+     * A row-level security policy.
+     *
+     * ```php
+     * $table->policy('tenant_read')
+     *     ->for('select')
+     *     ->using(fn (PartialBuilder $w) => $w->whereRaw('tenant = current_setting(?)', ['app.tenant']));
+     * ```
+     */
+    public function policy(string $name): PolicyBuilder
+    {
+        return $this->addExtendedCommand(PolicyBuilder::class, 'policy', ['policy' => $name]);
+    }
+
+    /** @return Fluent<string, mixed> */
+    public function dropPolicy(string $name): Fluent
+    {
+        return $this->addCommand('dropPolicy', ['policy' => $name]);
+    }
+
+    /**
+     * Per-table storage parameters — `fillfactor`, autovacuum tuning, and the rest.
+     *
+     * @param array<string, scalar> $parameters
+     *
+     * @return Fluent<string, mixed>
+     */
+    public function storageParameters(array $parameters): Fluent
+    {
+        return $this->addCommand('storageParameters', compact('parameters'));
+    }
+
+    /**
+     * Put storage parameters back to the server default.
+     *
+     * @return Fluent<string, mixed>
+     */
+    public function resetStorageParameters(string ...$parameters): Fluent
+    {
+        return $this->addCommand('resetStorageParameters', compact('parameters'));
+    }
+
+    /**
      * An exclusion constraint: no two rows may satisfy every one of the given operators at once.
      *
      * ```php
@@ -344,15 +499,21 @@ class Blueprint extends BaseBlueprint
         return $this->addExtendedCommand(ExclusionBuilder::class, 'exclusion', ['constraint' => $name]);
     }
 
-    /** Drop any named constraint — a check, an exclusion, a unique. */
-    /** @return Fluent<string, mixed> */
+    /**
+     * Drop any named constraint — a check, an exclusion, a unique.
+     *
+     * @return Fluent<string, mixed>
+     */
     public function dropConstraint(string $name): Fluent
     {
         return $this->addCommand('dropConstraint', ['constraint' => $name]);
     }
 
-    /** The same statement as `dropConstraint()`, named for what it usually drops. */
-    /** @return Fluent<string, mixed> */
+    /**
+     * The same statement as `dropConstraint()`, named for what it usually drops.
+     *
+     * @return Fluent<string, mixed>
+     */
     public function dropCheck(string $name): Fluent
     {
         return $this->dropConstraint($name);

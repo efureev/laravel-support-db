@@ -7,6 +7,31 @@ and this project adheres to [Semantic Versioning][semver].
 
 Check MD [online][check-online].
 
+## [unreleased]
+
+### Added
+
+- Declarative partitioning: `partitionBy()` on the parent, `partitionOf()` on a child with
+  `fromTo()`, `in()`, `hash()` or `asDefault()` bounds, and `attachPartition()` /
+  `detachPartition()` for moving a table in and out of the set
+- A guard on the commonest partitioning mistake. PostgreSQL requires the primary key to contain
+  every partitioning column and reports it as *unique constraint on partitioned table must include
+  all partitioning columns*; the pair that trips it, `bigIncrements('id')` beside
+  `partitionBy('range', 'at')`, looks entirely ordinary. The package now says so before the
+  statement is sent, and names which column is missing
+- Row-level security: `enableRowLevelSecurity()`, `forceRowLevelSecurity()` and the two negatives
+  — plus `policy()` with `for()`, `to()`, `using()` and `withCheck()`, and `dropPolicy()`. A policy
+  with neither predicate is refused, since it would permit nothing
+- `unlogged()` tables, and `storageParameters()` / `resetStorageParameters()` for `fillfactor`
+  and autovacuum tuning and the rest. Both the parameter name and its value are checked, neither being
+  something PostgreSQL will accept as a bound parameter
+
+### Fixed
+
+- Four docblocks in `Blueprint` were split in two — a prose block immediately followed by a
+  one-line `@return` block. PHP associates only the last, so the prose was reaching neither a
+  reader nor a tool. This is the same defect the audit found once before, in a different file
+
 ## [5.3.0] - 2026-09-13
 
 ### Added
@@ -600,11 +625,15 @@ Check MD [online][check-online].
 
 - Create the package
 
+[unreleased]: https://github.com/efureev/laravel-support-db/compare/v5.3.0...HEAD
+
 [5.3.0]: https://github.com/efureev/laravel-support-db/compare/v5.2.0...v5.3.0
 
 [5.2.0]: https://github.com/efureev/laravel-support-db/compare/v5.1.0...v5.2.0
 
 [5.1.0]: https://github.com/efureev/laravel-support-db/compare/v5.0.5...v5.1.0
+
+[unreleased]: https://github.com/efureev/laravel-support-db/compare/v5.3.0...HEAD
 
 [5.3.0]: https://github.com/efureev/laravel-support-db/compare/v5.2.0...v5.3.0
 

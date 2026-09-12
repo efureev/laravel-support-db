@@ -239,3 +239,135 @@ alter table "products" drop constraint "price_positive"
 
 Every predicate from [Index predicates](indexes.md) is available. A check with no conditions is
 refused rather than compiled — `check (())` is a syntax error.
+
+## Partitioning
+
+A partitioned table holds no rows; its partitions do, and PostgreSQL routes every insert to the
+right one. Laravel has no form for any of it.
+
+```php
+Schema::create('events', static function (Blueprint $table) {
+    $table->bigInteger('id');
+    $table->timestamp('at');
+    $table->primary(['id', 'at']);
+
+    $table->partitionBy('range', 'at');      // or 'list', or 'hash'
+});
+```
+
+```sql
+create table "events" ("id" bigint not null, "at" timestamp(0) without time zone not null,
+    primary key ("id", "at")) partition by range ("at")
+```
+
+> **The primary key must contain every partitioning column.** PostgreSQL requires it and says so
+> obscurely — *unique constraint on partitioned table must include all partitioning columns*. The
+> pair that trips it is `bigIncrements('id')` beside `partitionBy('range', 'at')`, which looks
+> perfectly ordinary. This package checks first and names the actual problem, so partition by a
+> column the key already has, or widen the key as above.
+
+A partition takes no column list of its own — it inherits the parent's:
+
+```php
+Schema::create('events_2026', fn (Blueprint $t) => $t->partitionOf('events')->fromTo('2026-01-01', '2027-01-01'));
+Schema::create('events_rest', fn (Blueprint $t) => $t->partitionOf('events')->asDefault());
+
+Schema::create('logs_eu',   fn (Blueprint $t) => $t->partitionOf('logs')->in(['de', 'fr']));
+Schema::create('shards_0',  fn (Blueprint $t) => $t->partitionOf('shards')->hash(modulus: 4, remainder: 0));
+```
+
+```sql
+create table "events_2026" partition of "events" for values from ('2026-01-01') to ('2027-01-01')
+create table "events_rest" partition of "events" default
+create table "logs_eu" partition of "logs" for values in ('de', 'fr')
+create table "shards_0" partition of "shards" for values with (modulus 4, remainder 0)
+```
+
+An existing table can be adopted, and a partition released back into one of its own — the rows go
+with it:
+
+```php
+Schema::table('events', static function (Blueprint $table) {
+    $table->attachPartition('events_2025')->fromTo('2025-01-01', '2026-01-01');
+    $table->detachPartition('events_2024');
+    $table->detachPartition('events_2023', concurrently: true);
+});
+```
+
+> `detachPartition(concurrently: true)` avoids the access-exclusive lock and, like every
+> `CONCURRENTLY` in PostgreSQL, cannot run inside a transaction block — see
+> [Behaviour notes](behaviour.md).
+
+## Row-level security
+
+Per-row authorisation the database enforces itself, which no amount of application code can be
+talked out of. It pairs with the schema-qualified views above for multi-tenant data.
+
+```php
+Schema::create('documents', static function (Blueprint $table) {
+    $table->increments('id');
+    $table->string('tenant');
+    $table->text('body');
+
+    $table->enableRowLevelSecurity();
+    $table->forceRowLevelSecurity();        // the owner obeys the policies too
+
+    $table->policy('tenant_read')
+        ->for('select')
+        ->to('app_user')
+        ->using(fn (PartialBuilder $w) => $w->whereRaw('tenant = current_setting(?, true)', ['app.tenant']));
+
+    $table->policy('tenant_write')
+        ->for('insert')
+        ->to('app_user')
+        ->withCheck(fn (PartialBuilder $w) => $w->whereRaw('tenant = current_setting(?, true)', ['app.tenant']));
+});
+```
+
+```sql
+alter table "documents" enable row level security
+alter table "documents" force row level security
+create policy "tenant_read" on "documents" for select to "app_user"
+    using ((tenant = current_setting('app.tenant', true)))
+create policy "tenant_write" on "documents" for insert to "app_user"
+    with check ((tenant = current_setting('app.tenant', true)))
+```
+
+`using` decides which rows a statement may see; `withCheck` decides which it may leave behind.
+Both take the predicate vocabulary from [Index predicates](indexes.md), and a policy with neither
+is refused — it would permit nothing, which is a mistake more often than an intention.
+
+```php
+$table->dropPolicy('tenant_read');
+$table->disableRowLevelSecurity();
+```
+
+> Switching security on hides every row until a policy permits one. Without `force`, the table
+> owner bypasses the policies entirely — which is easy to miss when testing as the owner.
+
+## How a table is stored
+
+```php
+Schema::create('cache', static function (Blueprint $table) {
+    $table->string('key');
+
+    $table->unlogged();                                    // no write-ahead log
+    $table->storageParameters(['fillfactor' => 70, 'autovacuum_vacuum_scale_factor' => 0.05]);
+});
+
+Schema::table('cache', fn (Blueprint $t) => $t->resetStorageParameters('fillfactor'));
+```
+
+```sql
+create unlogged table "cache" ("key" varchar(255) not null)
+alter table "cache" set (fillfactor = 70, autovacuum_vacuum_scale_factor = 0.05)
+alter table "cache" reset (fillfactor)
+```
+
+> An unlogged table is faster to write and is **emptied after a crash** and never replicated. For
+> data you can rebuild, and nothing else. `temporary()` and `unlogged()` are mutually exclusive;
+> temporary wins.
+
+Storage parameters are their own `ALTER TABLE`, so the same call works on a new table and on one
+that already exists. Both the name and the value are checked, since neither can be a bound
+parameter.

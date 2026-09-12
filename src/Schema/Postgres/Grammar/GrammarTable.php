@@ -26,8 +26,16 @@ trait GrammarTable
         $fromTable   = $this->getCommandByName($blueprint, 'fromTable');
         $like        = $this->getCommandByName($blueprint, 'like');
         $ifNotExists = $this->getCommandByName($blueprint, 'ifNotExists');
+        $partitionBy = $this->getCommandByName($blueprint, 'partitionBy');
+        $partitionOf = $this->getCommandByName($blueprint, 'partitionOf');
 
-        if ($fromSelect === null && $fromTable === null && $like === null && $ifNotExists === null) {
+        /** @phpstan-ignore-next-line property.notFound — set by this package's Blueprint */
+        $unlogged = (bool)($blueprint->unlogged ?? false);
+
+        if (
+            $fromSelect === null && $fromTable === null && $like === null && $ifNotExists === null
+            && $partitionBy === null && $partitionOf === null && !$unlogged
+        ) {
             return parent::compileCreate($blueprint, $command);
         }
 
@@ -35,7 +43,7 @@ trait GrammarTable
             $this,
             $blueprint,
             $this->getColumns($blueprint),
-            compact('like', 'ifNotExists', 'fromSelect', 'fromTable')
+            compact('like', 'ifNotExists', 'fromSelect', 'fromTable', 'partitionBy', 'partitionOf')
         );
     }
 

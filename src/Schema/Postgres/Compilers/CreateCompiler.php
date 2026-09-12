@@ -6,13 +6,14 @@ namespace Php\Support\Laravel\Database\Schema\Postgres\Compilers;
 
 use Illuminate\Database\Schema\Blueprint as BaseBlueprint;
 use Illuminate\Support\Fluent;
+use Php\Support\Laravel\Database\Schema\Postgres\Builders\Partitions\PartitionBuilder;
 use Php\Support\Laravel\Database\Schema\Postgres\Grammar;
 
 class CreateCompiler
 {
     /**
      * @param list<string>                      $columns
-     * @param array<string, Fluent<string, mixed>|null> $commands
+     * @param array<string, Fluent<string, mixed>|PartitionBuilder|null> $commands
      */
     public static function compile(
         Grammar $grammar,
@@ -21,6 +22,9 @@ class CreateCompiler
         array $commands = []
     ): string {
         $postCompile = match (true) {
+            // a child table carries no column list of its own: it inherits the parent's
+            ($commands['partitionOf'] ?? null) instanceof PartitionBuilder
+                => PartitionCompiler::of($grammar, $commands['partitionOf']),
             (bool)($commands['like'] ?? null)       => self::compileLike($grammar, $commands['like']),
             (bool)($commands['fromSelect'] ?? null) => self::compileFromSelect($commands['fromSelect']),
             (bool)($commands['fromTable'] ?? null)  => self::compileFromTable($grammar, $commands['fromTable']),
@@ -34,14 +38,30 @@ class CreateCompiler
             ' ',
             array_filter(
                 [
-                    $blueprint->temporary ? 'create temporary table' : 'create table',
+                    self::createVerb($blueprint),
                     ($commands['ifNotExists'] ?? null) ? 'if not exists' : '',
                     $grammar->wrapTable($blueprint),
                     $postCompile,
+                    ($commands['partitionBy'] ?? null)
+                        ? PartitionCompiler::by($grammar, $blueprint, $commands['partitionBy'])
+                        : '',
                 ],
                 static fn(string $part): bool => $part !== ''
             )
         );
+    }
+
+    /**
+     * `UNLOGGED` skips the write-ahead log: faster writes, and the table is emptied after a crash
+     * and never replicated. `TEMPORARY` and `UNLOGGED` are mutually exclusive.
+     */
+    private static function createVerb(BaseBlueprint $blueprint): string
+    {
+        if ($blueprint->temporary) {
+            return 'create temporary table';
+        }
+
+        return ($blueprint->unlogged ?? false) ? 'create unlogged table' : 'create table';
     }
 
     /** @param Fluent<string, mixed> $command */
