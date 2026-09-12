@@ -7,7 +7,7 @@ and this project adheres to [Semantic Versioning][semver].
 
 Check MD [online][check-online].
 
-## [unreleased]
+## [5.2.0] - 2026-09-13
 
 ### Added
 
@@ -21,6 +21,14 @@ Check MD [online][check-online].
   the carried columns never touches the table (PostgreSQL 11 and later)
 - `dropConstraint()`, which drops any named constraint. `dropCheck()` is the same statement under a
   name that says what it usually drops
+
+### Removed
+
+- `Grammar::compileDropCheck()`. It is a dispatch target for a `dropCheck` command, and
+  `dropCheck()` now creates a `dropConstraint` one instead, so nothing could reach it — coverage
+  is what noticed. `$table->dropCheck()` itself is unchanged and emits the same statement it
+  always did; only the grammar method it used to dispatch to is gone, one release after it
+  arrived
 
 ### Changed
 
@@ -578,11 +586,11 @@ Check MD [online][check-online].
 
 - Create the package
 
-[unreleased]: https://github.com/efureev/laravel-support-db/compare/v5.1.0...HEAD
+[5.2.0]: https://github.com/efureev/laravel-support-db/compare/v5.1.0...v5.2.0
 
 [5.1.0]: https://github.com/efureev/laravel-support-db/compare/v5.0.5...v5.1.0
 
-[unreleased]: https://github.com/efureev/laravel-support-db/compare/v5.1.0...HEAD
+[5.2.0]: https://github.com/efureev/laravel-support-db/compare/v5.1.0...v5.2.0
 
 [5.1.0]: https://github.com/efureev/laravel-support-db/compare/v5.0.5...v5.1.0
 
