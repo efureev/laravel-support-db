@@ -7,6 +7,28 @@ and this project adheres to [Semantic Versioning][semver].
 
 Check MD [online][check-online].
 
+## [unreleased]
+
+### Added
+
+- `docs/roadmap.md`, and with it a plan that leads with a defect rather than a feature. The
+  package creates partial unique indexes and thereby makes Laravel's `upsert()` unusable against
+  them — `compileUpsert()` emits `on conflict (col)` with no predicate, and PostgreSQL will not
+  infer a partial index without one. Reproduced, and the statement that does work is recorded.
+  Alongside it: exclusion constraints, which are what the `tsrange` and `daterange` columns
+  already in the package exist for, and which compose with the `btree_gist` its extension methods
+  already install. Everything on the list was checked against Laravel 13 first, and what the
+  framework already does — generated columns, `DISTINCT ON`, lateral joins, vector and full-text —
+  is listed as deliberately excluded so it does not get built twice
+
+### Fixed
+
+- The documentation guard reported content as missing when it was not. Tags are replaced by a
+  space before the text is searched, so an inline `<code>` left a gap the markdown never had and
+  a list item ending in one never matched. It compares with whitespace removed now, which retires
+  the whole class. Re-checked that it still catches real loss: dropping a page from the generator
+  and disabling list rendering each still fail it
+
 ## [5.0.5] - 2026-09-12
 
 ### Changed
@@ -501,6 +523,8 @@ Check MD [online][check-online].
 ### Added
 
 - Create the package
+
+[unreleased]: https://github.com/efureev/laravel-support-db/compare/v5.0.5...HEAD
 
 [5.0.5]: https://github.com/efureev/laravel-support-db/compare/v5.0.4...v5.0.5
 

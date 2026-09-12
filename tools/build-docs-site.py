@@ -46,6 +46,7 @@ PAGES = [
     ('query',   'query-builder.md', 'Query builder',          'Reference 6'),
     ('recipes', 'recipes.md',       'Recipes',                'Practice'),
     ('notes',   'behaviour.md',     'Behaviour notes',        'Practice'),
+    ('roadmap', 'roadmap.md',       'Roadmap',                'Practice'),
     ('contrib', 'contributing.md',  'Testing & contributing', 'Practice'),
 ]
 GROUPS = {'start': 'Reference', 'recipes': 'Practice'}       # rail group label starts here

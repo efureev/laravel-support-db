@@ -50,6 +50,7 @@ alter table "users" add primary key ("id")
 |---|---|
 | [Recipes](recipes.md) | Thirteen realistic problems worked end to end |
 | [Behaviour notes](behaviour.md) | The things that are easy to trip over, and what Laravel 13 already does itself |
+| [Roadmap](roadmap.md) | Where the package goes next, and what is deliberately not on the list |
 | [Testing & contributing](contributing.md) | Running the suite, and the gate a pull request has to pass |
 
 ## At a glance

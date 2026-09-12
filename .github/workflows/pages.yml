@@ -62,6 +62,11 @@ jobs:
           def norm(s):
               return re.sub(r'\s+', ' ', s).strip()
 
+          def squash(s):
+              # tags become a space, so `<code>x</code>,` gains one the markdown never had;
+              # dropping whitespace entirely removes that whole class of false positives
+              return re.sub(r'\s+', '', s)
+
           problems = []
 
           # 1. every page listed in the generator must be on the site
@@ -93,7 +98,7 @@ jobs:
                       fence = not fence
                   elif not fence and re.match(r'^#{1,4}\s', ln):
                       source_heads.add(norm(re.sub(r'[`*\[\]]|\(.*?\)', '', ln.lstrip('# '))))
-          missing_heads = [h for h in source_heads if h and norm(h) not in norm(text)]
+          missing_heads = [h for h in source_heads if h and squash(h) not in squash(text)]
           if missing_heads:
               problems.append('headings missing: %s' % sorted(missing_heads)[:5])
 
@@ -116,7 +121,7 @@ jobs:
                   elif not fence and re.match(r'^\s*([-*]|\d+\.)\s', ln):
                       items.append(norm(re.sub(r'[`*\[\]]|\(.*?\)', '',
                                                re.sub(r'^\s*([-*]|\d+\.)\s+', '', ln))))
-          lost = [x for x in items if x and norm(x) not in norm(text)]
+          lost = [x for x in items if x and squash(x) not in squash(text)]
           if lost:
               problems.append('list items missing: %s' % sorted(lost)[:5])
 
