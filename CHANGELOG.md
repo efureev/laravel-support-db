@@ -48,6 +48,17 @@ Check MD [online][check-online].
 - `.meta.php` covers `Query\Builder` — the block was commented out, so the documented
   `Model::toBase()->updateAndReturn(...)` had no IDE support at all — and `ColumnDefinition`, which
   is what makes `->compression()` visible on an ordinary column
+- `ginIndex($columns, $name, $operatorClass)` takes an operator class — `jsonb_path_ops` for
+  containment queries on jsonb, `gin_trgm_ops` for trigram search. The framework accepts one on
+  spatial and vector indexes only: `index()` has no such argument and `compileIndex()` discards the
+  attribute, so `compileIndex()` is overridden to route a command that carries one through the
+  framework's own compiler for it
+- The view lookups accept a `schema.view` reference. `createView()` and `dropView()` always did
+  through `wrapTable()`; `hasView()` and `getViewDefinition()` bound the current schema and the
+  whole dotted string as the name, so a view created in another schema through this builder could
+  never be found again. A three-part reference is rejected with the framework's own message.
+  Case is left alone, unlike the framework's `hasView()`, which lowercases both sides: this package
+  quotes identifiers, so `createView('MyView', ...)` really does make a view named `MyView`
 - `addExtendedCommand()` is held to the fields the framework's own `createCommand()` produces. The
   method is a deliberate copy — `addCommand()` hard-codes `Fluent` and offers no hook for a command
   class of one's own — and a copy is the thing that drifts: were a later Laravel to set another

@@ -295,13 +295,17 @@ class Blueprint extends BaseBlueprint
     }
 
     /**
+     * A GIN index, optionally with an operator class — `jsonb_path_ops` for containment queries
+     * on jsonb, `gin_trgm_ops` for trigram search. The framework's `index()` accepts no operator
+     * class, and its `compileIndex()` would drop one anyway.
+     *
      * @param array<array-key, string>|string $columns
      *
      * @return Fluent<string, mixed>
      */
-    public function ginIndex(array|string $columns, ?string $name = null): Fluent
+    public function ginIndex(array|string $columns, ?string $name = null, ?string $operatorClass = null): Fluent
     {
-        return $this->indexCommand('index', $columns, $name, 'gin');
+        return $this->indexCommand('index', $columns, $name, 'gin', $operatorClass);
     }
 
     /**

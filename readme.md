@@ -60,6 +60,7 @@ registered wins.
     - [Create views](#create-views)
     - [Refreshing materialized views](#refreshing-materialized-views)
     - [Dropping views](#dropping-views)
+    - [Views in another schema](#views-in-another-schema)
 - [Indexes](#indexes)
     - [Partial indexes](#partial-indexes)
     - [GIN indexes](#gin-indexes)
@@ -275,6 +276,23 @@ Schema::dropView('active_users', true);
 Schema::dropViewIfExists('active_users', true);
 ```
 
+#### Views in another schema
+
+Every view method takes a `schema.view` reference, the lookups included:
+
+```php
+Schema::createView('reporting.active_users', "SELECT * FROM users WHERE active = 1");
+
+Schema::hasView('reporting.active_users');           // true
+Schema::hasView('active_users');                     // false — a different view
+Schema::getViewDefinition('reporting.active_users');
+Schema::dropView('reporting.active_users');
+```
+
+Without a schema the connection's own is used. Identifiers are quoted rather than folded, so
+`createView('MyView', ...)` really does make a view named `MyView`, and that is the name to ask
+for later.
+
 ### Indexes
 
 #### Partial indexes
@@ -331,6 +349,25 @@ Schema::create('table', static function (Blueprint $table) {
     $table->ginIndex('tags');
 });
 ```
+
+A third argument names an [operator class](https://www.postgresql.org/docs/current/indexes-opclass.html),
+which is where GIN indexes earn their keep — `jsonb_path_ops` builds a smaller, faster index for
+containment (`@>`) queries, and `gin_trgm_ops` (from the `pg_trgm` extension) makes `LIKE '%...%'`
+and similarity search indexable:
+
+```php
+Schema::create('table', static function (Blueprint $table) {
+    $table->jsonb('payload');
+    $table->ginIndex('payload', 'table_payload_gin', 'jsonb_path_ops');
+});
+```
+
+```SQL
+CREATE INDEX table_payload_gin ON "table" USING gin ("payload" jsonb_path_ops)
+```
+
+The framework accepts an operator class on spatial and vector indexes only; its `index()` takes no
+such argument, and `compileIndex()` drops one if it somehow arrives.
 
 #### Unique Partial indexes
 

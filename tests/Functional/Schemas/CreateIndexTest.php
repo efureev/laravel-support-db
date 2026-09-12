@@ -168,6 +168,43 @@ class CreateIndexTest extends AbstractTestCase
         );
     }
 
+    /**
+     * PostgreSQL has to accept the operator class, not merely have it appear in the statement:
+     * a bogus one is rejected at `CREATE INDEX` time, so the server is the real assertion here.
+     */
+    #[Test]
+    public function aGinIndexCarriesItsOperatorClass(): void
+    {
+        Schema::create(
+            'test_table',
+            static function (Blueprint $table) {
+                $table->increments('id');
+                $table->jsonb('payload');
+                $table->ginIndex('payload', 'test_table_payload_gin', 'jsonb_path_ops');
+            }
+        );
+
+        $this->assertRegExpIndex(
+            'test_table_payload_gin',
+            '/USING gin \(payload jsonb_path_ops\)/'
+        );
+    }
+
+    #[Test]
+    public function aGinIndexWithoutAnOperatorClassUsesTheDefault(): void
+    {
+        Schema::create(
+            'test_table',
+            static function (Blueprint $table) {
+                $table->increments('id');
+                $table->jsonb('payload');
+                $table->ginIndex('payload', 'test_table_payload_gin');
+            }
+        );
+
+        $this->assertRegExpIndex('test_table_payload_gin', '/USING gin \(payload\)/');
+    }
+
     protected function tearDown(): void
     {
         Schema::dropIfExists('test_table');

@@ -129,14 +129,29 @@ class Builder extends PostgresBuilder
 
     /**
      * Both view queries union `pg_views` with `pg_matviews`, so schema and name are bound twice.
+     *
+     * A `schema.view` reference is honoured, the same way `createView()` and `dropView()` already
+     * honour one through `wrapTable()`. Without this you could create a view in another schema
+     * through this builder and then not be able to ask whether it exists.
+     *
+     * Case is left alone, unlike the framework's `hasView()`, which lowercases both sides: this
+     * package quotes identifiers, so `createView('MyView', ...)` really does make a view named
+     * `MyView`, and folding the comparison would stop finding it.
+     *
+     * @return list<string|null>
      */
-    /** @return list<string|null> */
     private function viewBindings(string $view): array
     {
-        // Laravel 13 resolves this from config rather than from the server, so memoising saves
-        // parsing rather than a round-trip; the schema cannot change under one builder anyway.
-        $schema = $this->currentSchema ??= $this->getCurrentSchemaName();
-        $name   = $this->connection->getTablePrefix() . $view;
+        // Laravel 13 resolves the default from config rather than from the server, so memoising
+        // saves parsing rather than a round-trip; the schema cannot change under one builder.
+        [
+            $schema, $view,
+        ] = $this->parseSchemaAndTable(
+            $view,
+            $this->currentSchema ??= $this->getCurrentSchemaName()
+        );
+
+        $name = $this->connection->getTablePrefix() . $view;
 
         return [
             $schema,
