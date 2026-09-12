@@ -8,6 +8,31 @@ PostgreSQL features for Laravel's schema and query builders. Start with
 [Getting started](installation.md); reach for [Recipes](recipes.md) when you have a problem rather
 than a method in mind.
 
+## The shape of it
+
+One live user per address — soft-deleted rows do not collide:
+
+```php
+Schema::create('users', static function (Blueprint $table) {
+    $table->primaryUUID();
+    $table->string('email');
+    $table->softDeletes();
+
+    $table->uniquePartial('email')->whereNull('deleted_at');
+});
+```
+
+```sql
+create table "users" ("id" uuid not null default gen_random_uuid(),
+    "email" varchar(255) not null,
+    "deleted_at" timestamp(0) without time zone null)
+
+create unique index "users_email_unique" on "users" ("email")
+    where ("deleted_at" is null)
+
+alter table "users" add primary key ("id")
+```
+
 ## Reference
 
 | Page | Covers |

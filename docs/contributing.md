@@ -29,6 +29,10 @@ composer test-cover   # with coverage
 composer phpunit-unit # the unit suite alone — asserts on generated SQL, needs no database
 ```
 
+> The unit suite asserts on generated SQL and never opens a connection, so it runs anywhere. The
+> functional suite reads the catalogue back from a real server, which is the only way some of
+> these features can be checked at all.
+
 ## Contributing
 
 Issues and pull requests are welcome. Before opening one, run the gate CI runs:
@@ -40,4 +44,11 @@ composer test       # PHPCS + the whole suite, needs PostgreSQL
 ```
 
 New behaviour wants a test that fails without it — the suite is checked by mutation, not by
-coverage percentage.
+coverage percentage. Break the code, and something should go red.
+
+| Check | Standard |
+|---|---|
+| PHPCS | PSR-12 over `src` and `tests` |
+| PHPStan | Level 6 with larastan; `src` is analysed without a single exemption |
+| PHPUnit | Fails on warnings, notices, deprecations, risky tests and output |
+| Matrix | PostgreSQL 13 – 18, plus a lowest-dependencies run |

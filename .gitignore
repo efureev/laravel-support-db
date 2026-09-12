@@ -14,3 +14,4 @@ phpunit.xml
 /coverage
 .phpunit.cache/
 .phpcs.cache
+/build

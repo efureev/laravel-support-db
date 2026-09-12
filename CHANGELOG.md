@@ -17,6 +17,12 @@ Check MD [online][check-online].
   `docs/behaviour.md` collects the version floors, the transaction rules for `CONCURRENTLY`, and
   the rest of what used to be scattered through the prose. Every example was executed against
   PostgreSQL before it was committed
+- `docs/` is the single source of truth for the documentation. `tools/build-docs-site.py` renders
+  it into a single self-contained HTML page, so the two cannot drift: a php fence followed
+  immediately by a sql one becomes a call-and-emits pair, blockquotes become notes, and everything
+  else maps straight across. Porting the page's own additions back into `docs/` turned up an
+  example whose emitted SQL was wrong in two ways — the timestamp type and the order of the
+  statements — which is what running it against a server rather than writing it from memory is for
 
 ## [5.0.0] - 2026-09-12
 

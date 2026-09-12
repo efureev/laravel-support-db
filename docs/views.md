@@ -14,6 +14,12 @@ Schema::createViewOrReplace('active_users', 'select id, email, role from users w
 Schema::createView('order_totals', 'select user_id, sum(total) from orders group by 1', true);
 ```
 
+```sql
+create view "active_users" as select id, email from users where is_active
+create or replace view "active_users" as select id, email, role from users where is_active
+create materialized view "order_totals" as select user_id, sum(total) from orders group by 1
+```
+
 The same methods exist on the blueprint, if you would rather create a view alongside its table:
 
 ```php
@@ -27,6 +33,11 @@ Schema::table('users', static function (Blueprint $table) {
 ```php
 Schema::refreshMaterializedView('order_totals');
 Schema::refreshMaterializedView('order_totals', true);   // CONCURRENTLY
+```
+
+```sql
+refresh materialized view "order_totals"
+refresh materialized view concurrently "order_totals"
 ```
 
 > `CONCURRENTLY` keeps the view readable while it rebuilds, but PostgreSQL requires the view to

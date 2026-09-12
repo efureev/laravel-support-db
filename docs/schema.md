@@ -60,6 +60,10 @@ depends on those in turn.
 Schema::dropIfExistsCascade('users');
 ```
 
+```sql
+drop table if exists "users" cascade
+```
+
 Without it, PostgreSQL refuses to drop a table a view is built on. Useful in `down()` and in test
 teardown; deliberate everywhere else, since the blast radius is by definition not local.
 
@@ -71,6 +75,14 @@ Schema::createExtensionIfNotExists('uuid-ossp');  // idempotent
 
 Schema::dropExtensionIfExists('tablefunc');
 Schema::dropExtensionIfExists('tablefunc', 'fuzzystrmatch');   // several at once
+```
+
+```sql
+create extension "uuid-ossp"
+create extension if not exists "uuid-ossp"
+
+drop extension if exists "tablefunc"
+drop extension if exists "tablefunc", "fuzzystrmatch"
 ```
 
 Creating an extension usually needs a superuser or an explicitly trusted extension.
