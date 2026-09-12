@@ -11,12 +11,12 @@ Check MD [online][check-online].
 
 ### Changed
 
-- The documentation is restructured into a reference and a set of recipes. Every method now
-  carries its signature, the SQL it emits and the PostgreSQL docs it corresponds to; the `Recipes`
-  section works through thirteen realistic problems end to end, and a `Behaviour notes` section
-  collects the version floors, the transaction rules for `CONCURRENTLY`, and the rest of what used
-  to be scattered through the prose. Every example in the file was executed against PostgreSQL
-  before it was committed
+- The documentation is rewritten and split across `docs/`, leaving `readme.md` as an overview that
+  links into it. Every method now carries its signature, the SQL it emits and the PostgreSQL docs
+  it corresponds to; `docs/recipes.md` works through thirteen realistic problems end to end, and
+  `docs/behaviour.md` collects the version floors, the transaction rules for `CONCURRENTLY`, and
+  the rest of what used to be scattered through the prose. Every example was executed against
+  PostgreSQL before it was committed
 
 ## [5.0.0] - 2026-09-12
 
