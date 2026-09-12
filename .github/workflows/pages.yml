@@ -12,7 +12,19 @@ on:
       - '.github/workflows/pages.yml'
       # the version in the page header comes from the changelog
       - 'CHANGELOG.md'
+  pull_request:
+    paths:
+      - 'docs/**'
+      - 'tools/build-docs-site.py'
+      - 'tools/docs-site.css'
+      - '.github/workflows/pages.yml'
+      - 'CHANGELOG.md'
   workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
 
 # Never cancel a deploy midway; queue instead.
 concurrency:
@@ -42,34 +54,87 @@ jobs:
         run: |
           # docs/ is the source of truth, so the render must carry all of it across
           python3 - <<'PY'
-          import pathlib, re, sys, html
+          import html, pathlib, re, sys
 
           page = pathlib.Path('_site/index.html').read_text()
+          text = html.unescape(re.sub('<[^>]+>', ' ', page))
 
           def norm(s):
               return re.sub(r'\s+', ' ', s).strip()
 
-          rendered = {norm(html.unescape(re.sub('<[^>]+>', '', m)))
-                      for m in re.findall(r'<pre[^>]*>(.*?)</pre>', page, re.S)}
-          source = set()
+          problems = []
+
+          # 1. every page listed in the generator must be on the site
+          rendered_pages = set(re.findall(r'data-page="([^"]+)"', page))
+          sources = {f.name for f in pathlib.Path('docs').glob('*.md')}
+          listed = set(re.findall(r"\(\s*'[a-z]+',\s*'([a-z-]+\.md)'",
+                                  pathlib.Path('tools/build-docs-site.py').read_text()))
+          if sources - listed:
+              problems.append('docs pages not listed in PAGES: %s' % sorted(sources - listed))
+          if len(rendered_pages) != len(listed):
+              problems.append('PAGES lists %d pages, the site has %d' % (len(listed), len(rendered_pages)))
+
+          # 2. every fenced code block must appear verbatim
+          rendered_code = {norm(html.unescape(re.sub('<[^>]+>', '', m)))
+                           for m in re.findall(r'<pre[^>]*>(.*?)</pre>', page, re.S)}
+          source_code = set()
           for f in sorted(pathlib.Path('docs').glob('*.md')):
               for m in re.findall(r'```[a-zA-Z]*\n(.*?)```', f.read_text(), re.S):
-                  source.add(norm(m))
+                  source_code.add(norm(m))
+          if source_code - rendered_code:
+              problems.append('code blocks missing: %s'
+                              % [c[:60] for c in sorted(source_code - rendered_code)][:5])
 
-          missing = sorted(source - rendered)
-          if missing:
-              print('code blocks in docs/ that did not reach the page:')
-              for m in missing:
-                  print('  -', m[:100])
+          # 3. every heading must appear
+          source_heads, fence = set(), False
+          for f in sorted(pathlib.Path('docs').glob('*.md')):
+              for ln in f.read_text().split('\n'):
+                  if ln.startswith('```'):
+                      fence = not fence
+                  elif not fence and re.match(r'^#{1,4}\s', ln):
+                      source_heads.add(norm(re.sub(r'[`*\[\]]|\(.*?\)', '', ln.lstrip('# '))))
+          missing_heads = [h for h in source_heads if h and norm(h) not in norm(text)]
+          if missing_heads:
+              problems.append('headings missing: %s' % sorted(missing_heads)[:5])
+
+          # 4. every table row must appear
+          rows = 0
+          for f in sorted(pathlib.Path('docs').glob('*.md')):
+              for ln in f.read_text().split('\n'):
+                  if ln.startswith('|') and not re.fullmatch(r'\|[\s:|-]+\|', ln.strip()):
+                      rows += 1
+          rendered_rows = len(re.findall(r'<tr>', page))
+          if rendered_rows < rows:
+              problems.append('table rows: %d in docs/, %d on the page' % (rows, rendered_rows))
+
+          # 5. every list item must appear
+          items, fence = [], False
+          for f in sorted(pathlib.Path('docs').glob('*.md')):
+              for ln in f.read_text().split('\n'):
+                  if ln.startswith('```'):
+                      fence = not fence
+                  elif not fence and re.match(r'^\s*([-*]|\d+\.)\s', ln):
+                      items.append(norm(re.sub(r'[`*\[\]]|\(.*?\)', '',
+                                               re.sub(r'^\s*([-*]|\d+\.)\s+', '', ln))))
+          lost = [x for x in items if x and norm(x) not in norm(text)]
+          if lost:
+              problems.append('list items missing: %s' % sorted(lost)[:5])
+
+          if problems:
+              for p in problems:
+                  print('  -', p)
               sys.exit(1)
 
-          print('%d code blocks, all present' % len(source))
+          print('%d pages, %d code blocks, %d headings, %d table rows - all present'
+                % (len(rendered_pages), len(source_code), len(source_heads), rows))
           PY
 
       - name: Configure Pages
+        if: github.event_name != 'pull_request'
         uses: actions/configure-pages@v6
 
       - name: Upload artifact
+        if: github.event_name != 'pull_request'
         uses: actions/upload-pages-artifact@v5
         with:
           path: _site
@@ -77,6 +142,7 @@ jobs:
   deploy:
     name: Deploy
     needs: build
+    if: github.event_name != 'pull_request'
     runs-on: ubuntu-latest
     timeout-minutes: 5
     environment:

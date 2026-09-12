@@ -54,6 +54,7 @@ and the query builder, so the framework's own type hints resolve to them too.
 A migration using several of the additions at once:
 
 ```php
+use Illuminate\Database\Migrations\Migration;
 use Illuminate\Support\Facades\Schema;
 use Php\Support\Laravel\Database\Schema\Postgres\Blueprint;
 

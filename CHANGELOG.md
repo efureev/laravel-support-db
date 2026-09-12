@@ -7,6 +7,38 @@ and this project adheres to [Semantic Versioning][semver].
 
 Check MD [online][check-online].
 
+## [unreleased]
+
+### Fixed
+
+- The documentation had the transaction rule for `CONCURRENTLY` backwards. It said Laravel does
+  not wrap migrations in a transaction, when `Migration::$withinTransaction` is `true` and the
+  Postgres grammar reports schema-transaction support, so the migrator does wrap every one — and
+  it told readers to set the flag the wrong way round, steering them away from the only fix. Both
+  `docs/indexes.md` and `docs/behaviour.md` now say what the framework actually does
+- Index predicates described `DateTimeInterface` values as ISO-8601. They are formatted
+  `Y-m-d H:i:s`, with no offset, so against a `timestamptz` column PostgreSQL reinterprets them in
+  the server's `TimeZone` and silently moves the boundary. Documented as what it is, with the
+  workaround
+- The Quick start migration extended `Migration` without importing it, so copying it verbatim gave
+  `Class "Migration" not found` before any SQL ran
+- The per-tenant recipe interpolated a tenant's schema name and id straight into DDL. A view
+  definition genuinely cannot take bindings, so it now validates the identifier and escapes the
+  literal, the same two rules the package applies to an index algorithm and a compression method
+- The generated page had no doctype, charset, viewport or language, so browsers rendered it in
+  quirks mode and phones never reached the mobile layout. It is a complete document now, which
+  also retires the entity-escaping machinery that existed only because the charset was undeclared
+- `build-docs-site.py` crashed on any `#`-leading line that was not a heading, looped forever on
+  one that was not a heading either, flattened lists into a run-on paragraph, let an unpaired quote
+  paint the rest of a code block as a string, aliased `../readme.md` onto the docs index through
+  `lstrip`, and silently dropped links it could not resolve. All six are fixed, the last one by
+  refusing to build
+- The Pages workflow granted no Pages scope to the job that calls `configure-pages`, never ran on a
+  pull request, and guarded only code blocks. It now declares its permissions, renders without
+  deploying on a PR, and checks pages, code blocks, headings, table rows and list items — verified
+  by dropping a page from the generator and by disabling list rendering, each of which the guard
+  now catches
+
 ## [5.0.2] - 2026-09-12
 
 ### Fixed
@@ -441,6 +473,8 @@ Check MD [online][check-online].
 ### Added
 
 - Create the package
+
+[unreleased]: https://github.com/efureev/laravel-support-db/compare/v5.0.2...HEAD
 
 [5.0.2]: https://github.com/efureev/laravel-support-db/compare/v5.0.1...v5.0.2
 

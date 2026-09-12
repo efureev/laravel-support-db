@@ -12,8 +12,10 @@ Things that are easy to trip over, gathered in one place.
 Everything else works from 13. All six versions run in CI.
 
 **`CONCURRENTLY` cannot run in a transaction.** That applies to `online()` on an index and to
-`refreshMaterializedView($view, true)`. Laravel does not wrap migrations in a transaction by
-default; if yours does, set `$withinTransaction = false` on it.
+`refreshMaterializedView($view, true)`. A PostgreSQL migration runs inside a transaction by
+default — `Migration::$withinTransaction` is `true`, and the Postgres grammar reports that it
+supports schema transactions, so the migrator wraps it — which means both statements abort unless
+the migration sets `public $withinTransaction = false;`.
 
 **Partial unique indexes are indexes, not constraints.** PostgreSQL has no partial `UNIQUE`
 constraint, so use `dropUniquePartial()` — `dropUnique()` will not find anything to drop.

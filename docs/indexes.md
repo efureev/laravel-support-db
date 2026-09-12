@@ -74,7 +74,7 @@ $table->partial('code', 'docs_reachable')
 A leading `or` is stripped, so the first predicate may use either spelling.
 
 **Values.** Accepted: `string`, `int`, `float`, `bool`, `null`, `BackedEnum` (its value is used),
-`DateTimeInterface` (ISO-8601), and `Stringable`. They are escaped and inlined — an index
+`DateTimeInterface`, and `Stringable`. They are escaped and inlined — an index
 predicate is part of the DDL, and PostgreSQL takes no parameters there. Anything else is rejected
 rather than coerced.
 
@@ -82,6 +82,11 @@ rather than coerced.
 $table->partial('state')->where('state', '=', OrderState::Paid);   // backed enum
 $table->partial('at')->where('at', '>', new DateTimeImmutable('2026-01-01'));
 ```
+
+> A `DateTimeInterface` is rendered with `format('Y-m-d H:i:s')` — local wall-clock time, with no
+> offset. Against a `timestamptz` column PostgreSQL then reads it in the server's `TimeZone`, so
+> pass a value already in the server's zone, or write the predicate with `whereRaw()` and spell the
+> offset out yourself.
 
 `whereRaw()` uses `?` placeholders, bound the same way and inlined the same way:
 
@@ -118,9 +123,11 @@ $table->uniquePartial(['team', 'seat'])->nullsNotDistinct()->whereNull('deleted_
 //     nulls not distinct where ("deleted_at" is null)
 ```
 
-> **`online()` and transactions.** PostgreSQL refuses `CREATE INDEX CONCURRENTLY` inside a
-> transaction block. Laravel does not wrap migrations in one by default; if yours opts in with
-> `$withinTransaction = true`, this cannot be used there.
+> **`online()` needs `$withinTransaction = false`.** PostgreSQL refuses
+> `CREATE INDEX CONCURRENTLY` inside a transaction block, and a PostgreSQL migration runs in one
+> by default — `Migration::$withinTransaction` is `true` and the Postgres grammar reports that it
+> supports schema transactions, so the migrator wraps it. Set `public $withinTransaction = false;`
+> on the migration, or the statement aborts.
 >
 > **`nullsNotDistinct()` is unique-only.** PostgreSQL parses the clause on a non-unique index and
 > then ignores it, so `partial()` throws rather than emitting something that does nothing.

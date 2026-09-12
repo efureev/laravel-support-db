@@ -50,6 +50,7 @@ PAGES = [
 ]
 GROUPS = {'start': 'Reference', 'recipes': 'Practice'}       # rail group label starts here
 FILE_TO_KEY = {src: key for key, src, _, _ in PAGES}
+UNRESOLVED = []   # relative links that name no page; the build refuses to ship them
 
 
 # ─────────────────────────────── inline ───────────────────────────────
@@ -73,8 +74,9 @@ def inline(text):
         label, href = m.group(1), m.group(2)
         if not href.startswith(('http://', 'https://', '#')):
             # a link between docs pages becomes a link between pages of this site
-            target = FILE_TO_KEY.get(href.split('#')[0].lstrip('./'))
+            target = FILE_TO_KEY.get(href.split('#')[0].removeprefix('./'))
             if target is None:
+                UNRESOLVED.append(href)
                 return label
             href = '#' + target
         return '<a href="%s">%s</a>' % (href, label)
@@ -84,19 +86,6 @@ def inline(text):
     text = re.sub(r'(?<![\w*])\*([^*\n]+)\*(?![\w*])', r'<em>\1</em>', text)
     text = re.sub(r'\x00(\d+)\x00', lambda m: spans[int(m.group(1))], text)
     return text
-
-
-def ascii_only(text):
-    """No non-ASCII byte survives: the page is served without a declared charset."""
-    named = {
-        '·': '&middot;', '≥': '&ge;', '≤': '&le;', '–': '&ndash;',
-        '—': '&mdash;', '…': '&hellip;', '“': '&ldquo;', '”': '&rdquo;',
-        '‘': '&lsquo;', '’': '&rsquo;', '→': '&rarr;', '←': '&larr;',
-        '×': '&times;', ' ': '&nbsp;',
-    }
-    for ch, ent in named.items():
-        text = text.replace(ch, ent)
-    return ''.join(c if ord(c) < 128 else '&#%d;' % ord(c) for c in text)
 
 
 # ─────────────────────────────── code ───────────────────────────────
@@ -113,10 +102,11 @@ def highlight(code, lang):
             out.append('<span class="c">%s</span>' % esc(code[i:j]))
             i = j
         elif ch in '\'"':
+            # bounded at the newline, so an unpaired quote spoils one line rather than the block
             j = i + 1
-            while j < n and code[j] != ch:
+            while j < n and code[j] not in (ch, '\n'):
                 j += 2 if code[j] == '\\' else 1
-            j = min(j + 1, n)
+            j = j if (j < n and code[j] == '\n') else min(j + 1, n)
             out.append('<span class="s">%s</span>' % esc(code[i:j]))
             i = j
         else:
@@ -161,15 +151,25 @@ def split_blocks(text):
                 body.append(lines[i]); i += 1
             i += 1
             blocks.append(('code', (lang, '\n'.join(body))))
-        elif ln.startswith('#'):
-            h = re.match(r'^(#{1,4})\s+(.*)$', ln)
-            blocks.append(('h%d' % len(h.group(1)), h.group(2).strip()))
+        elif re.match(r'^#{1,6}\s', ln):
+            h = re.match(r'^(#{1,6})\s+(.*)$', ln)
+            blocks.append(('h%d' % min(len(h.group(1)), 4), h.group(2).strip()))
             i += 1
         elif ln.startswith('>'):
             body = []
             while i < len(lines) and lines[i].startswith('>'):
                 body.append(lines[i].lstrip('>').strip()); i += 1
             blocks.append(('quote', '\n'.join(body)))
+        elif re.match(r'^\s*([-*]|\d+\.)\s', ln):
+            ordered = bool(re.match(r'^\s*\d+\.\s', ln))
+            items = []
+            while i < len(lines) and re.match(r'^\s*([-*]|\d+\.)\s', lines[i]):
+                items.append(re.sub(r'^\s*([-*]|\d+\.)\s+', '', lines[i]))
+                i += 1
+                while i < len(lines) and lines[i].startswith('  ') and lines[i].strip():
+                    items[-1] += ' ' + lines[i].strip()      # a wrapped continuation line
+                    i += 1
+            blocks.append(('list', (ordered, items)))
         elif ln.startswith('|'):
             rows = []
             while i < len(lines) and lines[i].startswith('|'):
@@ -178,8 +178,10 @@ def split_blocks(text):
         elif ln.strip() == '' or ln.strip() == '---':
             i += 1
         else:
-            body = []
-            while i < len(lines) and lines[i].strip() and not lines[i].startswith(('#', '>', '|', '```')):
+            body = [lines[i]]
+            i += 1                                   # always advance: a '#' line that is not a
+            while (i < len(lines) and lines[i].strip()      # heading would otherwise loop forever
+                   and not lines[i].startswith(('#', '>', '|', '```'))):
                 body.append(lines[i]); i += 1
             blocks.append(('p', ' '.join(body)))
     return blocks
@@ -227,6 +229,11 @@ def render(blocks):
         elif kind == 'quote':
             paras = ''.join('<p>%s</p>' % inline(p) for p in payload.split('\n\n'))
             out.append('<div class="note">%s</div>' % paras)
+            i += 1
+        elif kind == 'list':
+            ordered, items = payload
+            tag = 'ol' if ordered else 'ul'
+            out.append('<%s>%s</%s>' % (tag, ''.join('<li>%s</li>' % inline(x) for x in items), tag))
             i += 1
         elif kind == 'table':
             out.append(render_table(payload))
@@ -324,6 +331,11 @@ def build():
                         % (key, key, head, body, '\n'.join(pager)))
 
     page = '\n'.join([
+        '<!doctype html>',
+        '<html lang="en">',
+        '<head>',
+        '<meta charset="utf-8">',
+        '<meta name="viewport" content="width=device-width, initial-scale=1">',
         '<title>laravel-support-db</title>',
         '<link rel="preconnect" href="https://fonts.googleapis.com">',
         '<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>',
@@ -333,6 +345,8 @@ def build():
         'family=IBM+Plex+Mono:wght@400;500;600&display=swap">',
         '',
         '<style>\n%s</style>' % css,
+        '</head>',
+        '<body>',
         '',
         '<div class="shell">',
         '  <aside class="rail">',
@@ -355,12 +369,13 @@ def build():
         '</div>',
         '',
         SCRIPT,
+        '</body>',
+        '</html>',
     ])
 
-    # only the markup is entity-escaped; CSS keeps its own escapes
-    a, b = page.index('<style>'), page.index('</style>')
-    page = ascii_only(page[:a]) + page[a:b] + ascii_only(page[b:])
-    assert all(ord(c) < 128 for c in page), 'non-ascii survived'
+    if UNRESOLVED:
+        raise SystemExit('links that resolve to no page: ' + ', '.join(sorted(set(UNRESOLVED))))
+
     return page
 
 
@@ -369,6 +384,6 @@ if __name__ == '__main__':
     target.parent.mkdir(parents=True, exist_ok=True)
     out = build()
     tmp = target.with_suffix(target.suffix + '.new')
-    tmp.write_text(out, encoding='ascii')
+    tmp.write_text(out, encoding='utf-8')
     tmp.replace(target)                              # never truncate a good file on failure
     print('%s  %.1f KB  %d pages' % (target, len(out) / 1024, len(PAGES)))

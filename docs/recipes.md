@@ -117,8 +117,11 @@ An ordinary `CREATE INDEX` holds a write lock for its duration. `online()` trade
 not blocking writes.
 
 ```php
+use Illuminate\Database\Migrations\Migration;
+
 return new class extends Migration {
-    // CREATE INDEX CONCURRENTLY cannot run inside a transaction
+    // a PostgreSQL migration is wrapped in a transaction by default, and
+    // CREATE INDEX CONCURRENTLY cannot run inside one
     public $withinTransaction = false;
 
     public function up(): void
@@ -222,18 +225,36 @@ $table->primaryUUID('id', false);   // uuid not null, no default
 
 ## Per-tenant views in their own schema
 
+A view definition takes no bindings — PostgreSQL stores it as text — so the tenant's schema name
+and id go into the statement literally. Validate the identifier and quote the literal yourself;
+this is the one place in the package's surface where you have to:
+
 ```php
+use Illuminate\Support\Facades\DB;
+
 foreach ($tenants as $tenant) {
+    // an identifier is interpolated, never bound: allow only what an identifier may contain
+    if (! preg_match('/^[a-z_][a-z0-9_]*$/', $tenant->schema)) {
+        throw new InvalidArgumentException("Refusing schema name [{$tenant->schema}].");
+    }
+
+    // a literal is escaped the way PostgreSQL expects, doubling any quote
+    $id = "'" . str_replace("'", "''", $tenant->id) . "'";
+
     DB::statement("create schema if not exists {$tenant->schema}");
 
     Schema::createView(
         "{$tenant->schema}.active_users",
-        "select id, email from users where tenant_id = '{$tenant->id}' and deleted_at is null"
+        "select id, email from users where tenant_id = {$id} and deleted_at is null"
     );
 }
 
 Schema::hasView("{$tenants[0]->schema}.active_users");   // true
 ```
+
+> The package applies the same two rules internally — `WheresBuilder::quoteLiteral()` doubles
+> quotes, and the index algorithm and compression method are matched against an identifier pattern
+> before they reach the DDL. A schema name arriving from a tenants table deserves no less.
 
 ## Dropping a table other objects depend on
 
