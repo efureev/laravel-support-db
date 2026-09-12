@@ -7,6 +7,18 @@ and this project adheres to [Semantic Versioning][semver].
 
 Check MD [online][check-online].
 
+## [unreleased]
+
+### Removed
+
+- `AUDIT.md`. It held no open work: everything it listed is either done or is a record of
+  something deliberately not done. The four decisions worth keeping — why `hasView()`,
+  `getViewDefinition()`, `ginIndex()` and the `…AndReturn()` methods are not framework
+  duplication, why the PHP floor is a choice rather than a requirement, and the rule to call
+  `parent::` rather than copy a framework method — moved to `docs/contributing.md`, where the
+  people they concern will find them. The five test docblocks that cited it by section number
+  already explained themselves, so they simply lost the pointer
+
 ## [5.0.3] - 2026-09-12
 
 ### Fixed
@@ -473,6 +485,8 @@ Check MD [online][check-online].
 ### Added
 
 - Create the package
+
+[unreleased]: https://github.com/efureev/laravel-support-db/compare/v5.0.3...HEAD
 
 [5.0.3]: https://github.com/efureev/laravel-support-db/compare/v5.0.2...v5.0.3
 

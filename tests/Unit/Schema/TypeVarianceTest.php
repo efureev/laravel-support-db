@@ -18,7 +18,7 @@ use ReflectionNamedType;
  * Laravel dispatches grammar methods by name, handing them the framework's own `Blueprint` and
  * `Fluent`. Narrowing those parameters to the package's own subclasses works only as long as
  * every blueprint happens to be built by this package — a custom `blueprintResolver`, a
- * `BlueprintState` or a third-party macro turns it into a fatal `TypeError`. See AUDIT.md §2.
+ * `BlueprintState` or a third-party macro turns it into a fatal `TypeError`.
  */
 final class TypeVarianceTest extends UnitTestCase
 {

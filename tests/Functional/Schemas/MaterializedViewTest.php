@@ -15,7 +15,7 @@ use Php\Support\Laravel\Database\Tests\Helpers\ViewAssertions;
 /**
  * Materialized views used to be create-only: `dropView()` emitted `DROP VIEW`, which PostgreSQL
  * rejects for them, and `hasView()` looked only at `information_schema.views`, which does not
- * list them at all. See AUDIT.md, D9.
+ * list them at all.
  */
 class MaterializedViewTest extends AbstractTestCase
 {

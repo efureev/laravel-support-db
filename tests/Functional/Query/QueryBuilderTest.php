@@ -35,8 +35,7 @@ class QueryBuilderTest extends AbstractTestCase
 
     /**
      * `recordsHaveBeenModified()` used to receive the row list instead of a bool, leaving an
-     * array in `Connection::$recordsModified` and skewing the sticky-connection check
-     * (AUDIT.md D11).
+     * array in `Connection::$recordsModified` and skewing the sticky-connection check.
      */
     #[Test]
     public function modificationStateStaysBoolean(): void
@@ -62,7 +61,7 @@ class QueryBuilderTest extends AbstractTestCase
      * RETURNING rows used to be fetched with a hardcoded `PDO::FETCH_ASSOC`, bypassing
      * `Connection::prepared()`. That made them the only result set in the connection shaped as
      * arrays, ignored a configured fetch mode, and skipped the `StatementPrepared` event that
-     * packages hook to change it. See AUDIT.md §7.
+     * packages hook to change it.
      */
     #[Test]
     public function returnedRowsHaveTheSameShapeAsASelect(): void

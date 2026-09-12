@@ -145,7 +145,7 @@ class CreateIndexTest extends AbstractTestCase
     }
 
     /**
-     * The `$algorithm` argument of `partial()` used to be stored and never compiled (AUDIT.md D13).
+     * The `$algorithm` argument of `partial()` used to be stored and never compiled.
      */
     #[Test]
     public function createPartialIndexWithAlgorithm(): void

@@ -7,7 +7,6 @@ storage
 .phpunit.result.cache
 .DS_Store
 .github
-AUDIT.md
 CHANGELOG.md
 readme.md
 docs
