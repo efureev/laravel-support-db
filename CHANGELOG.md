@@ -53,6 +53,16 @@ Check MD [online][check-online].
   spatial and vector indexes only: `index()` has no such argument and `compileIndex()` discards the
   attribute, so `compileIndex()` is overridden to route a command that carries one through the
   framework's own compiler for it
+- `->online()` on a partial or unique-partial index emits `CREATE INDEX CONCURRENTLY`, so the
+  index is built without taking a write lock on the table. The framework offers this for ordinary
+  indexes only. PostgreSQL refuses the statement inside a transaction block, which the suite
+  asserts rather than assumes
+- `->nullsNotDistinct()` on a unique partial index emits `NULLS NOT DISTINCT`, so at most one row
+  may hold a null in the indexed column (PostgreSQL 15 and later). It sits between the column list
+  and the predicate. On a non-unique `partial()` it throws: PostgreSQL parses the clause there and
+  then ignores it, so accepting it would mean quietly doing nothing
+- An `orWhere…` spelling for each of the twelve index predicates. The `$boolean` argument was
+  always there; a disjunction now reads as one instead of ending in a stray `'or'`
 - The view lookups accept a `schema.view` reference. `createView()` and `dropView()` always did
   through `wrapTable()`; `hasView()` and `getViewDefinition()` bound the current schema and the
   whole dotted string as the name, so a view created in another schema through this builder could
@@ -132,6 +142,11 @@ Check MD [online][check-online].
 - `partial([])` and `uniquePartial([])` compiled to `on "t" ()`, which PostgreSQL rejects; they now
   refuse an empty column list
 - `dropExtensionIfExists()` with no arguments emitted `drop extension if exists` and nothing else
+- A modifier written after a predicate on `uniquePartial()` was silently dropped, while the same
+  modifier written before one worked. `UniqueBuilder::__call` handed back the constraint builder,
+  so `->whereNull('deleted_at')->algorithm('btree')` set the access method on the predicates rather
+  than on the index and compiled without a `USING` clause. It returns the command now, and the
+  order no longer matters
 - `CreateIndexTest` carried two tests with byte-identical bodies under the group names `WithSchema`
   and `WithoutSchema`, promising a difference in `search_path` that neither body made. The
   difference is real now: one asserts the index lands in the default schema, the other creates a

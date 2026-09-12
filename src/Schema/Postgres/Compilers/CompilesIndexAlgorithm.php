@@ -39,4 +39,37 @@ trait CompilesIndexAlgorithm
 
         return " using $algorithm";
     }
+
+    /**
+     * `CREATE INDEX CONCURRENTLY` builds the index without taking a write lock on the table, at
+     * the cost of a second pass. Set by a fluent `->online()`, the same name the framework uses.
+     *
+     * PostgreSQL forbids it inside a transaction block, so a migration that uses it must not run
+     * in one.
+     *
+     * @param Fluent<string, mixed> $fluent
+     */
+    protected static function concurrentlyClause(Fluent $fluent): string
+    {
+        return $fluent->get('online') ? 'concurrently ' : '';
+    }
+
+    /**
+     * `NULLS NOT DISTINCT` makes a unique index treat nulls as equal, so at most one row may hold
+     * a null in the indexed column. PostgreSQL 15 and later.
+     *
+     * It sits after the column list and before the predicate.
+     *
+     * @param Fluent<string, mixed> $fluent
+     */
+    protected static function nullsClause(Fluent $fluent): string
+    {
+        $nullsNotDistinct = $fluent->get('nullsNotDistinct');
+
+        if ($nullsNotDistinct === null) {
+            return '';
+        }
+
+        return $nullsNotDistinct ? ' nulls not distinct' : ' nulls distinct';
+    }
 }

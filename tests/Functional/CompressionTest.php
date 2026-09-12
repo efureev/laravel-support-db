@@ -101,9 +101,4 @@ class CompressionTest extends AbstractTestCase
 
         return (string)$row->attcompression;
     }
-
-    private function serverVersion(): int
-    {
-        return (int)DB::selectOne('show server_version_num')->server_version_num;
-    }
 }

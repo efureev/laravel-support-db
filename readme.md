@@ -63,6 +63,9 @@ registered wins.
     - [Views in another schema](#views-in-another-schema)
 - [Indexes](#indexes)
     - [Partial indexes](#partial-indexes)
+        - [Predicates](#predicates)
+        - [Building without locking the table](#building-without-locking-the-table)
+        - [Nulls in a unique partial index](#nulls-in-a-unique-partial-index)
     - [GIN indexes](#gin-indexes)
     - [Unique Partial indexes](#unique-partial-indexes)
 - [Extended Schema](#extended-schema)
@@ -328,6 +331,55 @@ Schema::create('table', static function (Blueprint $table) {
 
 > The same argument works on `uniquePartial()`, but note that PostgreSQL only supports `UNIQUE`
 > for `btree` — any other access method is rejected by the server.
+
+##### Predicates
+
+Every predicate takes a trailing `$boolean`, and each has an `or` spelling so a disjunction reads
+as one:
+
+```php
+$table->partial('code')
+    ->whereNull('deleted_at')
+    ->orWhereTrue('archived')
+    ->whereFalse('draft');
+// ... WHERE ("deleted_at" is null) or ("archived" is true) and ("draft" is false)
+```
+
+Available: `where`, `whereRaw`, `whereBool`, `whereTrue`, `whereFalse`, `whereColumn`, `whereIn`,
+`whereNotIn`, `whereNull`, `whereNotNull`, `whereBetween`, `whereNotBetween` — each with an
+`orWhere…` counterpart. A leading `or` is stripped, so the first predicate may use either.
+
+##### Building without locking the table
+
+`->online()` emits `CREATE INDEX CONCURRENTLY`, the same name Laravel 13 uses for ordinary
+indexes:
+
+```php
+Schema::table('table', static function (Blueprint $table) {
+    $table->partial('code')->whereNull('deleted_at')->online();
+});
+```
+
+> PostgreSQL refuses `CREATE INDEX CONCURRENTLY` inside a transaction block. Laravel does not wrap
+> migrations in one by default; if yours opts in, this cannot be used there.
+
+##### Nulls in a unique partial index
+
+By default PostgreSQL treats nulls as distinct, so any number of rows may hold a null in the
+indexed column. `->nullsNotDistinct()` makes at most one of them fit:
+
+```php
+Schema::table('table', static function (Blueprint $table) {
+    $table->uniquePartial('code')->nullsNotDistinct()->whereNull('deleted_at');
+});
+```
+
+```SQL
+CREATE UNIQUE INDEX table_code_unique ON "table" ("code") NULLS NOT DISTINCT WHERE (deleted_at IS NULL)
+```
+
+> PostgreSQL 15 and later. It means nothing on a non-unique index, so `partial()` rejects it
+> rather than emitting a clause the server parses and ignores.
 
 If you want to delete partial index, use this method:
 

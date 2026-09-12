@@ -21,18 +21,25 @@ class UniqueBuilder extends Fluent
      *
      * The constraint builder is created once and reused, so repeated calls on the same instance
      * accumulate their predicates instead of discarding the previous ones.
+     *
+     * `$this` comes back rather than the constraint builder, so the chain stays on the command.
+     * Handing back the constraints would mean that anything after a predicate — `->online()`,
+     * `->nullsNotDistinct()`, `->algorithm()` — set its attribute on the wrong object and was
+     * silently dropped at compile time, while the same call before a predicate worked.
      */
     #[\Override]
-    public function __call($method, $parameters): Fluent
+    public function __call($method, $parameters): static
     {
         if (!method_exists(PartialBuilder::class, $method)) {
-            return parent::__call($method, $parameters);
+            parent::__call($method, $parameters);
+
+            return $this;
         }
 
         $constraints = $this->attributes['constraints'] ??= new PartialBuilder();
 
         $constraints->$method(...$parameters);
 
-        return $constraints;
+        return $this;
     }
 }

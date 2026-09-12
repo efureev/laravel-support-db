@@ -7,6 +7,7 @@ namespace Php\Support\Laravel\Database\Tests;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Testing\Concerns\InteractsWithDatabase;
 use Illuminate\Foundation\Testing\DatabaseTransactions;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Facade;
 use Orchestra\Testbench\TestCase;
 use Php\Support\Laravel\Database\ServiceProvider;
@@ -113,6 +114,12 @@ abstract class AbstractTestCase extends TestCase
         }
 
         $this->artisan('db:wipe')->assertSuccessful();
+    }
+
+    /** `show server_version_num` as an int: 150004 for 15.4, so comparisons are numeric. */
+    protected function serverVersion(): int
+    {
+        return (int)DB::selectOne('show server_version_num')->server_version_num;
     }
 
     protected function installMigrations(): void

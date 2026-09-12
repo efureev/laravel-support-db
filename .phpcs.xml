@@ -26,6 +26,8 @@
     <rule ref="Squiz.Strings.ConcatenationSpacing">
         <properties>
             <property name="spacing" value="1"/>
+            <!-- A concat that wraps to the next line is a line break, not missing spacing. -->
+            <property name="ignoreNewlines" value="true"/>
         </properties>
     </rule>
     <rule ref="Squiz.WhiteSpace.ControlStructureSpacing"/>
@@ -34,7 +36,13 @@
     <rule ref="Generic.NamingConventions.ConstructorName"/>
     <rule ref="Generic.PHP.DeprecatedFunctions"/>
     <rule ref="Generic.PHP.LowerCaseKeyword"/>
-    <rule ref="Generic.Strings.UnnecessaryStringConcat"/>
+    <!-- Pointless concatenation on one line stays an error; splitting a long literal across
+         lines to stay inside the line limit does not. -->
+    <rule ref="Generic.Strings.UnnecessaryStringConcat">
+        <properties>
+            <property name="allowMultiline" value="true"/>
+        </properties>
+    </rule>
     <rule ref="PSR12.Files.OpenTag"/>
 
     <!-- PEAR uses warnings for inline control structures, so switch back to errors -->

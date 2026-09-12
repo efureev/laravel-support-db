@@ -89,6 +89,82 @@ trait WhereBuilderTrait
         return $this->whereNull($column, $boolean, true);
     }
 
+    // ---------------------------------------------------------------- or
+
+    /**
+     * Every predicate above takes a `$boolean` argument; these are the `or` spellings of it, so
+     * that a disjunction reads the way it does on the query builder rather than ending in a
+     * stray `'or'` argument.
+     *
+     * @param array<array-key, mixed> $bindings
+     */
+    public function orWhereRaw(string $sql, array $bindings = []): static
+    {
+        return $this->whereRaw($sql, $bindings, 'or');
+    }
+
+    public function orWhere(
+        string $column,
+        string $operator,
+        string|int|float|bool|BackedEnum|DateTimeInterface|Stringable|null $value
+    ): static {
+        return $this->where($column, $operator, $value, 'or');
+    }
+
+    public function orWhereBool(string $column, bool $value): static
+    {
+        return $this->whereBool($column, $value, 'or');
+    }
+
+    public function orWhereTrue(string $column): static
+    {
+        return $this->whereTrue($column, 'or');
+    }
+
+    public function orWhereFalse(string $column): static
+    {
+        return $this->whereFalse($column, 'or');
+    }
+
+    public function orWhereColumn(string $first, string $operator, string $second): static
+    {
+        return $this->whereColumn($first, $operator, $second, 'or');
+    }
+
+    /** @param array<array-key, mixed> $values */
+    public function orWhereIn(string $column, array $values): static
+    {
+        return $this->whereIn($column, $values, 'or');
+    }
+
+    /** @param array<array-key, mixed> $values */
+    public function orWhereNotIn(string $column, array $values = []): static
+    {
+        return $this->whereNotIn($column, $values, 'or');
+    }
+
+    public function orWhereNull(string $column): static
+    {
+        return $this->whereNull($column, 'or');
+    }
+
+    public function orWhereNotNull(string $column): static
+    {
+        return $this->whereNotNull($column, 'or');
+    }
+
+    /** @param array<array-key, mixed> $values */
+    public function orWhereBetween(string $column, array $values): static
+    {
+        return $this->whereBetween($column, $values, 'or');
+    }
+
+    /** @param array<array-key, mixed> $values */
+    public function orWhereNotBetween(string $column, array $values): static
+    {
+        return $this->whereNotBetween($column, $values, 'or');
+    }
+
     /** @param array<string, mixed> $parameters */
     protected function compileWhere(string $type, string $boolean, array $parameters = []): static
     {
