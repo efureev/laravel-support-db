@@ -21,6 +21,10 @@ Check MD [online][check-online].
   handful of ignores are scoped to `tests` and cover only the extension points static analysis
   cannot follow through the `Schema` facade and `Fluent`'s magic dispatch
 - `composer audit` runs in CI, and `squizlabs/php_codesniffer` is pinned past CVE-2026-67434
+- CI actions are on their current majors: `checkout@v7`, `cache@v6`, `upload-artifact@v7` and
+  `action-gh-release@v3`, all of which are Node 24 runtime bumps that leave the inputs this
+  workflow passes untouched. `setup-php@v2` and `markdown-lint@v1` stay put — their floating major
+  tags already resolve to the latest release
 - Every signature in `src` and the test helpers carries its array and generic types. Annotating them
   turned up three latent problems: three where-clause compilers took a `$where = []` default that no
   caller could ever satisfy, a docblock sat below its `#[\Override]` attribute where PHP never reads
