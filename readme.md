@@ -55,19 +55,23 @@ are untouched.
 
 ## Documentation
 
-Full documentation lives in [`docs/`](docs/readme.md).
+Read it at **<https://efureev.github.io/laravel-support-db/>**, or as markdown in
+[`docs/`](https://github.com/efureev/laravel-support-db/blob/master/docs/readme.md).
+
+> The `docs/` directory is not shipped in the Composer package — it would be dead weight in
+> `vendor/` — which is why the links below are absolute.
 
 | Page | Covers |
 |---|---|
-| [Getting started](docs/installation.md) | Requirements, version floors, how the package hooks in, a first migration |
-| [Columns](docs/column-types.md) | The PostgreSQL-only column types, UUID key generation, TOAST compression |
-| [Indexes](docs/indexes.md) | Partial and unique-partial indexes, predicates, modifiers, GIN operator classes |
-| [Views](docs/views.md) | Plain and materialized views — create, refresh, inspect, drop, other schemas |
-| [Schema operations](docs/schema.md) | `CREATE TABLE … LIKE / AS TABLE / AS SELECT`, `DROP … CASCADE`, extensions |
-| [Query builder](docs/query-builder.md) | `RETURNING` on `UPDATE` and `DELETE` |
-| [Recipes](docs/recipes.md) | Thirteen realistic problems worked end to end |
-| [Behaviour notes](docs/behaviour.md) | The things that are easy to trip over, and what Laravel 13 already does itself |
-| [Testing & contributing](docs/contributing.md) | Running the suite, and the gate a pull request has to pass |
+| [Getting started](https://github.com/efureev/laravel-support-db/blob/master/docs/installation.md) | Requirements, version floors, how the package hooks in, a first migration |
+| [Columns](https://github.com/efureev/laravel-support-db/blob/master/docs/column-types.md) | The PostgreSQL-only column types, UUID key generation, TOAST compression |
+| [Indexes](https://github.com/efureev/laravel-support-db/blob/master/docs/indexes.md) | Partial and unique-partial indexes, predicates, modifiers, GIN operator classes |
+| [Views](https://github.com/efureev/laravel-support-db/blob/master/docs/views.md) | Plain and materialized views — create, refresh, inspect, drop, other schemas |
+| [Schema operations](https://github.com/efureev/laravel-support-db/blob/master/docs/schema.md) | `CREATE TABLE … LIKE / AS TABLE / AS SELECT`, `DROP … CASCADE`, extensions |
+| [Query builder](https://github.com/efureev/laravel-support-db/blob/master/docs/query-builder.md) | `RETURNING` on `UPDATE` and `DELETE` |
+| [Recipes](https://github.com/efureev/laravel-support-db/blob/master/docs/recipes.md) | Thirteen realistic problems worked end to end |
+| [Behaviour notes](https://github.com/efureev/laravel-support-db/blob/master/docs/behaviour.md) | The things that are easy to trip over, and what Laravel 13 already does itself |
+| [Testing & contributing](https://github.com/efureev/laravel-support-db/blob/master/docs/contributing.md) | Running the suite, and the gate a pull request has to pass |
 
 ## What it adds
 
@@ -80,7 +84,7 @@ ones, with schema-qualified lookups · `CREATE TABLE … LIKE / AS SELECT / AS T
 
 ## Contributing
 
-Issues and pull requests are welcome — see [Testing & contributing](docs/contributing.md) for the
+Issues and pull requests are welcome — see [Testing & contributing](https://github.com/efureev/laravel-support-db/blob/master/docs/contributing.md) for the
 gate CI runs.
 
 ## License

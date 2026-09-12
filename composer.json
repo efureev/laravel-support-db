@@ -1,13 +1,20 @@
 {
   "name": "efureev/laravel-support-db",
-  "description": "PHP Support Package for Laravel DB",
+  "description": "PostgreSQL features for Laravel's schema and query builders: partial indexes, views, CREATE TABLE LIKE, extensions, RETURNING, and PostgreSQL-only column types",
   "license": "MIT",
   "type": "library",
   "keywords": [
     "php",
-    "support",
-    "helpers",
     "laravel",
+    "postgres",
+    "postgresql",
+    "pgsql",
+    "database",
+    "schema",
+    "migrations",
+    "partial-index",
+    "materialized-view",
+    "returning",
     "db"
   ],
   "authors": [
@@ -40,6 +47,22 @@
       "Php\\Support\\Laravel\\Database\\Tests\\Database\\Factories\\": "tests/database/factories"
     }
   },
+  "archive": {
+    "exclude": [
+      "/.docker",
+      "/.dockerignore",
+      "/.github",
+      "/.gitignore",
+      "/.phpcs.xml",
+      "/CHANGELOG.md",
+      "/docker-compose.yml",
+      "/docs",
+      "/phpstan.neon",
+      "/phpunit.xml.dist",
+      "/tests",
+      "/tools"
+    ]
+  },
   "config": {
     "allow-plugins": {
       "ergebnis/composer-normalize": true
@@ -58,16 +81,16 @@
     "phpcs": "@php ./vendor/bin/phpcs",
     "phpstan": "@php ./vendor/bin/phpstan analyze -c phpstan.neon --no-progress --ansi",
     "phpunit": "@php ./vendor/bin/phpunit --no-coverage --testdox --colors=always",
-    "phpunit-unit": "@php ./vendor/bin/phpunit --no-coverage --testdox --colors=always --testsuite=Unit",
     "phpunit-cover": "@php ./vendor/bin/phpunit --coverage-clover ./storage/coverage/clover.xml",
+    "phpunit-unit": "@php ./vendor/bin/phpunit --no-coverage --testdox --colors=always --testsuite=Unit",
     "test": [
       "@phpcs",
       "@phpunit"
     ],
-    "test:docker": "docker compose up --build --abort-on-container-exit --exit-code-from app",
     "test-cover": [
       "@phpcs",
       "@phpunit-cover"
-    ]
+    ],
+    "test:docker": "docker compose up --build --abort-on-container-exit --exit-code-from app"
   }
 }

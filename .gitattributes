@@ -1,0 +1,25 @@
+# What a consumer of the library does not need in vendor/.
+#
+# Composer installs this package from GitHub's zipball, which is a `git archive` of the tag and
+# honours `export-ignore` — `archive.exclude` in composer.json does not reach it. Both are set:
+# this for the zipball, that for `composer archive`.
+
+/.docker            export-ignore
+/.dockerignore      export-ignore
+/.editorconfig      export-ignore
+/.gitattributes     export-ignore
+/.github            export-ignore
+/.gitignore         export-ignore
+/.phpcs.xml         export-ignore
+/CHANGELOG.md       export-ignore
+/docker-compose.yml export-ignore
+/docs               export-ignore
+/phpstan.neon       export-ignore
+/phpunit.xml.dist   export-ignore
+/tests              export-ignore
+/tools              export-ignore
+
+# Keep line endings sane for the files that ship.
+*.php  text eol=lf
+*.md   text eol=lf
+*.json text eol=lf

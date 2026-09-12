@@ -7,6 +7,22 @@ and this project adheres to [Semantic Versioning][semver].
 
 Check MD [online][check-online].
 
+## [unreleased]
+
+### Changed
+
+- The Packagist description says what the package does. It read "PHP Support Package for Laravel
+  DB", which mentions neither PostgreSQL nor anything the package adds, and the keywords were as
+  vague. Both now name the features, so the package can be found by searching for them
+- The Composer package ships `src/`, `composer.json`, `LICENSE`, `readme.md` and `.meta.php` and
+  nothing else — 39 files rather than 107, 110 KB rather than 480. `tests/`, `docs/`, `tools/`,
+  the CI configuration and the Docker setup are not something a consumer needs in `vendor/`.
+  The mechanism is `.gitattributes` with `export-ignore`: Composer installs from GitHub's zipball,
+  which is a `git archive` of the tag, and `archive.exclude` in `composer.json` never reaches it.
+  That is set too, for `composer archive`
+- The documentation links in `readme.md` are absolute, since `docs/` no longer travels with the
+  package and a relative link would dangle in `vendor/`
+
 ## [5.0.4] - 2026-09-12
 
 ### Removed
@@ -485,6 +501,8 @@ Check MD [online][check-online].
 ### Added
 
 - Create the package
+
+[unreleased]: https://github.com/efureev/laravel-support-db/compare/v5.0.4...HEAD
 
 [5.0.4]: https://github.com/efureev/laravel-support-db/compare/v5.0.3...v5.0.4
 
