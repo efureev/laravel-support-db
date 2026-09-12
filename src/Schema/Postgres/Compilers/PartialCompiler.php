@@ -19,7 +19,7 @@ class PartialCompiler
         BaseBlueprint $blueprint,
         PartialBuilder $fluent
     ): string {
-        $wheres = static::build($grammar, $blueprint, $fluent);
+        $wheres = static::build($grammar, $fluent);
 
         // PostgreSQL parses `NULLS NOT DISTINCT` on a plain index and then ignores it; saying so
         // beats emitting a clause that does nothing.

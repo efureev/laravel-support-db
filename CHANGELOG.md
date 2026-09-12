@@ -21,6 +21,24 @@ Check MD [online][check-online].
   framework already does — generated columns, `DISTINCT ON`, lateral joins, vector and full-text —
   is listed as deliberately excluded so it does not get built twice
 
+- `onConflictWhere()` on the query builder, so `upsert()` can target a partial unique index —
+  creating one — the package's own flagship — made the framework's `upsert()` unusable:
+  PostgreSQL will not infer a partial index from the conflict columns alone and answers
+  `there is no unique or exclusion constraint matching the ON CONFLICT specification`. The
+  predicate is now supplied in the vocabulary the index was declared with, so the two read alike:
+
+  ```php
+  $table->uniquePartial('email')->whereNull('deleted_at');
+
+  DB::table('users')
+      ->onConflictWhere(fn (PartialBuilder $w) => $w->whereNull('deleted_at'))
+      ->upsert($values, ['email'], ['name']);
+  ```
+
+  The framework still compiles the statement — the grammar calls `parent::compileUpsert()` and
+  splices the predicate into it, rebuilding the needle from the same input the parent used. If
+  that stops matching, it throws rather than emitting SQL aimed at the wrong index
+
 ### Fixed
 
 - The documentation guard reported content as missing when it was not. Tags are replaced by a
@@ -28,6 +46,12 @@ Check MD [online][check-online].
   a list item ending in one never matched. It compares with whitespace removed now, which retires
   the whole class. Re-checked that it still catches real loss: dropping a page from the generator
   and disabling list rendering each still fail it
+
+### Changed
+
+- The index-predicate compilers no longer take the `Blueprint` they never dereferenced, and accept
+  any `Illuminate\Database\Grammar` rather than the schema one. That is what lets the query side
+  reuse the predicate vocabulary instead of growing a second dialect
 
 ## [5.0.5] - 2026-09-12
 
@@ -523,6 +547,8 @@ Check MD [online][check-online].
 ### Added
 
 - Create the package
+
+[unreleased]: https://github.com/efureev/laravel-support-db/compare/v5.0.5...HEAD
 
 [unreleased]: https://github.com/efureev/laravel-support-db/compare/v5.0.5...HEAD
 

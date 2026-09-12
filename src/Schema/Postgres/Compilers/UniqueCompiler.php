@@ -21,7 +21,7 @@ class UniqueCompiler
         UniqueBuilder $fluent,
         PartialBuilder $command
     ): string {
-        $wheres = static::build($grammar, $blueprint, $command);
+        $wheres = static::build($grammar, $command);
 
         if ($wheres === []) {
             // Callers are expected to fall back to the plain unique index when there is no

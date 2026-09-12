@@ -8,8 +8,7 @@ use BackedEnum;
 use DateTimeInterface;
 use Illuminate\Support\Fluent;
 use InvalidArgumentException;
-use Illuminate\Database\Schema\Blueprint as BaseBlueprint;
-use Php\Support\Laravel\Database\Schema\Postgres\Grammar;
+use Illuminate\Database\Grammar as BaseGrammar;
 use Stringable;
 
 /**
@@ -40,7 +39,7 @@ trait WheresBuilder
      *
      * @param WhereClause $where
      */
-    protected static function whereRaw(Grammar $grammar, BaseBlueprint $blueprint, array $where): string
+    protected static function whereRaw(BaseGrammar $grammar, array $where): string
     {
         $sql    = (string)($where['sql'] ?? '');
         $offset = 0;
@@ -59,7 +58,7 @@ trait WheresBuilder
     }
 
     /** @param WhereClause $where */
-    protected static function whereBasic(Grammar $grammar, BaseBlueprint $blueprint, array $where): string
+    protected static function whereBasic(BaseGrammar $grammar, array $where): string
     {
         return implode(
             ' ',
@@ -72,7 +71,7 @@ trait WheresBuilder
     }
 
     /** @param WhereClause $where */
-    protected static function whereColumn(Grammar $grammar, BaseBlueprint $blueprint, array $where): string
+    protected static function whereColumn(BaseGrammar $grammar, array $where): string
     {
         return implode(
             ' ',
@@ -85,7 +84,7 @@ trait WheresBuilder
     }
 
     /** @param WhereClause $where */
-    protected static function whereIn(Grammar $grammar, BaseBlueprint $blueprint, array $where): string
+    protected static function whereIn(BaseGrammar $grammar, array $where): string
     {
         if (!empty($where['values'])) {
             return implode(
@@ -101,7 +100,7 @@ trait WheresBuilder
     }
 
     /** @param WhereClause $where */
-    protected static function whereNotIn(Grammar $grammar, BaseBlueprint $blueprint, array $where): string
+    protected static function whereNotIn(BaseGrammar $grammar, array $where): string
     {
         if (!empty($where['values'])) {
             return implode(
@@ -117,25 +116,25 @@ trait WheresBuilder
     }
 
     /** @param WhereClause $where */
-    protected static function whereBoolean(Grammar $grammar, BaseBlueprint $blueprint, array $where): string
+    protected static function whereBoolean(BaseGrammar $grammar, array $where): string
     {
         return implode(' ', [$grammar->wrap($where['column']), 'is ' . static::wrapValueForBool($where['value'])]);
     }
 
     /** @param WhereClause $where */
-    protected static function whereNull(Grammar $grammar, BaseBlueprint $blueprint, array $where): string
+    protected static function whereNull(BaseGrammar $grammar, array $where): string
     {
         return implode(' ', [$grammar->wrap($where['column']), 'is null']);
     }
 
     /** @param WhereClause $where */
-    protected static function whereNotNull(Grammar $grammar, BaseBlueprint $blueprint, array $where): string
+    protected static function whereNotNull(BaseGrammar $grammar, array $where): string
     {
         return implode(' ', [$grammar->wrap($where['column']), 'is not null']);
     }
 
     /** @param WhereClause $where */
-    protected static function whereBetween(Grammar $grammar, BaseBlueprint $blueprint, array $where): string
+    protected static function whereBetween(BaseGrammar $grammar, array $where): string
     {
         $values = array_values((array)($where['values'] ?? []));
 
@@ -214,17 +213,17 @@ trait WheresBuilder
      *
      * @return list<string>
      */
-    protected static function build(Grammar $grammar, BaseBlueprint $blueprint, Fluent $command): array
+    protected static function build(BaseGrammar $grammar, Fluent $command): array
     {
         return array_map(
-            static function (array $where) use ($grammar, $blueprint): string {
+            static function (array $where) use ($grammar): string {
                 $method = "where{$where['type']}";
 
                 if (!method_exists(static::class, $method)) {
                     throw new InvalidArgumentException("Unsupported index predicate type [{$where['type']}].");
                 }
 
-                return $where['boolean'] . ' (' . static::$method($grammar, $blueprint, $where) . ')';
+                return $where['boolean'] . ' (' . static::$method($grammar, $where) . ')';
             },
             (array)$command->get('wheres')
         );

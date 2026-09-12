@@ -12,42 +12,18 @@ listed too, so none of it gets built twice.
 
 The package exists to say the PostgreSQL things Laravel's builder cannot. The most valuable work
 right now is not a new subject, though: it is **the missing halves of what already shipped**. The
-package creates partial unique indexes and then leaves `upsert()` unable to target them. It adds
-`tsrange` and `daterange` without the constraint those types exist for.
+package added `tsrange` and `daterange` without the constraint those types exist for, and it
+offers two of the three `RETURNING` verbs.
 
 Finish those first. New ground after.
 
+The first item of this kind is already done — creating a partial unique index used to make
+`upsert()` unusable, and [`onConflictWhere()`](query-builder.md) fixes that.
+
 ## v5.1 — close the holes in what is already sold
 
-### `ON CONFLICT` against a partial unique index
-
-This is a defect the package creates, not a feature it lacks. Reproduced on PostgreSQL 18:
-
-```php
-$table->uniquePartial('email')->whereNull('deleted_at');
-
-DB::table('users')->upsert([['email' => 'a@x.io', 'name' => 'B']], ['email'], ['name']);
-```
-
-```sql
-SQLSTATE[42P10]: there is no unique or exclusion constraint
-matching the ON CONFLICT specification
-```
-
-Laravel's `compileUpsert()` emits `on conflict ("email") do update set …` with no predicate, and
-PostgreSQL will not infer a *partial* index without one. The statement it needs is:
-
-```sql
-insert into users (email, name) values ($1, $2)
-    on conflict (email) where deleted_at is null
-    do update set name = excluded.name
-```
-
-The predicate is already expressible — `WhereBuilderTrait` and the compiler behind it are what
-build an index predicate today, and the same pair can build this one.
-
-> The flagship feature of this package makes a framework method unusable. That is squarely this
-> package's problem to fix, and it is the reason this item leads the list.
+> `ON CONFLICT` against a partial unique index is done and documented under
+> [Query builder](query-builder.md). Two left.
 
 ### `insertAndReturn()`
 
@@ -166,7 +142,7 @@ ordinary SQL rather than a PostgreSQL extension, so it belongs to a cross-databa
 
 | Version | Carries | Breaks |
 |---|---|---|
-| v5.1 | `ON CONFLICT` with a predicate, `insertAndReturn()`, `check()` | nothing — all additive |
+| v5.1 | `insertAndReturn()`, `check()` — `ON CONFLICT` with a predicate shipped | nothing — all additive |
 | v5.2 | exclusion constraints, covering indexes, column order, expression indexes | nothing |
 | v5.3 | enum types, domains, composite types | nothing |
 | v6 | partitioning, RLS, storage parameters, statistics | possibly |
