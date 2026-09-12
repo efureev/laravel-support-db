@@ -20,6 +20,21 @@ ROOT = pathlib.Path(__file__).resolve().parent.parent
 DOCS = ROOT / 'docs'
 CSS = pathlib.Path(__file__).resolve().parent / 'docs-site.css'
 
+
+def released_version():
+    """The newest released version, from CHANGELOG.md.
+
+    Read from the file rather than from git: a shallow CI checkout carries no tags, and the
+    changelog is the release record anyway. An `unreleased` heading is skipped, not being a
+    version yet.
+    """
+    for line in (ROOT / 'CHANGELOG.md').read_text().split('\n'):
+        m = re.match(r'^##\s+\[?v?(\d+\.\d+\.\d+[0-9A-Za-z.-]*)\]?', line)
+        if m:
+            return 'v' + m.group(1)
+    return ''
+
+
 # page key, source file, rail label, eyebrow
 PAGES = [
     ('index',   'readme.md',        'Documentation',          'laravel-support-db'),
@@ -322,7 +337,7 @@ def build():
         '<div class="shell">',
         '  <aside class="rail">',
         '    <a class="brand" href="#index">laravel-support-db</a>',
-        '    <span class="brand-v">v5.0.0 &middot; docs</span>',
+        '    <span class="brand-v">%s &middot; docs</span>' % esc(released_version()),
         '    <details class="railnav" open>',
         '      <summary class="rail-title">Contents</summary>',
         '      <div class="rail-inner">',

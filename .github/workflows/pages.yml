@@ -10,6 +10,8 @@ on:
       - 'tools/build-docs-site.py'
       - 'tools/docs-site.css'
       - '.github/workflows/pages.yml'
+      # the version in the page header comes from the changelog
+      - 'CHANGELOG.md'
   workflow_dispatch:
 
 # Never cancel a deploy midway; queue instead.
