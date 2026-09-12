@@ -25,6 +25,7 @@ exactly as before.
 | Laravel | >= 13.0 | `illuminate/database` |
 | PostgreSQL | 13 – 18 | tested against every one of them in CI |
 | | >= 14 | only for `compression()`; on 13 the feature is unavailable |
+| | >= 15 | only for `nullsNotDistinct()` on a unique partial index |
 
 The package targets PostgreSQL and takes effect on `pgsql` connections only.
 

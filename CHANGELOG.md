@@ -7,7 +7,7 @@ and this project adheres to [Semantic Versioning][semver].
 
 Check MD [online][check-online].
 
-## [unreleased]
+## [5.0.0] - 2026-09-12
 
 ### Added
 
@@ -408,7 +408,7 @@ Check MD [online][check-online].
 
 - Create the package
 
-[unreleased]: https://github.com/efureev/laravel-support-db/compare/v4.0.0...HEAD
+[5.0.0]: https://github.com/efureev/laravel-support-db/compare/v4.0.0...v5.0.0
 
 [4.0.0]: https://github.com/efureev/laravel-support-db/compare/v3.0.0...v4.0.0
 
