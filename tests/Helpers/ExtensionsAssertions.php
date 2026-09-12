@@ -19,6 +19,7 @@ trait ExtensionsAssertions
     }
 
 
+    /** @return list<string> */
     private function getExtensionListing(): array
     {
         $result = DB::select('SELECT extname FROM pg_catalog.pg_extension');

@@ -4,31 +4,31 @@ declare(strict_types=1);
 
 namespace Php\Support\Laravel\Database\Schema\Postgres\Grammar;
 
-use Php\Support\Laravel\Database\Schema\Definitions\ColumnDefinition;
-use Php\Support\Laravel\Database\Schema\Postgres\Types\DateRangeType;
-use Php\Support\Laravel\Database\Schema\Postgres\Types\GeoPathType;
-use Php\Support\Laravel\Database\Schema\Postgres\Types\GeoPointType;
-use Php\Support\Laravel\Database\Schema\Postgres\Types\IntArrayType;
-use Php\Support\Laravel\Database\Schema\Postgres\Types\IpNetworkType;
-use Php\Support\Laravel\Database\Schema\Postgres\Types\NumericType;
-use Php\Support\Laravel\Database\Schema\Postgres\Types\TextArrayType;
-use Php\Support\Laravel\Database\Schema\Postgres\Types\TsRangeType;
-use Php\Support\Laravel\Database\Schema\Postgres\Types\UuidArrayType;
-use Php\Support\Laravel\Database\Schema\Postgres\Types\XmlType;
+use Illuminate\Support\Fluent;
+use Php\Support\Laravel\Database\Schema\Postgres\ColumnType;
 
 trait GrammarTypes
 {
+    /*
+     * Laravel dispatches these by name from `Grammar::getType(Fluent $column)`, so the parameter
+     * must stay as wide as the framework's — narrowing it to the package's ColumnDefinition made
+     * any blueprint built by a custom resolver a fatal TypeError.
+     */
+
     /**
      * Create the column definition for a 'bit' type.
+     *
+     * @param Fluent<string, mixed> $column
      */
-    protected function typeBit(ColumnDefinition $column): string
+    protected function typeBit(Fluent $column): string
     {
         return "bit({$column->value('length')})";
     }
 
-    protected function typeNumeric(ColumnDefinition $column): string
+    /** @param Fluent<string, mixed> $column */
+    protected function typeNumeric(Fluent $column): string
     {
-        $type      = NumericType::TYPE_NAME;
+        $type      = ColumnType::Numeric->value;
         $precision = $column->get('precision');
         $scale     = $column->get('scale');
 
@@ -39,54 +39,65 @@ trait GrammarTypes
         return $type;
     }
 
-    protected function typeDateRange(ColumnDefinition $column): string
+    /** @param Fluent<string, mixed> $column */
+    protected function typeDateRange(Fluent $column): string
     {
-        return DateRangeType::TYPE_NAME;
+        return ColumnType::DateRange->value;
     }
 
-    protected function typeUuidArray(ColumnDefinition $column): string
+    /** @param Fluent<string, mixed> $column */
+    protected function typeUuidArray(Fluent $column): string
     {
-        return UuidArrayType::TYPE_NAME;
+        return ColumnType::UuidArray->value;
     }
 
-    protected function typeTextArray(ColumnDefinition $column): string
+    /** @param Fluent<string, mixed> $column */
+    protected function typeTextArray(Fluent $column): string
     {
-        return TextArrayType::TYPE_NAME;
+        return ColumnType::TextArray->value;
     }
 
-    protected function typeIntArray(ColumnDefinition $column): string
+    /** @param Fluent<string, mixed> $column */
+    protected function typeIntArray(Fluent $column): string
     {
-        return IntArrayType::TYPE_NAME;
+        return ColumnType::IntArray->value;
     }
 
-    protected function typeTsrange(ColumnDefinition $column): string
+    /** @param Fluent<string, mixed> $column */
+    protected function typeTsrange(Fluent $column): string
     {
-        return TsRangeType::TYPE_NAME;
+        return ColumnType::TsRange->value;
     }
 
     /**
      * Create the column definition for a xml type.
+     *
+     * @param Fluent<string, mixed> $column
      */
-    protected function typeXml(ColumnDefinition $column): string
+    protected function typeXml(Fluent $column): string
     {
-        return XmlType::TYPE_NAME;
+        return ColumnType::Xml->value;
     }
 
     /**
      * Create the column definition for an ip network type.
+     *
+     * @param Fluent<string, mixed> $column
      */
-    protected function typeIpNetwork(ColumnDefinition $column): string
+    protected function typeIpNetwork(Fluent $column): string
     {
-        return IpNetworkType::TYPE_NAME;
+        return ColumnType::IpNetwork->value;
     }
 
-    protected function typeGeoPoint(ColumnDefinition $column): string
+    /** @param Fluent<string, mixed> $column */
+    protected function typeGeoPoint(Fluent $column): string
     {
-        return GeoPointType::TYPE_NAME;
+        return ColumnType::GeoPoint->value;
     }
 
-    protected function typeGeoPath(ColumnDefinition $column): string
+    /** @param Fluent<string, mixed> $column */
+    protected function typeGeoPath(Fluent $column): string
     {
-        return GeoPathType::TYPE_NAME;
+        return ColumnType::GeoPath->value;
     }
 }

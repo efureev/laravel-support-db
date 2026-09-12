@@ -4,14 +4,23 @@ declare(strict_types=1);
 
 namespace Php\Support\Laravel\Database;
 
-use Illuminate\Database\DatabaseManager;
+use Illuminate\Database\Connection;
 use Illuminate\Database\DatabaseServiceProvider;
-use Illuminate\Database\DatabaseTransactionsManager;
 use Illuminate\Database\Eloquent\Builder;
-use Php\Support\Laravel\Database\Schema\ConnectionFactory;
+use Php\Support\Laravel\Database\Query\Builder as QueryBuilder;
+use Php\Support\Laravel\Database\Schema\Postgres\Connection as PostgresConnection;
 
 class ServiceProvider extends DatabaseServiceProvider
 {
+    #[\Override]
+    public function register()
+    {
+        parent::register();
+
+        $this->registerConnectionResolver();
+    }
+
+    #[\Override]
     public function boot()
     {
         parent::boot();
@@ -19,32 +28,42 @@ class ServiceProvider extends DatabaseServiceProvider
         $this->registerMacros();
     }
 
-    protected function registerConnectionServices(): void
+    /**
+     * Route `pgsql` connections to this package's Connection.
+     *
+     * `Connection::getResolver()` is consulted first by the framework's own connection factory,
+     * so there is nothing to subclass or rebind. The closure must not capture the container:
+     * `Connection::$resolvers` is static and is never cleared, so a captured application would
+     * outlive the request (or the test case) that registered it.
+     */
+    protected function registerConnectionResolver(): void
     {
-        $this->app->singleton('db.factory', static fn($app) => new ConnectionFactory($app));
-
-        $this->app->singleton('db', static fn($app) => new DatabaseManager($app, $app['db.factory']));
-
-        $this->app->bind('db.connection', static fn($app) => $app['db']->connection());
-
-        $this->app->bind('db.schema', static fn($app) => $app['db']->connection()->getSchemaBuilder());
-
-        $this->app->singleton('db.transactions', static fn($app) => new DatabaseTransactionsManager());
+        Connection::resolverFor(
+            'pgsql',
+            static fn($connection, $database, $prefix, $config): PostgresConnection
+                => new PostgresConnection($connection, $database, $prefix, $config)
+        );
     }
 
     protected function registerMacros(): void
     {
         Builder::macro(
             'updateAndReturn',
-            function ($values, string ...$columns) {
-                return $this->toBase()->updateAndReturn($this->addUpdatedAtColumn($values), ...$columns);
+            function (array $values, string ...$columns): array {
+                /** @var QueryBuilder $query */
+                $query = $this->toBase();
+
+                return $query->updateAndReturn($this->addUpdatedAtColumn($values), ...$columns);
             }
         );
 
         Builder::macro(
             'deleteAndReturn',
-            function (string ...$columns) {
-                return $this->toBase()->deleteAndReturn(...$columns);
+            function (string ...$columns): array {
+                /** @var QueryBuilder $query */
+                $query = $this->toBase();
+
+                return $query->deleteAndReturn(...$columns);
             }
         );
     }

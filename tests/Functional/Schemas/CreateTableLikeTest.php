@@ -12,7 +12,6 @@ use Php\Support\Laravel\Database\Tests\Helpers\IndexAssertions;
 use Php\Support\Laravel\Database\Tests\Helpers\TableAssertions;
 use PHPUnit\Framework\Attributes\Test;
 
-
 class CreateTableLikeTest extends AbstractTestCase
 {
     use TableAssertions;
@@ -24,10 +23,13 @@ class CreateTableLikeTest extends AbstractTestCase
     #[Test]
     public function createTableLikeOtherTable(): void
     {
-        Schema::create(self::TGT_TABLE, function (Blueprint $table) {
-            $table->like(self::SRC_TABLE);
-            $table->ifNotExists();
-        });
+        Schema::create(
+            self::TGT_TABLE,
+            function (Blueprint $table) {
+                $table->like(self::SRC_TABLE);
+                $table->ifNotExists();
+            }
+        );
 
         $this->assertCompareTables(self::SRC_TABLE, self::TGT_TABLE);
 
@@ -41,26 +43,36 @@ class CreateTableLikeTest extends AbstractTestCase
     #[Test]
     public function createTableLikeOtherTableIncludeAll(): void
     {
-        Schema::create(self::TGT_TABLE, function (Blueprint $table) {
-            $table->like(self::SRC_TABLE)->includingAll();
-            $table->ifNotExists();
-        });
+        Schema::create(
+            self::TGT_TABLE,
+            function (Blueprint $table) {
+                $table->like(self::SRC_TABLE)->includingAll();
+                $table->ifNotExists();
+            }
+        );
 
         $this->assertCompareTables(self::SRC_TABLE, self::TGT_TABLE);
 
-        $srcList = $this->getIndexListByTable(self::SRC_TABLE);
-        self::assertCount(3, $srcList);
-        $tgtList = $this->getIndexListByTable(self::TGT_TABLE);
-        self::assertCount(3, $tgtList);
+        // Compared as sets: `pg_indexes` has no inherent order, so indexing it positionally
+        // asserted on something PostgreSQL never promised.
+        self::assertSame(
+            [
+                self::SRC_TABLE . '_enum_index',
+                self::SRC_TABLE . '_name_index',
+                self::SRC_TABLE . '_pkey',
+            ],
+            $this->indexNamesOf(self::SRC_TABLE)
+        );
 
-        self::assertEquals(self::SRC_TABLE . '_pkey', $srcList[0]->indexname);
-        self::assertEquals(self::TGT_TABLE . '_pkey', $tgtList[0]->indexname);
-
-        self::assertEquals(self::SRC_TABLE . '_name_index', $srcList[1]->indexname);
-        self::assertEquals(self::TGT_TABLE . '_name_idx', $tgtList[1]->indexname);
-
-        self::assertEquals(self::SRC_TABLE . '_enum_index', $srcList[2]->indexname);
-        self::assertEquals(self::TGT_TABLE . '_enum_idx', $tgtList[2]->indexname);
+        // `LIKE ... INCLUDING ALL` copies the indexes; PostgreSQL names the copies itself.
+        self::assertSame(
+            [
+                self::TGT_TABLE . '_enum_idx',
+                self::TGT_TABLE . '_name_idx',
+                self::TGT_TABLE . '_pkey',
+            ],
+            $this->indexNamesOf(self::TGT_TABLE)
+        );
 
         $this->assertDatabaseCount(self::SRC_TABLE, 1);
         $this->assertDatabaseCount(self::TGT_TABLE, 0);
@@ -89,6 +101,17 @@ class CreateTableLikeTest extends AbstractTestCase
                     'enum' => 'false',
                 ]
             );
+    }
+
+    /**
+     * @return list<string>
+     */
+    private function indexNamesOf(string $table): array
+    {
+        return array_map(
+            static fn(object $index): string => $index->indexname,
+            $this->getIndexListByTable($table)
+        );
     }
 
     protected function tearDown(): void

@@ -1,11 +1,19 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Php\Support\Laravel\Database\Query;
 
 use Illuminate\Database\Query\Builder as BaseQuery;
+use Php\Support\Laravel\Database\Query\Grammars\PostgresGrammar;
+use Php\Support\Laravel\Database\Schema\Postgres\Connection;
 
 /**
- * @method array|int update(array $values)
+ * `RETURNING` is PostgreSQL-only, so this builder is always paired with the package's own
+ * grammar and connection — `Postgres\Connection::query()` is what constructs it.
+ *
+ * @property PostgresGrammar $grammar
+ * @property Connection $connection
  */
 class Builder extends BaseQuery
 {
@@ -17,7 +25,12 @@ class Builder extends BaseQuery
      *
      * @return array
      */
-    public function updateAndReturn(array $values, string ...$columns)
+    /**
+     * @param array<string, mixed> $values
+     *
+     * @return list<mixed>
+     */
+    public function updateAndReturn(array $values, string ...$columns): array
     {
         $this->applyBeforeQueryCallbacks();
 
@@ -38,8 +51,10 @@ class Builder extends BaseQuery
      * @param string ...$columns
      *
      * @return array
+     *
+     * @return list<mixed>
      */
-    public function deleteAndReturn(string ...$columns)
+    public function deleteAndReturn(string ...$columns): array
     {
         $this->applyBeforeQueryCallbacks();
 

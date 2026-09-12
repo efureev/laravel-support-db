@@ -2,13 +2,11 @@
 
 declare(strict_types=1);
 
-namespace Functional\Types;
+namespace Php\Support\Laravel\Database\Tests\Functional\Types;
 
-use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 use Php\Support\Laravel\Database\Schema\Postgres\Blueprint;
-use Php\Support\Laravel\Database\Schema\Postgres\Types\TextArrayType;
-use Php\Support\Laravel\Database\Schema\Postgres\Types\UuidArrayType;
+use Php\Support\Laravel\Database\Schema\Postgres\ColumnType;
 use Php\Support\Laravel\Database\Tests\AbstractTestCase;
 use Php\Support\Laravel\Database\Tests\Helpers\ColumnAssertions;
 use Php\Support\Laravel\Database\Tests\Helpers\IndexAssertions;
@@ -34,14 +32,11 @@ class ArrayOfTextTest extends AbstractTestCase
         static::assertTrue(Schema::hasTable('test_table'));
         $this->seeIndex('test_table_test_col_index');
 
-        $definition = DB::selectOne('SELECT * FROM pg_indexes WHERE indexname = ?', ['test_table_test_col_index']);
-
-        self::assertEquals(
-            "CREATE INDEX test_table_test_col_index ON public.test_table USING gin (test_col)",
-            $definition->indexdef
+        $this->assertRegExpIndex(
+            'test_table_test_col_index',
+            '/CREATE INDEX test_table_test_col_index ON (public\.)?test_table USING gin \(test_col\)/'
         );
 
-        $this->assertTypeColumn('test_table', 'test_col', TextArrayType::class);
+        $this->assertTypeColumn('test_table', 'test_col', ColumnType::TextArray);
     }
-
 }

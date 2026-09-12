@@ -18,7 +18,7 @@ class CreatePartialIndexTest extends AbstractTestCase
 {
     use TableAssertions;
     use IndexAssertions;
-    
+
     #[Test]
     #[DataProvider('provideIndexes')]
     public function createPartial(string $expected, Closure $callback): void
@@ -52,7 +52,9 @@ class CreatePartialIndexTest extends AbstractTestCase
             }
         );
 
-        $this->notSeeIndex('test_table_name_unique');
+        // The index this test actually created — asserting on `..._name_unique`, which it never
+        // creates, passed no matter what dropPartial() did.
+        $this->notSeeIndex('test_table_name_partial');
     }
 
     public static function provideIndexes(): Generator

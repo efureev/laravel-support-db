@@ -3,8 +3,13 @@ services:
     build:
       context: .
       dockerfile: .docker/Dockerfile
+      args:
+        PHP_VERSION: ${PHP_VERSION:-8.5}
     volumes:
       - .:/app
+      # Keeps the vendor/ built into the image: the bind mount above would otherwise shadow it
+      # with the host directory, which is empty on a fresh clone.
+      - /app/vendor
     depends_on:
       db:
         condition: service_healthy
@@ -17,13 +22,15 @@ services:
       DB_PASSWORD: forge
 
   db:
-    image: postgres:18-alpine
+    image: postgres:${POSTGRES_VERSION:-18}-alpine
     environment:
       POSTGRES_DB: forge
       POSTGRES_USER: forge
       POSTGRES_PASSWORD: forge
-    ports:
-      - "5432:5432"
+    # Not published: the test container reaches it over the compose network, and binding 5432 on
+    # the host collides with any PostgreSQL already running there.
+    expose:
+      - "5432"
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U forge -d forge"]
       interval: 5s

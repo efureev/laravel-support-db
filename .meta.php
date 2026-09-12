@@ -1,13 +1,16 @@
 <?php
-// @formatter:off
 
+/**
+ * IDE helper. Never autoloaded — it declares framework class names on purpose so that editors
+ * resolve this package's additions on the classes you actually type against.
+ */
+
+// @formatter:off
 
 namespace Illuminate\Support\Facades {
 
-    use Php\Support\Laravel\Database\Schema\Postgres\Builder;
-
     /**
-     * @mixin Builder
+     * @mixin \Php\Support\Laravel\Database\Schema\Postgres\Builder
      */
     class Schema
     {
@@ -16,45 +19,46 @@ namespace Illuminate\Support\Facades {
 
 namespace Illuminate\Database\Schema {
 
-    use Illuminate\Support\Fluent;
-    use Php\Support\Laravel\Database\Schema\Definitions\LikeDefinition;
-    use Php\Support\Laravel\Database\Schema\Definitions\UniqueDefinition;
-    use Php\Support\Laravel\Database\Schema\Definitions\PartialDefinition;
-    use Php\Support\Laravel\Database\Schema\Definitions\ViewDefinition;
-
     /**
-     * @method LikeDefinition like(string $table)
-     * @method Fluent ifNotExists()
-     * @method PartialDefinition partial($columns, ?string $index = null, ?string $algorithm = null)
-     * @method UniqueDefinition uniquePartial($columns, ?string $index = null, ?string $algorithm = null)
-     * @method ViewDefinition createView(string $view, string $select, bool $materialize = false)
-     * @method ViewDefinition createViewOrReplace(string $view, string $select, bool $materialize = false)
-     * @method Fluent dropView(string $view)
-     *
      * @mixin \Php\Support\Laravel\Database\Schema\Postgres\Blueprint
      */
     class Blueprint
     {
     }
+
+    /**
+     * `Blueprint::addColumn()` returns this package's definition, so every column carries the
+     * extra modifiers — but the framework's own signatures are typed against this class.
+     *
+     * @mixin \Php\Support\Laravel\Database\Schema\Definitions\ColumnDefinition
+     */
+    class ColumnDefinition
+    {
+    }
 }
-//
-//namespace Illuminate\Database\Query {
-//
-//    /**
-//     * @mixin \Php\Support\Laravel\Database\Query\Builder
-//     */
-//    class Builder
-//    {
-//    }
-//}
+
+namespace Illuminate\Database\Query {
+
+    /**
+     * `Postgres\Connection::query()` builds this package's query builder, which is what
+     * `Model::toBase()` and `DB::table()` hand back on a pgsql connection.
+     *
+     * @mixin \Php\Support\Laravel\Database\Query\Builder
+     */
+    class Builder
+    {
+    }
+}
 
 namespace Illuminate\Database\Eloquent {
 
     /**
-     * @method array updateAndReturn(array $values, string ...$columns) Update records in the database and return
-     *     columns of updated records.
-     * @method array deleteAndReturn(string ...$columns) Delete records in the database and return columns of deleted
-     *     records.
+     * Registered as macros by the package's ServiceProvider, so there is no class to mix in.
+     *
+     * @method array updateAndReturn(array $values, string ...$columns) Update records and return
+     *     the given columns of the updated rows.
+     * @method array deleteAndReturn(string ...$columns) Delete records and return the given
+     *     columns of the deleted rows.
      */
     class Builder
     {

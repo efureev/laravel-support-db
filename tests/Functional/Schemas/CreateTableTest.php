@@ -61,5 +61,4 @@ class CreateTableTest extends AbstractTestCase
         $this->assertDefaultOnColumn('test_table', 'name');
         $this->assertCommentOnColumn('test_table', 'name');
     }
-
 }

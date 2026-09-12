@@ -1,4 +1,8 @@
-FROM php:8.4-cli-alpine
+ARG PHP_VERSION=8.5
+
+FROM php:${PHP_VERSION}-cli-alpine
+
+ENV COMPOSER_ALLOW_SUPERUSER=1
 
 # Install system dependencies
 RUN apk add --no-cache \
@@ -27,9 +31,11 @@ COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 
 WORKDIR /app
 
-COPY . /app
+# Dependencies resolve from the manifest alone, so editing sources does not invalidate this layer.
+COPY composer.json ./
+RUN composer install --no-interaction --no-progress --no-scripts
 
-RUN composer install --no-interaction --no-progress
+COPY . /app
 
 # Run the full test gate (PHPCS + PHPUnit) by default.
 # pcov is available in the image for `composer test-cover`.

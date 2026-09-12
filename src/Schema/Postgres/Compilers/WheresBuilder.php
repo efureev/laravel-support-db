@@ -4,24 +4,62 @@ declare(strict_types=1);
 
 namespace Php\Support\Laravel\Database\Schema\Postgres\Compilers;
 
+use BackedEnum;
+use DateTimeInterface;
 use Illuminate\Support\Fluent;
-use Php\Support\Laravel\Database\Schema\Postgres\Blueprint;
+use InvalidArgumentException;
+use Illuminate\Database\Schema\Blueprint as BaseBlueprint;
 use Php\Support\Laravel\Database\Schema\Postgres\Grammar;
+use Stringable;
 
+/**
+ * The shape `WhereBuilderTrait` records and this trait renders.
+ *
+ * @phpstan-type WhereClause array{
+ *     type: string,
+ *     boolean: string,
+ *     column?: string,
+ *     operator?: string,
+ *     value?: mixed,
+ *     values?: array<array-key, mixed>,
+ *     first?: string,
+ *     second?: string,
+ *     not?: bool,
+ *     sql?: string,
+ *     bindings?: array<array-key, mixed>,
+ * }
+ */
 trait WheresBuilder
 {
-    protected static function whereRaw(Grammar $grammar, Blueprint $blueprint, array $where = []): string
+    /**
+     * Inline the bindings into a raw where expression.
+     *
+     * Bindings are substituted one placeholder at a time instead of through `sprintf()`, so a
+     * literal `%` in the SQL (`like 'a%b'`) is not mistaken for a format specifier. The offset
+     * advances past each replacement so a value containing `?` is not re-scanned.
+     *
+     * @param WhereClause $where
+     */
+    protected static function whereRaw(Grammar $grammar, BaseBlueprint $blueprint, array $where): string
     {
-        return call_user_func_array(
-            'sprintf',
-            array_merge(
-                [str_replace('?', '%s', $where['sql'])],
-                static::wrapValues($where['bindings'])
-            )
-        );
+        $sql    = (string)($where['sql'] ?? '');
+        $offset = 0;
+
+        foreach ((array)($where['bindings'] ?? []) as $binding) {
+            if (($position = strpos($sql, '?', $offset)) === false) {
+                break;
+            }
+
+            $value  = static::wrapValue($binding);
+            $sql    = substr_replace($sql, $value, $position, 1);
+            $offset = $position + strlen($value);
+        }
+
+        return $sql;
     }
 
-    protected static function whereBasic(Grammar $grammar, Blueprint $blueprint, array $where): string
+    /** @param WhereClause $where */
+    protected static function whereBasic(Grammar $grammar, BaseBlueprint $blueprint, array $where): string
     {
         return implode(
             ' ',
@@ -33,7 +71,8 @@ trait WheresBuilder
         );
     }
 
-    protected static function whereColumn(Grammar $grammar, Blueprint $blueprint, array $where): string
+    /** @param WhereClause $where */
+    protected static function whereColumn(Grammar $grammar, BaseBlueprint $blueprint, array $where): string
     {
         return implode(
             ' ',
@@ -45,7 +84,8 @@ trait WheresBuilder
         );
     }
 
-    protected static function whereIn(Grammar $grammar, Blueprint $blueprint, array $where = []): string
+    /** @param WhereClause $where */
+    protected static function whereIn(Grammar $grammar, BaseBlueprint $blueprint, array $where): string
     {
         if (!empty($where['values'])) {
             return implode(
@@ -60,7 +100,8 @@ trait WheresBuilder
         return '0 = 1';
     }
 
-    protected static function whereNotIn(Grammar $grammar, Blueprint $blueprint, array $where = []): string
+    /** @param WhereClause $where */
+    protected static function whereNotIn(Grammar $grammar, BaseBlueprint $blueprint, array $where): string
     {
         if (!empty($where['values'])) {
             return implode(
@@ -75,76 +116,117 @@ trait WheresBuilder
         return '1 = 1';
     }
 
-    protected static function whereBoolean(Grammar $grammar, Blueprint $blueprint, array $where): string
+    /** @param WhereClause $where */
+    protected static function whereBoolean(Grammar $grammar, BaseBlueprint $blueprint, array $where): string
     {
         return implode(' ', [$grammar->wrap($where['column']), 'is ' . static::wrapValueForBool($where['value'])]);
     }
 
-    protected static function whereNull(Grammar $grammar, Blueprint $blueprint, array $where): string
+    /** @param WhereClause $where */
+    protected static function whereNull(Grammar $grammar, BaseBlueprint $blueprint, array $where): string
     {
         return implode(' ', [$grammar->wrap($where['column']), 'is null']);
     }
 
-    protected static function whereNotNull(Grammar $grammar, Blueprint $blueprint, array $where): string
+    /** @param WhereClause $where */
+    protected static function whereNotNull(Grammar $grammar, BaseBlueprint $blueprint, array $where): string
     {
         return implode(' ', [$grammar->wrap($where['column']), 'is not null']);
     }
 
-    protected static function whereBetween(Grammar $grammar, Blueprint $blueprint, array $where): string
+    /** @param WhereClause $where */
+    protected static function whereBetween(Grammar $grammar, BaseBlueprint $blueprint, array $where): string
     {
+        $values = array_values((array)($where['values'] ?? []));
+
+        // Without exactly two bounds this silently produced `between false and false`, or dropped
+        // everything between the first and last value.
+        if (count($values) !== 2) {
+            throw new InvalidArgumentException(
+                sprintf('A between predicate needs exactly two values, %d given.', count($values))
+            );
+        }
+
         return implode(
             ' ',
             [
                 $grammar->wrap($where['column']),
                 $where['not'] ? 'not between' : 'between',
-                static::wrapValue(reset($where['values'])),
+                static::wrapValue($values[0]),
                 'and',
-                static::wrapValue(end($where['values'])),
+                static::wrapValue($values[1]),
             ]
         );
     }
 
+    /**
+     * @param array<array-key, mixed> $values
+     *
+     * @return list<string>
+     */
     protected static function wrapValues(array $values = []): array
     {
-        return collect($values)->map(
-            function ($value) {
-                return static::wrapValue($value);
-            }
-        )->toArray();
+        return array_map(static::wrapValue(...), $values);
     }
 
-    protected static function wrapValue($value)
+    /**
+     * Render a value as a SQL literal safe to embed in an index predicate.
+     *
+     * Strings are escaped by doubling the apostrophe — the same approach Laravel itself uses in
+     * `Illuminate\Database\Schema\Grammars\Grammar::getDefaultValue()`. That keeps the compiler
+     * usable without a live PDO connection (migrations run with `--pretend`, unit tests), which
+     * `PDO::quote()` would not. It is correct for PostgreSQL because `standard_conforming_strings`
+     * has been on by default since 9.1, so backslashes carry no special meaning.
+     */
+    protected static function wrapValue(mixed $value): string
     {
-        if (is_string($value)) {
-            return "'{$value}'";
-        }
-        return (int)$value;
+        return match (true) {
+            $value === null                      => 'null',
+            is_bool($value)                      => static::wrapValueForBool($value),
+            is_int($value), is_float($value)     => (string)$value,
+            $value instanceof BackedEnum         => static::quoteLiteral((string)$value->value),
+            $value instanceof DateTimeInterface  => static::quoteLiteral($value->format('Y-m-d H:i:s')),
+            $value instanceof Stringable          => static::quoteLiteral((string)$value),
+            is_string($value)                    => static::quoteLiteral($value),
+            default                              => throw new InvalidArgumentException(
+                'Unsupported value of type [' . get_debug_type($value) . '] in an index predicate.'
+            ),
+        };
+    }
+
+    protected static function quoteLiteral(string $value): string
+    {
+        return "'" . str_replace("'", "''", $value) . "'";
     }
 
     protected static function wrapValueForBool(bool $value): string
     {
-        return $value ? 'TRUE' : 'FALSE';
+        return $value ? 'true' : 'false';
     }
 
     protected static function removeLeadingBoolean(string $value): string
     {
-        return preg_replace('/and |or /i', '', $value, 1);
+        return preg_replace('/^(and|or)\s+/i', '', $value, 1);
     }
 
-    private static function build(Grammar $grammar, Blueprint $blueprint, Fluent $command): array
+    /**
+     * @param Fluent<string, mixed> $command
+     *
+     * @return list<string>
+     */
+    protected static function build(Grammar $grammar, BaseBlueprint $blueprint, Fluent $command): array
     {
-        return collect($command->get('wheres'))
-            ->map(
-                static function ($where) use ($grammar, $blueprint) {
-                    return implode(
-                        ' ',
-                        [
-                            $where['boolean'],
-                            '(' . static::{"where{$where['type']}"}($grammar, $blueprint, $where) . ')',
-                        ]
-                    );
+        return array_map(
+            static function (array $where) use ($grammar, $blueprint): string {
+                $method = "where{$where['type']}";
+
+                if (!method_exists(static::class, $method)) {
+                    throw new InvalidArgumentException("Unsupported index predicate type [{$where['type']}].");
                 }
-            )
-            ->all();
+
+                return $where['boolean'] . ' (' . static::$method($grammar, $blueprint, $where) . ')';
+            },
+            (array)$command->get('wheres')
+        );
     }
 }

@@ -60,16 +60,27 @@ trait IndexAssertions
         static::assertTrue($this->existConstraintOnTable($table, $index));
     }
 
-    private function getIndexListing($index): ?string
+    /** The `pg_indexes` row, or null when no index by that name exists in any schema. */
+    protected function getIndexRow(string $index): ?object
     {
-        $definition = DB::selectOne('SELECT * FROM pg_indexes WHERE indexname = ?', [$index]);
+        return DB::selectOne('SELECT * FROM pg_indexes WHERE indexname = ?', [$index]);
+    }
+
+    private function getIndexListing(string $index): ?string
+    {
+        $definition = $this->getIndexRow($index);
 
         return $definition ? $definition->indexdef : null;
     }
 
+    /**
+      * Ordered on purpose: `pg_indexes` has no inherent order, and callers index the result
+      * positionally.
+      */
+    /** @return list<object> */
     protected function getIndexListByTable(string $table): array
     {
-        return DB::select('SELECT * FROM pg_indexes WHERE tablename = ?', [$table]);
+        return DB::select('SELECT * FROM pg_indexes WHERE tablename = ? ORDER BY indexname', [$table]);
     }
 
     private function existConstraintOnTable(string $table, string $index): bool

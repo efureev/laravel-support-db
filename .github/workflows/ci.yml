@@ -2,14 +2,19 @@ name: PHP Database Laravel Package
 
 on: [ push, pull_request ]
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.head_ref || github.ref }}
+  cancel-in-progress: true
+
 jobs:
 
   lint-changelog:
     name: Lint changelog file
     runs-on: ubuntu-latest
+    timeout-minutes: 5
     steps:
       - name: Check out code
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
       - name: Lint changelog file
         uses: avto-dev/markdown-lint@v1
         with:
@@ -18,16 +23,16 @@ jobs:
           args: './CHANGELOG.md'
 
   lint:
-    name: Coding Standards (PHPCS)
+    name: Static analysis and unit tests
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
 
-      - name: Use PHP 8.4
+      - name: Use PHP 8.5
         uses: shivammathur/setup-php@v2
         with:
-          php-version: '8.4'
+          php-version: '8.5'
           extensions: mbstring
           coverage: none
 
@@ -37,12 +42,16 @@ jobs:
           echo "dir=$(composer config cache-files-dir)" >> $GITHUB_OUTPUT
 
       - name: Cache dependencies
-        uses: actions/cache@v4
+        uses: actions/cache@v6
         with:
           path: ${{ steps.composer-cache.outputs.dir }}
-          key: ${{ runner.os }}-composer-${{ hashFiles('**/composer.json') }}
+          # composer.lock is not committed for a library, so the manifest plus the resolution
+          # mode is the most specific key available; restore-keys still warm-starts from a
+          # neighbouring entry.
+          key: ${{ runner.os }}-php${{ matrix.php || '8.5' }}-composer-${{ hashFiles('composer.json') }}
           restore-keys: |
-            ${{ runner.os }}-composer-
+            ${{ runner.os }}-php${{ matrix.php || '8.5' }}-composer-
+            ${{ runner.os }}-
 
       - name: Install Composer dependencies
         run: composer update --prefer-dist --no-interaction
@@ -50,8 +59,19 @@ jobs:
       - name: Run PHPCS
         run: composer phpcs
 
+      - name: Run PHPStan
+        run: composer phpstan
+
+      - name: Audit dependencies
+        run: composer audit
+
+      # The unit suite asserts on generated SQL and needs no database, so it gates here
+      # rather than behind the PostgreSQL matrix.
+      - name: Run unit tests
+        run: composer phpunit-unit
+
   testing:
-    name: Test on PHP ${{ matrix.php }} with ${{ matrix.setup }} dependencies
+    name: PHP ${{ matrix.php }} · PostgreSQL ${{ matrix.postgres }} · ${{ matrix.setup }} deps
 
     needs: [ lint-changelog, lint ]
     runs-on: ubuntu-latest
@@ -60,8 +80,89 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        setup: [ 'basic', 'lowest', 'stable' ]
-        php: [ '8.4', '8.5' ]
+        # 'stable' is dropped: with no minimum-stability set it resolves the same as 'basic'.
+        setup: [ 'basic', 'lowest' ]
+        postgres: [ '18' ]
+        php: [ '8.5' ]
+        # Older servers only need one dependency set. Compression tests skip below 14, which is
+        # the version the readme already names for that feature.
+        include:
+          - { setup: 'basic', postgres: '17', php: '8.5' }
+          - { setup: 'basic', postgres: '16', php: '8.5' }
+          - { setup: 'basic', postgres: '15', php: '8.5' }
+          - { setup: 'basic', postgres: '14', php: '8.5' }
+          - { setup: 'basic', postgres: '13', php: '8.5' }
+
+    services:
+      postgres:
+        image: postgres:${{ matrix.postgres }}
+        env:
+          POSTGRES_USER: forge
+          POSTGRES_PASSWORD: forge
+          POSTGRES_DB: forge
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Use PHP ${{ matrix.php }}
+        uses: shivammathur/setup-php@v2 # Action page: <https://github.com/shivammathur/setup-php>
+        with:
+          php-version: ${{ matrix.php }}
+          extensions: mbstring, pdo_pgsql, pgsql
+          coverage: none
+
+      - name: Get Composer Cache Directory # Docs: <https://github.com/actions/cache/blob/master/examples.md#php---composer>
+        id: composer-cache
+        run: |
+          echo "dir=$(composer config cache-files-dir)" >> $GITHUB_OUTPUT
+
+      - name: Cache dependencies
+        uses: actions/cache@v6
+        with:
+          path: ${{ steps.composer-cache.outputs.dir }}
+          # composer.lock is not committed for a library, so the manifest plus the resolution
+          # mode is the most specific key available; restore-keys still warm-starts from a
+          # neighbouring entry.
+          key: ${{ runner.os }}-php${{ matrix.php || '8.5' }}-composer-${{ hashFiles('composer.json') }}
+          restore-keys: |
+            ${{ runner.os }}-php${{ matrix.php || '8.5' }}-composer-
+            ${{ runner.os }}-
+
+      - name: Validate composer.json
+        run: composer validate --strict
+
+      - name: Install [LOWEST] Composer dependencies
+        if: matrix.setup == 'lowest'
+        run: composer update --prefer-dist --no-interaction --prefer-lowest
+
+      - name: Install [BASIC] Composer dependencies
+        if: matrix.setup == 'basic'
+        run: composer update --prefer-dist --no-interaction
+
+      - name: Show most important packages' versions
+        run: composer info | grep -e efureev -e laravel/framework -e phpunit/phpunit
+
+      - name: Run test suite
+        run: composer test
+        env:
+          DB_HOST: localhost
+          DB_PORT: ${{ job.services.postgres.ports[5432] }}
+          DB_DATABASE: forge
+          DB_USERNAME: forge
+          DB_PASSWORD: forge
+
+  coverage:
+    name: Coverage
+    needs: [ testing ]
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
 
     services:
       postgres:
@@ -79,48 +180,20 @@ jobs:
           --health-retries 5
 
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
 
-      - name: Use PHP ${{ matrix.php }}
-        uses: shivammathur/setup-php@v2 # Action page: <https://github.com/shivammathur/setup-php>
+      - name: Use PHP 8.5
+        uses: shivammathur/setup-php@v2
         with:
-          php-version: ${{ matrix.php }}
+          php-version: '8.5'
           extensions: mbstring, pdo_pgsql, pgsql
-          coverage: none
+          coverage: pcov
 
-      - name: Get Composer Cache Directory # Docs: <https://github.com/actions/cache/blob/master/examples.md#php---composer>
-        id: composer-cache
-        run: |
-          echo "dir=$(composer config cache-files-dir)" >> $GITHUB_OUTPUT
-
-      - name: Cache dependencies
-        uses: actions/cache@v4
-        with:
-          path: ${{ steps.composer-cache.outputs.dir }}
-          key: ${{ runner.os }}-composer-${{ hashFiles('**/composer.json') }}
-          restore-keys: |
-            ${{ runner.os }}-composer-
-
-      - name: Validate composer.json
-        run: composer validate
-
-      - name: Install [LOWEST] Composer dependencies
-        if: matrix.setup == 'lowest'
-        run: composer update --prefer-dist --no-interaction --prefer-lowest
-
-      - name: Install [BASIC] Composer dependencies
-        if: matrix.setup == 'basic'
+      - name: Install Composer dependencies
         run: composer update --prefer-dist --no-interaction
 
-      - name: Install [STABLE] Composer dependencies
-        if: matrix.setup == 'stable'
-        run: composer update --prefer-dist --no-interaction --prefer-stable
-
-      - name: Show most important packages' versions
-        run: composer info | grep -e efureev -e laravel/framework -e phpunit/phpunit
-
-      - name: Run test suite
-        run: composer test
+      - name: Generate coverage
+        run: composer phpunit-cover
         env:
           DB_HOST: localhost
           DB_PORT: ${{ job.services.postgres.ports[5432] }}
@@ -128,17 +201,29 @@ jobs:
           DB_USERNAME: forge
           DB_PASSWORD: forge
 
+      # Published as an artifact rather than pushed to a third party: no account, no token.
+      - name: Upload coverage report
+        uses: actions/upload-artifact@v7
+        with:
+          name: coverage
+          path: storage/coverage
+          retention-days: 14
+
   release:
     name: Create Release
     needs: [ testing ]
     runs-on: ubuntu-latest
-    if: ${{ startsWith(github.ref, 'refs/tags/v') && endsWith(github.ref, '.0') }}
+    timeout-minutes: 5
+    # Every v* tag, not just v*.0 — patch releases used to be skipped silently.
+    if: ${{ startsWith(github.ref, 'refs/tags/v') }}
+    permissions:
+      contents: write
     steps:
       - name: Checkout code
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
 
       - name: Create Release
-        uses: softprops/action-gh-release@v2
+        uses: softprops/action-gh-release@v3
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:

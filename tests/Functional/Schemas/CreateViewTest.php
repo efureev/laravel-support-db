@@ -10,14 +10,15 @@ use Php\Support\Laravel\Database\Tests\AbstractTestCase;
 use Php\Support\Laravel\Database\Tests\Helpers\ViewAssertions;
 use PHPUnit\Framework\Attributes\Test;
 
-
 class CreateViewTest extends AbstractTestCase
 {
     use ViewAssertions;
 
     protected function tearDown(): void
     {
-        Schema::dropIfExists('test_table');
+        // Cascade: a test aborting before it drops its view would otherwise leave a dependency
+        // behind, and the failing tearDown would mask the original failure.
+        Schema::dropIfExistsCascade('test_table');
 
         parent::tearDown();
     }
@@ -99,6 +100,4 @@ class CreateViewTest extends AbstractTestCase
         );
         //        Facade::clearResolvedInstances();
     }
-
-
 }

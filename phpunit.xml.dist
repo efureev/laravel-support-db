@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<phpunit xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" backupGlobals="false" bootstrap="vendor/autoload.php"
+         colors="true" processIsolation="false" executionOrder="random" resolveDependencies="true" stopOnFailure="false"
+         xsi:noNamespaceSchemaLocation="https://schema.phpunit.de/13.0/phpunit.xsd" cacheDirectory=".phpunit.cache"
+         backupStaticProperties="false"
+         failOnWarning="true" failOnNotice="true" failOnDeprecation="true" failOnRisky="true"
+         failOnEmptyTestSuite="true" beStrictAboutOutputDuringTests="true"
+         displayDetailsOnPhpunitDeprecations="true" displayDetailsOnTestsThatTriggerDeprecations="true">
+    <coverage>
+        <report>
+            <clover outputFile="./storage/coverage/clover.xml"/>
+            <html outputDirectory="./storage/coverage/html"/>
+            <text outputFile="php://stdout" showUncoveredFiles="false"/>
+            <xml outputDirectory="./storage/coverage/coverage-xml"/>
+        </report>
+    </coverage>
+    <testsuites>
+        <!-- Asserts on generated SQL; needs no database. -->
+        <testsuite name="Unit">
+            <directory suffix="Test.php">./tests/Unit</directory>
+        </testsuite>
+        <!-- Runs migrations against a live PostgreSQL and reads the catalog back. -->
+        <testsuite name="Functional">
+            <directory suffix="Test.php">./tests/Functional</directory>
+        </testsuite>
+    </testsuites>
+    <logging>
+        <junit outputFile="./storage/coverage/junit.xml"/>
+    </logging>
+    <source>
+        <include>
+            <directory suffix=".php">./src</directory>
+        </include>
+    </source>
+    <php>
+        <!-- All of these are `env`, never `server`: Laravel reads both, so mixing the two only
+             hides which of them a given name is set through. `force` is what carries the meaning
+             here — true pins the value, false yields to the real environment. -->
+
+        <!-- Fixed by the suite; an ambient value must not change what is under test. -->
+        <env name="DB_CONNECTION" value="pgsql" force="true"/>
+        <env name="APP_ENV" value="testing" force="true"/>
+        <env name="APP_KEY" value="base64:VM+W1TpjK5cVtw1wHOPcu+e8mHiVYDuvgUJSLf+1QLA=" force="true"/>
+
+        <!-- Connection defaults (forge / forge / forge). The real environment wins, which is how
+             docker-compose points the suite at its own container and how the GitHub Actions job
+             reaches its service. -->
+        <env name="DB_HOST" value="localhost" force="false"/>
+        <env name="DB_PORT" value="5432" force="false"/>
+        <env name="DB_DATABASE" value="forge" force="false"/>
+        <env name="DB_USERNAME" value="forge" force="false"/>
+        <env name="DB_PASSWORD" value="forge" force="false"/>
+    </php>
+</phpunit>

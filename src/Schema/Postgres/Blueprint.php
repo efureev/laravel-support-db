@@ -6,12 +6,10 @@ namespace Php\Support\Laravel\Database\Schema\Postgres;
 
 use Illuminate\Database\Query\Expression;
 use Illuminate\Database\Schema\Blueprint as BaseBlueprint;
-use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Fluent;
+use InvalidArgumentException;
 use Php\Support\Laravel\Database\Schema\Definitions\ColumnDefinition;
 use Php\Support\Laravel\Database\Schema\Definitions\LikeDefinition;
-use Php\Support\Laravel\Database\Schema\Definitions\PartialDefinition;
-use Php\Support\Laravel\Database\Schema\Definitions\UniqueDefinition;
 use Php\Support\Laravel\Database\Schema\Definitions\ViewDefinition;
 use Php\Support\Laravel\Database\Schema\Postgres\Builders\Indexes\PartialBuilder;
 use Php\Support\Laravel\Database\Schema\Postgres\Builders\Indexes\Unique\UniqueBuilder;
@@ -37,6 +35,7 @@ class Blueprint extends BaseBlueprint
         return $this->addColumn('numeric', $column, compact('precision', 'scale'));
     }
 
+    /** @param bool|callable(string): string|Expression<literal-string>|null $default */
     public function generateUUID(string $column = 'id', bool|callable|Expression|null $default = true): ColumnDefinition
     {
         $defCol = $this->addColumn('uuid', $column);
@@ -44,32 +43,26 @@ class Blueprint extends BaseBlueprint
             return $defCol;
         }
 
-        switch (true) {
-            case $default === true:
-                // Native, extension-less UUID generation (PostgreSQL >= 13).
-                $defaultExpression = new Expression('gen_random_uuid()');
-                break;
-
-            case is_callable($default):
-                $defaultExpression = new Expression($default($column));
-                break;
-
-            case $default === null:
-                $defaultExpression = null;
-                $defCol->nullable();
-                break;
-            case $default instanceof Expression:
-                $defaultExpression = $default;
-                break;
+        if ($default === null) {
+            return $defCol->nullable()->default(null);
         }
 
+        $defaultExpression = match (true) {
+            // Native, extension-less UUID generation (PostgreSQL >= 13).
+            $default === true => new Expression('gen_random_uuid()'),
+            $default instanceof Expression => $default,
+            default => new Expression($default($column)),
+        };
 
-        return $defCol->default($defaultExpression ?? null);
+        return $defCol->default($defaultExpression);
     }
 
 
-    public function primaryUUID(string $column = 'id', $generate = true): ColumnDefinition
-    {
+    /** @param bool|callable(string): string|Expression<literal-string>|null $generate */
+    public function primaryUUID(
+        string $column = 'id',
+        bool|callable|Expression|null $generate = true
+    ): ColumnDefinition {
         return $this->generateUUID($column, $generate)->primary();
     }
 
@@ -160,60 +153,67 @@ class Blueprint extends BaseBlueprint
      *
      * @param string $type
      * @param string $name
-     * @param array $parameters
+     * @param array<string, mixed> $parameters
      */
+    #[\Override]
     public function addColumn($type, $name, array $parameters = []): ColumnDefinition
     {
-        return $this->addColumnDefinition(
+        /** @var ColumnDefinition $definition the parent returns whatever definition it is given */
+        $definition = $this->addColumnDefinition(
             new ColumnDefinition(
                 array_merge(compact('type', 'name'), $parameters)
             )
         );
+
+        return $definition;
+    }
+
+    public function createView(string $view, string $select, bool $materialize = false): ViewDefinition
+    {
+        return $this->addExtendedCommand(
+            ViewDefinition::class,
+            'createView',
+            compact('view', 'select', 'materialize')
+        );
+    }
+
+    public function createViewOrReplace(
+        string $view,
+        string $select,
+        bool $materialize = false
+    ): ViewDefinition {
+        return $this->addExtendedCommand(
+            ViewDefinition::class,
+            'createViewOrReplace',
+            compact('view', 'select', 'materialize')
+        );
     }
 
     /**
-     * @param string $view
-     * @param string $select
-     * @param bool $materialize
-     *
-     * @return ViewDefinition|Fluent
+     * Drop a view. Materialized views require `$materialize: true` — PostgreSQL rejects
+     * `DROP VIEW` on them.
      */
-    public function createView(string $view, string $select, bool $materialize = false): Fluent
+    /** @return Fluent<string, mixed> */
+    public function dropView(string $view, bool $materialize = false): Fluent
     {
-        return $this->addCommand('createView', compact('view', 'select', 'materialize'));
+        return $this->addCommand('dropView', compact('view', 'materialize'));
     }
 
-    public function createViewOrReplace(string $view, string $select, bool $materialize = false): Fluent
+    /** @return Fluent<string, mixed> */
+    public function dropViewIfExists(string $view, bool $materialize = false): Fluent
     {
-        return $this->addCommand('createViewOrReplace', compact('view', 'select', 'materialize'));
+        return $this->addCommand('dropView', compact('view', 'materialize') + ['ifExists' => true]);
     }
 
-    public function dropView(string $view): Fluent
-    {
-        return $this->addCommand('dropView', compact('view'));
-    }
-
+    /** @return Fluent<string, mixed> */
     public function ifNotExists(): Fluent
     {
         return $this->addCommand('ifNotExists');
     }
 
-    /**
-     * @param array|string $index
-     * @param string|null $type unique|primary
-     * @return bool
-     */
-    public function hasIndex(array|string $index, ?string $type = null): bool
+    public function like(string $table): LikeDefinition
     {
-        return Schema::hasIndex($this->getTable(), $index, $type);
-    }
-
-    /**
-     * @return LikeDefinition
-     */
-    public function like(string $table): Fluent
-    {
-        return $this->addCommand('like', compact('table'));
+        return $this->addExtendedCommand(LikeDefinition::class, 'like', compact('table'));
     }
 
     /**
@@ -226,6 +226,7 @@ class Blueprint extends BaseBlueprint
      *
      * @example `$table->fromSelect('select t1.id, t1.name from src_table t1');`
      */
+    /** @return Fluent<string, mixed> */
     public function fromSelect(string $fromSelect): Fluent
     {
         return $this->addCommand('fromSelect', compact('fromSelect'));
@@ -240,29 +241,18 @@ class Blueprint extends BaseBlueprint
      *
      * @example `$table->fromTable('source_table');`
      */
+    /** @return Fluent<string, mixed> */
     public function fromTable(string $fromTable): Fluent
     {
         return $this->addCommand('fromTable', compact('fromTable'));
     }
 
     /**
-     * @param array|string $columns
-     * @param string|null $index
-     * @param string|null $algorithm
-     *
-     * @return UniqueDefinition|UniqueBuilder
+     * @param array<array-key, string>|string $columns
      */
-    public function uniquePartial($columns, ?string $index = null, ?string $algorithm = null): Fluent
+    public function uniquePartial($columns, ?string $index = null, ?string $algorithm = null): UniqueBuilder
     {
-        $columns = (array)$columns;
-
-        $index = $index ?: $this->createIndexName('unique', $columns);
-
-        return $this->addExtendedCommand(
-            UniqueBuilder::class,
-            'uniquePartial',
-            compact('columns', 'index', 'algorithm')
-        );
+        return $this->addPartialIndex(UniqueBuilder::class, 'uniquePartial', 'unique', $columns, $index, $algorithm);
     }
 
     /**
@@ -270,36 +260,82 @@ class Blueprint extends BaseBlueprint
      * @param string|null $index
      * @param string|null $algorithm
      *
-     * @return PartialDefinition|PartialBuilder
      */
-    public function partial($columns, ?string $index = null, ?string $algorithm = null): Fluent
+    /** @param array<array-key, string>|string $columns */
+    public function partial($columns, ?string $index = null, ?string $algorithm = null): PartialBuilder
     {
+        return $this->addPartialIndex(PartialBuilder::class, 'partial', 'partial', $columns, $index, $algorithm);
+    }
+
+    /**
+     * @template T of Fluent
+     *
+     * @param class-string<T>                 $builder
+     * @param array<array-key, string>|string $columns
+     *
+     * @return T
+     */
+    private function addPartialIndex(
+        string $builder,
+        string $command,
+        string $nameType,
+        $columns,
+        ?string $index,
+        ?string $algorithm
+    ): Fluent {
         $columns = (array)$columns;
 
-        $index = $index ?: $this->createIndexName('partial', $columns);
+        if ($columns === []) {
+            throw new InvalidArgumentException('A partial index needs at least one column.');
+        }
 
-        return $this->addExtendedCommand(
-            PartialBuilder::class,
-            'partial',
-            compact('columns', 'index', 'algorithm')
-        );
+        $index = $index ?: $this->createIndexName($nameType, $columns);
+
+        return $this->addExtendedCommand($builder, $command, compact('columns', 'index', 'algorithm'));
     }
 
-    public function ginIndex($columns, ?string $name = null): Fluent
+    /**
+     * A GIN index, optionally with an operator class — `jsonb_path_ops` for containment queries
+     * on jsonb, `gin_trgm_ops` for trigram search. The framework's `index()` accepts no operator
+     * class, and its `compileIndex()` would drop one anyway.
+     *
+     * @param array<array-key, string>|string $columns
+     *
+     * @return Fluent<string, mixed>
+     */
+    public function ginIndex(array|string $columns, ?string $name = null, ?string $operatorClass = null): Fluent
     {
-        return $this->indexCommand('index', $columns, $name, 'gin');
+        return $this->indexCommand('index', $columns, $name, 'gin', $operatorClass);
     }
 
-    public function dropUniquePartial($index): Fluent
+    /**
+     * @param array<array-key, string>|string $index
+     *
+     * @return Fluent<string, mixed>
+     */
+    public function dropUniquePartial(array|string $index): Fluent
     {
         return $this->dropIndexCommand('dropIndex', 'unique', $index);
     }
 
-    public function dropPartial($index): Fluent
+    /**
+     * @param array<array-key, string>|string $index
+     *
+     * @return Fluent<string, mixed>
+     */
+    public function dropPartial(array|string $index): Fluent
     {
         return $this->dropIndexCommand('dropIndex', 'partial', $index);
     }
 
+    /**
+     * @template T of Fluent
+     *
+     * @param class-string<T>      $fluent
+     * @param array<string, mixed> $parameters
+     *
+     * @return T
+     */
     private function addExtendedCommand(string $fluent, string $name, array $parameters = []): Fluent
     {
         $command          = new $fluent(array_merge(compact('name'), $parameters));

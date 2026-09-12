@@ -17,16 +17,17 @@
     }
   ],
   "require": {
-    "php": ">=8.4",
+    "php": ">=8.5",
     "ext-pdo": "*",
     "illuminate/database": "^13.0"
   },
   "require-dev": {
     "ergebnis/composer-normalize": "^2.52",
+    "larastan/larastan": "^3.12",
     "orchestra/testbench": "^11.0",
     "phpstan/phpstan": "^2.2",
     "phpunit/phpunit": "^13.0",
-    "squizlabs/php_codesniffer": "^3.11"
+    "squizlabs/php_codesniffer": "^3.13.6"
   },
   "autoload": {
     "psr-4": {
@@ -57,6 +58,7 @@
     "phpcs": "@php ./vendor/bin/phpcs",
     "phpstan": "@php ./vendor/bin/phpstan analyze -c phpstan.neon --no-progress --ansi",
     "phpunit": "@php ./vendor/bin/phpunit --no-coverage --testdox --colors=always",
+    "phpunit-unit": "@php ./vendor/bin/phpunit --no-coverage --testdox --colors=always --testsuite=Unit",
     "phpunit-cover": "@php ./vendor/bin/phpunit --coverage-clover ./storage/coverage/clover.xml",
     "test": [
       "@phpcs",

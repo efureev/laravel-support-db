@@ -10,12 +10,26 @@ use Php\Support\Laravel\Database\Schema\Postgres\Compilers\CreateCompiler;
 
 trait GrammarTable
 {
+    /**
+     * Compile a create table command.
+     *
+     * Only takes over when the blueprint actually uses one of this package's extensions.
+     * A plain `create table` is left to the parent, so improvements the framework makes there
+     * are not silently lost — which is what a full replacement would do.
+     *
+     * @param Fluent<string, mixed> $command
+     */
+    #[\Override]
     public function compileCreate(Blueprint $blueprint, Fluent $command): string
     {
         $fromSelect  = $this->getCommandByName($blueprint, 'fromSelect');
         $fromTable   = $this->getCommandByName($blueprint, 'fromTable');
         $like        = $this->getCommandByName($blueprint, 'like');
         $ifNotExists = $this->getCommandByName($blueprint, 'ifNotExists');
+
+        if ($fromSelect === null && $fromTable === null && $like === null && $ifNotExists === null) {
+            return parent::compileCreate($blueprint, $command);
+        }
 
         return CreateCompiler::compile(
             $this,
@@ -27,7 +41,10 @@ trait GrammarTable
 
     /**
      * Compile a drop table (if exists) command.
+     *
+     * @param Fluent<string, mixed> $command
      */
+    #[\Override]
     public function compileDropIfExists(Blueprint $blueprint, Fluent $command): string
     {
         $baseCompile = parent::compileDropIfExists($blueprint, $command);
