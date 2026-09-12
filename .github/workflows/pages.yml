@@ -1,0 +1,89 @@
+name: Documentation site
+
+# docs/*.md is the source of truth; this renders it and publishes the result.
+# Requires Settings -> Pages -> Source: GitHub Actions.
+on:
+  push:
+    branches: [ master ]
+    paths:
+      - 'docs/**'
+      - 'tools/build-docs-site.py'
+      - 'tools/docs-site.css'
+      - '.github/workflows/pages.yml'
+  workflow_dispatch:
+
+# Never cancel a deploy midway; queue instead.
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  build:
+    name: Render docs
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v7
+
+      - name: Set up Python
+        uses: actions/setup-python@v7
+        with:
+          python-version: '3.12'
+
+      - name: Render docs/ into a single page
+        run: |
+          python3 tools/build-docs-site.py _site/index.html
+          test -s _site/index.html
+
+      - name: Fail if the page lost content
+        run: |
+          # docs/ is the source of truth, so the render must carry all of it across
+          python3 - <<'PY'
+          import pathlib, re, sys, html
+
+          page = pathlib.Path('_site/index.html').read_text()
+
+          def norm(s):
+              return re.sub(r'\s+', ' ', s).strip()
+
+          rendered = {norm(html.unescape(re.sub('<[^>]+>', '', m)))
+                      for m in re.findall(r'<pre[^>]*>(.*?)</pre>', page, re.S)}
+          source = set()
+          for f in sorted(pathlib.Path('docs').glob('*.md')):
+              for m in re.findall(r'```[a-zA-Z]*\n(.*?)```', f.read_text(), re.S):
+                  source.add(norm(m))
+
+          missing = sorted(source - rendered)
+          if missing:
+              print('code blocks in docs/ that did not reach the page:')
+              for m in missing:
+                  print('  -', m[:100])
+              sys.exit(1)
+
+          print('%d code blocks, all present' % len(source))
+          PY
+
+      - name: Configure Pages
+        uses: actions/configure-pages@v6
+
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v5
+        with:
+          path: _site
+
+  deploy:
+    name: Deploy
+    needs: build
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    permissions:
+      pages: write
+      id-token: write
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v5
