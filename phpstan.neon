@@ -28,7 +28,7 @@ parameters:
             path: tests/*
         -
             identifier: method.notFound
-            message: '#Call to an undefined method Illuminate\\Database\\(Query|Eloquent)\\Builder.*::(updateAndReturn|deleteAndReturn|onConflictWhere)\(\)#'
+            message: '#Call to an undefined method Illuminate\\Database\\(Query|Eloquent)\\Builder.*::(insertAndReturn|updateAndReturn|deleteAndReturn|onConflictWhere)\(\)#'
             path: tests/*
         # Testbench builds its environment before any config is cached, which is the situation
         # this rule exists to prevent.

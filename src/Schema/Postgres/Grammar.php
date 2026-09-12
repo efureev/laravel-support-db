@@ -6,6 +6,7 @@ namespace Php\Support\Laravel\Database\Schema\Postgres;
 
 use Illuminate\Database\Schema\Grammars\PostgresGrammar;
 use Php\Support\Laravel\Database\Schema\Postgres\Grammar\CompressionModifier;
+use Php\Support\Laravel\Database\Schema\Postgres\Grammar\GrammarConstraints;
 use Php\Support\Laravel\Database\Schema\Postgres\Grammar\GrammarIndexes;
 use Php\Support\Laravel\Database\Schema\Postgres\Grammar\GrammarTable;
 use Php\Support\Laravel\Database\Schema\Postgres\Grammar\GrammarTypes;
@@ -16,6 +17,7 @@ class Grammar extends PostgresGrammar
     use GrammarTable;
     use GrammarTypes;
     use GrammarIndexes;
+    use GrammarConstraints;
     use GrammarViews;
     use CompressionModifier;
 

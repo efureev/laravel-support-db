@@ -21,6 +21,14 @@ Check MD [online][check-online].
   framework already does — generated columns, `DISTINCT ON`, lateral joins, vector and full-text —
   is listed as deliberately excluded so it does not get built twice
 
+- `insertAndReturn()`, completing the trio — `insertGetId()` returns one key of one row, and there
+  was no way to read back what the database generated for a batch. It returns the columns you name
+  for every row inserted, `*` included, and normalises a single row the way `insert()` does
+- `check()` and `dropCheck()` on the blueprint. Laravel's schema builder has no `CHECK` constraint
+  in any grammar, so a table's columns could be described and most of its invariants could not.
+  The condition is written with the same vocabulary as a partial index, because PostgreSQL treats
+  both as a boolean expression over a row. It is emitted as its own `ALTER TABLE`, so the same
+  call works whether the table is being created or already exists
 - `onConflictWhere()` on the query builder, so `upsert()` can target a partial unique index —
   creating one — the package's own flagship — made the framework's `upsert()` unusable:
   PostgreSQL will not infer a partial index from the conflict columns alone and answers

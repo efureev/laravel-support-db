@@ -55,6 +55,8 @@ namespace Illuminate\Database\Eloquent {
     /**
      * Registered as macros by the package's ServiceProvider, so there is no class to mix in.
      *
+     * @method array insertAndReturn(array $values, string ...$columns) Insert records and return
+     *     the given columns of the inserted rows.
      * @method array updateAndReturn(array $values, string ...$columns) Update records and return
      *     the given columns of the updated rows.
      * @method array deleteAndReturn(string ...$columns) Delete records and return the given

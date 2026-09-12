@@ -309,6 +309,29 @@ class Blueprint extends BaseBlueprint
     }
 
     /**
+     * A `CHECK` constraint, written with the same predicate vocabulary as a partial index —
+     * PostgreSQL treats both as a boolean expression over a row, so they read alike:
+     *
+     * ```php
+     * $table->check('price_positive')->where('price', '>', 0);
+     * ```
+     *
+     * Laravel's schema builder has no `CHECK` in any grammar.
+     */
+    public function check(string $name): PartialBuilder
+    {
+        // the key is `constraint`, not `name`: `createCommand()` merges parameters over the
+        // command name, so a parameter called `name` would replace it
+        return $this->addExtendedCommand(PartialBuilder::class, 'check', ['constraint' => $name]);
+    }
+
+    /** @return Fluent<string, mixed> */
+    public function dropCheck(string $name): Fluent
+    {
+        return $this->addCommand('dropCheck', ['constraint' => $name]);
+    }
+
+    /**
      * @param array<array-key, string>|string $index
      *
      * @return Fluent<string, mixed>

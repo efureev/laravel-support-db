@@ -86,3 +86,38 @@ drop extension if exists "tablefunc", "fuzzystrmatch"
 ```
 
 Creating an extension usually needs a superuser or an explicitly trusted extension.
+
+## Check constraints
+
+Laravel's schema builder has no `CHECK` in any grammar, so a table's columns can be described and
+most of its invariants cannot. The condition is written with the same vocabulary as a partial
+index — PostgreSQL treats both as a boolean expression over a row:
+
+```php
+Schema::create('products', static function (Blueprint $table) {
+    $table->integer('price');
+    $table->string('state');
+
+    $table->check('price_positive')->where('price', '>', 0);
+    $table->check('state_known')->whereIn('state', ['new', 'paid', 'shipped']);
+});
+```
+
+```sql
+alter table "products" add constraint "price_positive" check (("price" > 0))
+alter table "products" add constraint "state_known" check (("state" in ('new','paid','shipped')))
+```
+
+Each is emitted as its own `ALTER TABLE`, so the same call works on a table being created and on
+one that already exists. Dropping takes the constraint name:
+
+```php
+Schema::table('products', static fn (Blueprint $table) => $table->dropCheck('price_positive'));
+```
+
+```sql
+alter table "products" drop constraint "price_positive"
+```
+
+Every predicate from [Index predicates](indexes.md) is available. A check with no conditions is
+refused rather than compiled — `check (())` is a syntax error.

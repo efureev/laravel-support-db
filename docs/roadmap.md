@@ -11,46 +11,14 @@ listed too, so none of it gets built twice.
 ## The shape of the work
 
 The package exists to say the PostgreSQL things Laravel's builder cannot. The most valuable work
-right now is not a new subject, though: it is **the missing halves of what already shipped**. The
-package added `tsrange` and `daterange` without the constraint those types exist for, and it
-offers two of the three `RETURNING` verbs.
+was not a new subject but **the missing halves of what already shipped** — and that group is now
+done. What remains is new ground, starting with the constraint that `tsrange` and `daterange`
+exist for.
 
-Finish those first. New ground after.
+## v5.1 — shipped
 
-The first item of this kind is already done — creating a partial unique index used to make
-`upsert()` unusable, and [`onConflictWhere()`](query-builder.md) fixes that.
-
-## v5.1 — close the holes in what is already sold
-
-> `ON CONFLICT` against a partial unique index is done and documented under
-> [Query builder](query-builder.md). Two left.
-
-### `insertAndReturn()`
-
-`updateAndReturn()` and `deleteAndReturn()` exist; the third of the trio does not. Laravel offers
-only `insertGetId()` — one row, one column, the primary key. There is no way to insert several rows
-and read back what the database generated for them.
-
-```php
-$rows = DB::table('orders')->insertAndReturn($values, 'id', 'created_at');
-```
-
-The `RETURNING` machinery is already written and already respects the connection's fetch mode; this
-is the same path with a different verb.
-
-### `check()`
-
-Laravel's schema builder has no `CHECK` constraint at all — not in the Postgres grammar, not in any
-other. A table's columns can be described but most of its invariants cannot, short of a raw
-statement.
-
-```php
-$table->check('price_positive', fn ($c) => $c->where('price', '>', 0));
-$table->dropCheck('price_positive');
-```
-
-The predicate builder used by partial indexes fits here unchanged, which also keeps one predicate
-vocabulary across the package rather than two.
+Every item of this group is done: `onConflictWhere()` and `insertAndReturn()` under
+[Query builder](query-builder.md), and `check()` under [Schema operations](schema.md).
 
 ## v5.2 — exclusion constraints, and indexes that say more
 
@@ -142,7 +110,7 @@ ordinary SQL rather than a PostgreSQL extension, so it belongs to a cross-databa
 
 | Version | Carries | Breaks |
 |---|---|---|
-| v5.1 | `insertAndReturn()`, `check()` — `ON CONFLICT` with a predicate shipped | nothing — all additive |
+| v5.1 | shipped — `ON CONFLICT` with a predicate, `insertAndReturn()`, `check()` | nothing |
 | v5.2 | exclusion constraints, covering indexes, column order, expression indexes | nothing |
 | v5.3 | enum types, domains, composite types | nothing |
 | v6 | partitioning, RLS, storage parameters, statistics | possibly |

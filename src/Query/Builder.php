@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Php\Support\Laravel\Database\Query;
 
 use Illuminate\Database\Query\Builder as BaseQuery;
+use Illuminate\Support\Arr;
 use Php\Support\Laravel\Database\Query\Grammars\PostgresGrammar;
 use Php\Support\Laravel\Database\Schema\Postgres\Builders\Indexes\PartialBuilder;
 use Php\Support\Laravel\Database\Schema\Postgres\Connection;
@@ -53,6 +54,46 @@ class Builder extends BaseQuery
     public function getConflictTarget(): ?PartialBuilder
     {
         return $this->conflictTarget;
+    }
+
+    /**
+     * Insert records and return columns of the inserted rows.
+     *
+     * The framework's `insertGetId()` returns one key from one row; this returns whatever columns
+     * you name, for every row inserted, including the ones the database generated.
+     *
+     * ```php
+     * $rows = DB::table('orders')->insertAndReturn($values, 'id', 'created_at');
+     * ```
+     *
+     * @param array<array-key, mixed> $values
+     *
+     * @return list<mixed>
+     */
+    public function insertAndReturn(array $values, string ...$columns): array
+    {
+        if ($values === []) {
+            return [];
+        }
+
+        // Normalised the way the framework normalises it, so a single row and a batch behave
+        // alike and every row lists its columns in the same order.
+        if (!is_array(array_first($values))) {
+            $values = [$values];
+        } else {
+            foreach ($values as $key => $value) {
+                ksort($value);
+
+                $values[$key] = $value;
+            }
+        }
+
+        $this->applyBeforeQueryCallbacks();
+
+        $sql  = $this->grammar->compileInsert($this, $values);
+        $sql .= $this->grammar->compileReturns($columns);
+
+        return $this->connection->insertAndReturn($sql, $this->cleanBindings(Arr::flatten($values, 1)));
     }
 
     /**

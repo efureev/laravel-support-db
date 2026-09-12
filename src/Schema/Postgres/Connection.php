@@ -70,6 +70,16 @@ class Connection extends BasePostgresConnection
      *
      * @return list<mixed>
      */
+    public function insertAndReturn(string $query, array $bindings = []): array
+    {
+        return $this->affectingStatementArray($query, $bindings);
+    }
+
+    /**
+     * @param array<array-key, mixed> $bindings
+     *
+     * @return list<mixed>
+     */
     public function updateAndReturn(string $query, array $bindings = []): array
     {
         return $this->affectingStatementArray($query, $bindings);

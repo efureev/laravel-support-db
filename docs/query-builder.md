@@ -39,6 +39,31 @@ objects unless you have changed it, and a `StatementPrepared` event is dispatche
 
 ---
 
+## Inserting and reading back
+
+`insertGetId()` returns one key of one row. `insertAndReturn()` returns whatever columns you name,
+for every row inserted — which is the only way to read back what the database generated for a
+batch:
+
+```php
+$rows = DB::table('orders')->insertAndReturn(
+    [['total' => 20], ['total' => 30]],
+    'id',
+    'created_at'
+);
+```
+
+```sql
+insert into "orders" ("total") values (?), (?) returning "id","created_at"
+```
+
+Pass `*` for whole rows. A single row may be given unwrapped, exactly as `insert()` allows, and
+each row's keys are sorted so a batch lines up.
+
+> Naming no column emits no `RETURNING`, and PostgreSQL then answers with one column-less row per
+> row affected. That is what `updateAndReturn()` and `deleteAndReturn()` have always done, and the
+> three do not disagree.
+
 ## Upserting against a partial unique index
 
 A partial unique index is the package's answer to "unique among the rows that count", and it makes
