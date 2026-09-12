@@ -32,12 +32,13 @@ class UniqueCompiler
         }
 
         return sprintf(
-            'create unique index %s%s on %s%s (%s)%s where %s',
+            'create unique index %s%s on %s%s (%s)%s%s where %s',
             static::concurrentlyClause($fluent),
             $grammar->wrap($fluent->get('index')),
             $grammar->wrapTable($blueprint),
             static::algorithmClause($fluent),
             $grammar->columnize((array)$fluent->get('columns')),
+            static::includeClause($grammar, $fluent),
             static::nullsClause($fluent),
             static::removeLeadingBoolean(implode(' ', $wheres)),
         );

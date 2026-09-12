@@ -87,6 +87,54 @@ drop extension if exists "tablefunc", "fuzzystrmatch"
 
 Creating an extension usually needs a superuser or an explicitly trusted extension.
 
+## Exclusion constraints
+
+A unique index says two rows must not be equal. An exclusion constraint says they must not
+*overlap*, intersect, or whatever else an operator expresses — which is what a range column exists
+for, and which Laravel has no form for:
+
+```php
+Schema::createExtensionIfNotExists('btree_gist');
+
+Schema::create('bookings', static function (Blueprint $table) {
+    $table->increments('id');
+    $table->integer('room_id');
+    $table->tsRange('during');
+    $table->timestamp('cancelled_at')->nullable();
+
+    $table->exclusion('bookings_no_overlap')
+        ->using('gist')
+        ->with('room_id', '=')
+        ->with('during', '&&')
+        ->whereNull('cancelled_at');
+});
+```
+
+```sql
+alter table "bookings" add constraint "bookings_no_overlap"
+    exclude using gist ("room_id" with =, "during" with &&)
+    where ("cancelled_at" is null)
+```
+
+No two live bookings for the same room may overlap; a cancelled one is outside the constraint and
+may overlap anything. `with()` accumulates, and the predicate takes the whole vocabulary from
+[Index predicates](indexes.md).
+
+> **A range operator needs `gist`.** The default access method is btree, which supports only `=`;
+> `&&` against it fails with *operator &&(anyrange,anyrange) is not a member of operator family*.
+> Mixing a scalar column into the same constraint additionally needs `btree_gist`, since gist alone
+> cannot index an integer.
+
+The operator is checked against the character set PostgreSQL builds operator names from, because
+it is interpolated into DDL and cannot be bound.
+
+Dropping works for any named constraint:
+
+```php
+$table->dropConstraint('bookings_no_overlap');
+$table->dropCheck('price_positive');          // the same statement, named for what it drops
+```
+
 ## Check constraints
 
 Laravel's schema builder has no `CHECK` in any grammar, so a table's columns can be described and

@@ -126,6 +126,76 @@ final class IndexModifiersTest extends UnitTestCase
         );
     }
 
+    // ---------------------------------------------------------------- include
+
+    /**
+     * `INCLUDE` carries extra columns in the index leaf without indexing them, so a query reading
+     * only those never touches the table. PostgreSQL 11 and later; Laravel has no form for it.
+     */
+    #[Test]
+    public function includedColumnsFollowTheIndexedOnes(): void
+    {
+        $sql = $this->sqlFor(
+            'bookings',
+            static fn(Blueprint $t) => $t->partial('room_id', 'ix')
+                ->include(['during', 'guest'])
+                ->whereNull('cancelled_at')
+        );
+
+        self::assertSame(
+            'create index "ix" on "bookings" ("room_id") include ("during", "guest") '
+            . 'where ("cancelled_at" is null)',
+            $sql[0]
+        );
+    }
+
+    #[Test]
+    public function aUniquePartialIndexCanCoverToo(): void
+    {
+        $sql = $this->sqlFor(
+            'users',
+            static fn(Blueprint $t) => $t->uniquePartial('email', 'ux')
+                ->include(['name'])
+                ->whereNull('deleted_at')
+        );
+
+        self::assertSame(
+            'create unique index "ux" on "users" ("email") include ("name") '
+            . 'where ("deleted_at" is null)',
+            $sql[0]
+        );
+    }
+
+    #[Test]
+    public function withoutIncludeNothingIsEmitted(): void
+    {
+        $sql = $this->sqlFor(
+            'bookings',
+            static fn(Blueprint $t) => $t->partial('room_id', 'ix')->whereNull('cancelled_at')
+        );
+
+        self::assertStringNotContainsString('include', $sql[0]);
+    }
+
+    /**
+     * `uniquePartial()` reroutes anything `PartialBuilder` declares to the predicates, so a
+     * modifier reached by Fluent magic must survive either side of a `where`.
+     */
+    #[Test]
+    public function includeSurvivesEitherSideOfThePredicate(): void
+    {
+        $sql = $this->sqlFor(
+            'users',
+            static function (Blueprint $t): void {
+                $t->uniquePartial('email', 'before')->include(['name'])->whereNull('deleted_at');
+                $t->uniquePartial('email', 'after')->whereNull('deleted_at')->include(['name']);
+            }
+        );
+
+        self::assertSame(str_replace('before', 'after', $sql[0]), $sql[1]);
+        self::assertStringContainsString('include ("name")', $sql[1]);
+    }
+
     // ---------------------------------------------------------------- chaining
 
     /**

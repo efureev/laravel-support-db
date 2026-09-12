@@ -11,6 +11,7 @@ use InvalidArgumentException;
 use Php\Support\Laravel\Database\Schema\Definitions\ColumnDefinition;
 use Php\Support\Laravel\Database\Schema\Definitions\LikeDefinition;
 use Php\Support\Laravel\Database\Schema\Definitions\ViewDefinition;
+use Php\Support\Laravel\Database\Schema\Postgres\Builders\Constraints\ExclusionBuilder;
 use Php\Support\Laravel\Database\Schema\Postgres\Builders\Indexes\PartialBuilder;
 use Php\Support\Laravel\Database\Schema\Postgres\Builders\Indexes\Unique\UniqueBuilder;
 
@@ -325,10 +326,36 @@ class Blueprint extends BaseBlueprint
         return $this->addExtendedCommand(PartialBuilder::class, 'check', ['constraint' => $name]);
     }
 
+    /**
+     * An exclusion constraint: no two rows may satisfy every one of the given operators at once.
+     *
+     * ```php
+     * $table->exclusion('bookings_no_overlap')
+     *     ->using('gist')
+     *     ->with('room_id', '=')
+     *     ->with('during', '&&');
+     * ```
+     *
+     * A range operator such as `&&` needs `gist`, and mixing a scalar column into the same
+     * constraint needs the `btree_gist` extension — `Schema::createExtensionIfNotExists()`.
+     */
+    public function exclusion(string $name): ExclusionBuilder
+    {
+        return $this->addExtendedCommand(ExclusionBuilder::class, 'exclusion', ['constraint' => $name]);
+    }
+
+    /** Drop any named constraint — a check, an exclusion, a unique. */
+    /** @return Fluent<string, mixed> */
+    public function dropConstraint(string $name): Fluent
+    {
+        return $this->addCommand('dropConstraint', ['constraint' => $name]);
+    }
+
+    /** The same statement as `dropConstraint()`, named for what it usually drops. */
     /** @return Fluent<string, mixed> */
     public function dropCheck(string $name): Fluent
     {
-        return $this->addCommand('dropCheck', ['constraint' => $name]);
+        return $this->dropConstraint($name);
     }
 
     /**

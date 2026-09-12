@@ -33,12 +33,13 @@ class PartialCompiler
         // `createIndexName()` already prefixes the index name, so an unprefixed table here meant
         // the index targeted a relation that does not exist.
         return sprintf(
-            'create index %s%s on %s%s (%s)%s',
+            'create index %s%s on %s%s (%s)%s%s',
             static::concurrentlyClause($fluent),
             $grammar->wrap($fluent->get('index')),
             $grammar->wrapTable($blueprint),
             static::algorithmClause($fluent),
             $grammar->columnize((array)$fluent->get('columns')),
+            static::includeClause($grammar, $fluent),
             $wheres === [] ? '' : ' where ' . static::removeLeadingBoolean(implode(' ', $wheres)),
         );
     }

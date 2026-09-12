@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Php\Support\Laravel\Database\Schema\Postgres\Compilers;
 
 use Illuminate\Support\Fluent;
+use Php\Support\Laravel\Database\Schema\Postgres\Grammar;
 use InvalidArgumentException;
 
 trait CompilesIndexAlgorithm
@@ -38,6 +39,25 @@ trait CompilesIndexAlgorithm
         }
 
         return " using $algorithm";
+    }
+
+    /**
+     * `INCLUDE (…)` carries extra columns in the index leaf without indexing them, so a query
+     * reading only those columns never touches the table. PostgreSQL 11 and later.
+     *
+     * Set by a fluent `->include([...])`. It goes after the column list and before the predicate.
+     *
+     * @param Fluent<string, mixed> $fluent
+     */
+    protected static function includeClause(Grammar $grammar, Fluent $fluent): string
+    {
+        $columns = (array)($fluent->get('include') ?? []);
+
+        if ($columns === []) {
+            return '';
+        }
+
+        return ' include (' . $grammar->columnize($columns) . ')';
     }
 
     /**

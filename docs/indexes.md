@@ -135,6 +135,43 @@ $table->uniquePartial(['team', 'seat'])->nullsNotDistinct()->whereNull('deleted_
 > **`UNIQUE` is btree-only.** PostgreSQL supports unique indexes on btree alone, so an
 > `algorithm()` other than `btree` on `uniquePartial()` is rejected by the server.
 
+## Covering indexes and column expressions
+
+`include()` carries extra columns in the index leaf without indexing them, so a query that reads
+only those never touches the table (PostgreSQL 11 and later):
+
+```php
+$table->partial('room_id', 'bookings_cover')
+    ->include(['during', 'guest'])
+    ->whereNull('cancelled_at');
+```
+
+```sql
+create index "bookings_cover" on "bookings" ("room_id")
+    include ("during", "guest") where ("cancelled_at" is null)
+```
+
+Everything else PostgreSQL allows in an index column list — an expression, a sort direction, where
+nulls sort, a per-column operator class — is reachable by passing an `Expression` instead of a
+name:
+
+```php
+use Illuminate\Database\Query\Expression;
+
+$table->partial([new Expression('lower(email)')], 'users_lower_email')->whereNull('deleted_at');
+$table->partial([new Expression('created_at desc nulls last'), 'id'], 'docs_recent')->whereTrue('live');
+$table->partial([new Expression('payload jsonb_path_ops')], 'docs_payload', 'gin')->whereNotNull('payload');
+```
+
+```sql
+create index "users_lower_email" on "users" (lower(email)) where ("deleted_at" is null)
+create index "docs_recent" on "docs" (created_at desc nulls last, "id") where ("live" is true)
+create index "docs_payload" on "docs" using gin (payload jsonb_path_ops) where ("payload" is not null)
+```
+
+> An `Expression` is emitted verbatim — it is not quoted and not escaped. Build it from literals in
+> your own code, never from user input.
+
 ## GIN indexes and operator classes
 
 `ginIndex()` is a shorthand for a GIN index — the access method for arrays, `jsonb` and full-text

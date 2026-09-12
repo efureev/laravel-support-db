@@ -10,59 +10,26 @@ listed too, so none of it gets built twice.
 
 ## The shape of the work
 
-The package exists to say the PostgreSQL things Laravel's builder cannot. The most valuable work
-was not a new subject but **the missing halves of what already shipped** — and that group is now
-done. What remains is new ground, starting with the constraint that `tsrange` and `daterange`
-exist for.
+The package exists to say the PostgreSQL things Laravel's builder cannot. The first two groups are
+done: the missing halves of what had already shipped, and then the constraint that `tsrange` and
+`daterange` exist for. What remains is new ground.
 
 ## v5.1 — shipped
 
 Every item of this group is done: `onConflictWhere()` and `insertAndReturn()` under
 [Query builder](query-builder.md), and `check()` under [Schema operations](schema.md).
 
-## v5.2 — exclusion constraints, and indexes that say more
+## v5.2 — shipped
 
-### Exclusion constraints
+Exclusion constraints are under [Schema operations](schema.md); covering indexes and the
+`Expression` route for column expressions, ordering and per-column operator classes are under
+[Indexes](indexes.md).
 
-The constraint that range columns exist for, and the strongest feature on this list. Verified:
-
-```sql
-alter table bookings add constraint bookings_no_overlap
-  exclude using gist (room_id with =, during with &&);
-```
-
-```
-ERROR: conflicting key value violates exclusion constraint "bookings_no_overlap"
-DETAIL: Key (room_id, during)=(1, ["2026-01-03","2026-01-08")) conflicts with
-        existing key (room_id, during)=(1, ["2026-01-01","2026-01-05")).
-```
-
-"No two bookings for the same room may overlap" is one line of DDL in PostgreSQL and inexpressible
-in Laravel. It also composes with what the package already ships: `tsRange()` supplies the column,
-and the scalar half of the constraint needs `btree_gist`, which
-`Schema::createExtensionIfNotExists()` already installs.
-
-```php
-$table->exclusion('bookings_no_overlap')
-    ->using('gist')
-    ->with('room_id', '=')
-    ->with('during', '&&')
-    ->whereNull('cancelled_at');        // exclusion constraints take a predicate too
-```
-
-### Index expressiveness
-
-The package already owns *indexes Laravel cannot express*. Four things are missing from that claim:
-
-| Want | SQL | Today |
-|---|---|---|
-| Covering index | `create index … (room_id) include (during)` | nothing, anywhere |
-| Column order and nulls | `(room_id desc nulls last, id)` | `index()` takes bare names only |
-| Index on an expression | `create index … (lower(email))` | nothing |
-| Operator class per column | `(payload jsonb_path_ops)` | only via `ginIndex()` |
-
-Each is small, lands in the compilers that already exist, and pays for itself in a query plan. The
-first two were checked against PostgreSQL 18 and behave as described.
+Three of the four "index expressiveness" items turned out to need no new API at all: an
+`Expression` in the column list already reaches PostgreSQL verbatim, so an expression index, a
+sort direction and a per-column operator class were all expressible before this release and simply
+undocumented. This list said "nothing, anywhere" for them, and that was wrong. Only `INCLUDE`
+was genuinely missing.
 
 ## v5.3 — objects beyond tables
 
@@ -111,7 +78,7 @@ ordinary SQL rather than a PostgreSQL extension, so it belongs to a cross-databa
 | Version | Carries | Breaks |
 |---|---|---|
 | v5.1 | shipped — `ON CONFLICT` with a predicate, `insertAndReturn()`, `check()` | nothing |
-| v5.2 | exclusion constraints, covering indexes, column order, expression indexes | nothing |
+| v5.2 | shipped — exclusion constraints, covering indexes | nothing |
 | v5.3 | enum types, domains, composite types | nothing |
 | v6 | partitioning, RLS, storage parameters, statistics | possibly |
 

@@ -7,6 +7,28 @@ and this project adheres to [Semantic Versioning][semver].
 
 Check MD [online][check-online].
 
+## [unreleased]
+
+### Added
+
+- Exclusion constraints — `$table->exclusion('name')->using('gist')->with('room_id', '=')
+  ->with('during', '&&')`. A unique index says two rows must not be equal; this says they must not
+  overlap, which is what a range column exists for and which Laravel has no form for. It takes a
+  predicate like a partial index does, so a cancelled booking can sit outside the constraint. The
+  operator is checked against the character set PostgreSQL builds operator names from, since it is
+  interpolated into DDL and cannot be bound
+- `include()` on a partial or unique-partial index, emitting `INCLUDE (…)` so a query reading only
+  the carried columns never touches the table (PostgreSQL 11 and later)
+- `dropConstraint()`, which drops any named constraint. `dropCheck()` is the same statement under a
+  name that says what it usually drops
+
+### Changed
+
+- The documentation now shows how to reach an expression index, a sort direction, where nulls sort
+  and a per-column operator class: pass an `Expression` in the column list. All four were
+  expressible before this release — the roadmap claimed otherwise, and checking rather than
+  trusting it turned three planned features into one paragraph of documentation
+
 ## [5.1.0] - 2026-09-13
 
 ### Added
@@ -556,7 +578,11 @@ Check MD [online][check-online].
 
 - Create the package
 
+[unreleased]: https://github.com/efureev/laravel-support-db/compare/v5.1.0...HEAD
+
 [5.1.0]: https://github.com/efureev/laravel-support-db/compare/v5.0.5...v5.1.0
+
+[unreleased]: https://github.com/efureev/laravel-support-db/compare/v5.1.0...HEAD
 
 [5.1.0]: https://github.com/efureev/laravel-support-db/compare/v5.0.5...v5.1.0
 
