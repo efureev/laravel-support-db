@@ -48,6 +48,13 @@ Check MD [online][check-online].
 - `.meta.php` covers `Query\Builder` — the block was commented out, so the documented
   `Model::toBase()->updateAndReturn(...)` had no IDE support at all — and `ColumnDefinition`, which
   is what makes `->compression()` visible on an ordinary column
+- `addExtendedCommand()` is held to the fields the framework's own `createCommand()` produces. The
+  method is a deliberate copy — `addCommand()` hard-codes `Fluent` and offers no hook for a command
+  class of one's own — and a copy is the thing that drifts: were a later Laravel to set another
+  field, ours would quietly stop setting it
+- The `pgsql` resolver closure is held to capturing nothing, neither a bound `$this` nor an imported
+  variable. `Connection::$resolvers` is static and the framework never clears it, so a captured
+  container would outlive the request, or the Testbench case, that registered it
 
 ### Changed
 
