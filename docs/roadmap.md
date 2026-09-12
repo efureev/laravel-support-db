@@ -12,8 +12,10 @@ listed too, so none of it gets built twice.
 
 The package exists to say the PostgreSQL things Laravel's builder cannot. Everything planned here
 has shipped: the missing halves of what had already been sold, the constraint that `tsrange` and
-`daterange` exist for, types of one's own, and the physical layout of a table. One item remains,
-and it is the smallest of them.
+`daterange` exist for, types of one's own, and the physical layout of a table.
+
+Nothing is outstanding. What follows is the record of how it went — including the two entries this
+page got wrong, which are corrected in place rather than quietly dropped.
 
 ## v5.1 — shipped
 
@@ -47,9 +49,8 @@ does not: every item turned out to be a new method beside the existing ones, and
 code touched was the create compiler, which gained two clauses. So it shipped as a minor, and the
 version number here is corrected rather than kept for appearance.
 
-`CREATE STATISTICS` is the one item of the original group still outstanding — extended statistics
-for correlated columns the planner mis-estimates. It is genuinely niche, and it is the only thing
-on this page that has not been either built or found to be unnecessary.
+`CREATE STATISTICS` shipped with it after all — see
+[Extended statistics](schema.md#extended-statistics).
 
 ## Deliberately not on this list
 
@@ -76,7 +77,7 @@ ordinary SQL rather than a PostgreSQL extension, so it belongs to a cross-databa
 | v5.1 | shipped — `ON CONFLICT` with a predicate, `insertAndReturn()`, `check()` | nothing |
 | v5.2 | shipped — exclusion constraints, covering indexes | nothing |
 | v5.3 | shipped — enum types, domains, composite types | nothing |
-| v5.4 | shipped — partitioning, RLS, unlogged, storage parameters | nothing |
+| v5.4 | shipped — partitioning, RLS, unlogged, storage parameters, extended statistics | nothing |
 
 Nothing on this page broke anything, so every group shipped as a minor.
 

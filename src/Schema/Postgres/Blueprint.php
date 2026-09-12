@@ -15,6 +15,7 @@ use Php\Support\Laravel\Database\Schema\Postgres\Builders\Constraints\ExclusionB
 use Php\Support\Laravel\Database\Schema\Postgres\Builders\Indexes\PartialBuilder;
 use Php\Support\Laravel\Database\Schema\Postgres\Builders\Partitions\PartitionBuilder;
 use Php\Support\Laravel\Database\Schema\Postgres\Builders\Security\PolicyBuilder;
+use Php\Support\Laravel\Database\Schema\Postgres\Builders\Statistics\StatisticsBuilder;
 use Php\Support\Laravel\Database\Schema\Postgres\Builders\Indexes\Unique\UniqueBuilder;
 
 class Blueprint extends BaseBlueprint
@@ -402,6 +403,36 @@ class Blueprint extends BaseBlueprint
     public function detachPartition(string $partition, bool $concurrently = false): Fluent
     {
         return $this->addCommand('detachPartition', compact('partition', 'concurrently'));
+    }
+
+    /**
+     * Extended statistics: tell the planner that these columns are not independent.
+     *
+     * ```php
+     * $table->statistics('events_kind_region')->on('kind', 'region');
+     * ```
+     *
+     * Without them the planner multiplies selectivities as though a city did not imply its
+     * country, and a plan chosen on an estimate that is wrong by orders of magnitude is usually
+     * the wrong plan.
+     */
+    public function statistics(string $name): StatisticsBuilder
+    {
+        return $this->addExtendedCommand(
+            StatisticsBuilder::class,
+            'statistics',
+            ['statistics' => $name]
+        );
+    }
+
+    /**
+     * Drop one or more statistics objects.
+     *
+     * @return Fluent<string, mixed>
+     */
+    public function dropStatistics(string ...$statistics): Fluent
+    {
+        return $this->addCommand('dropStatistics', compact('statistics'));
     }
 
     /**

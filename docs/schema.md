@@ -371,3 +371,49 @@ alter table "cache" reset (fillfactor)
 Storage parameters are their own `ALTER TABLE`, so the same call works on a new table and on one
 that already exists. Both the name and the value are checked, since neither can be a bound
 parameter.
+
+## Extended statistics
+
+The planner assumes columns are independent. When they are not — a city that implies its country,
+a status that implies its type — it multiplies the two selectivities and lands orders of magnitude
+off, and an estimate that wrong usually picks the wrong plan.
+
+```php
+Schema::create('events', static function (Blueprint $table) {
+    $table->string('kind');
+    $table->string('region');
+
+    $table->statistics('events_kind_region')->on('kind', 'region');
+});
+```
+
+```sql
+create statistics "events_kind_region" on "kind", "region" from "events"
+```
+
+That is measurable rather than theoretical. Over a table where `kind` and `region` agree exactly,
+`explain` estimates about a ninth of the rows before the statistics exist and about a third after
+— which is the correct answer, and the package's own test asserts the improvement.
+
+| Kind | What it records |
+|---|---|
+| `ndistinct` | how many distinct combinations the columns have together |
+| `dependencies` | that one column's value implies another's |
+| `mcv` | the commonest combinations, with their frequencies |
+
+All three are collected unless you name fewer:
+
+```php
+$table->statistics('s')->on('kind', 'region')->kinds('ndistinct', 'dependencies');
+$table->statistics('s')->ifNotExists()->on('kind', 'region');
+$table->dropStatistics('s', 'other');
+```
+
+> **At least two columns.** PostgreSQL refuses one, because a single column's distribution is what
+> it already gathers by itself — the package says so before the statement is sent.
+>
+> An `Expression` may stand in for a column, which needs PostgreSQL 14; before that the server
+> accepts only plain column references.
+
+Statistics are gathered by `ANALYZE`, so a fresh object tells the planner nothing until the next
+analyze — automatic or otherwise.

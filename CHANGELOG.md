@@ -7,6 +7,20 @@ and this project adheres to [Semantic Versioning][semver].
 
 Check MD [online][check-online].
 
+## [unreleased]
+
+### Added
+
+- `statistics()` and `dropStatistics()` — extended statistics, the last item on the roadmap. The
+  planner assumes columns are independent, and when they are not it multiplies the two
+  selectivities and lands orders of magnitude off. The improvement is asserted rather than
+  claimed: over a table where two columns agree exactly, `explain` estimates about a ninth of the
+  rows before the statistics object exists and about a third after
+- Kinds are `ndistinct`, `dependencies` and `mcv`, all three unless fewer are named, and
+  `ifNotExists()` makes the migration repeatable. Fewer than two columns is refused before the
+  statement is sent, because PostgreSQL refuses it too — a single column's distribution is what it
+  already gathers by itself
+
 ## [5.4.0] - 2026-09-13
 
 ### Added
@@ -625,6 +639,8 @@ Check MD [online][check-online].
 
 - Create the package
 
+[unreleased]: https://github.com/efureev/laravel-support-db/compare/v5.4.0...HEAD
+
 [5.4.0]: https://github.com/efureev/laravel-support-db/compare/v5.3.0...v5.4.0
 
 [5.3.0]: https://github.com/efureev/laravel-support-db/compare/v5.2.0...v5.3.0
@@ -632,6 +648,8 @@ Check MD [online][check-online].
 [5.2.0]: https://github.com/efureev/laravel-support-db/compare/v5.1.0...v5.2.0
 
 [5.1.0]: https://github.com/efureev/laravel-support-db/compare/v5.0.5...v5.1.0
+
+[unreleased]: https://github.com/efureev/laravel-support-db/compare/v5.4.0...HEAD
 
 [5.4.0]: https://github.com/efureev/laravel-support-db/compare/v5.3.0...v5.4.0
 

@@ -10,10 +10,29 @@ use InvalidArgumentException;
 use Php\Support\Laravel\Database\Schema\Postgres\Builders\Partitions\PartitionBuilder;
 use Php\Support\Laravel\Database\Schema\Postgres\Builders\Security\PolicyBuilder;
 use Php\Support\Laravel\Database\Schema\Postgres\Compilers\PartitionCompiler;
+use Php\Support\Laravel\Database\Schema\Postgres\Builders\Statistics\StatisticsBuilder;
 use Php\Support\Laravel\Database\Schema\Postgres\Compilers\PolicyCompiler;
+use Php\Support\Laravel\Database\Schema\Postgres\Compilers\StatisticsCompiler;
 
 trait GrammarPartitions
 {
+    /**
+     * The planner assumes columns are independent; extended statistics tell it where they are not.
+     */
+    public function compileStatistics(BaseBlueprint $blueprint, StatisticsBuilder $command): string
+    {
+        return StatisticsCompiler::create($this, $blueprint, $command);
+    }
+
+    /** @param Fluent<string, mixed> $command */
+    public function compileDropStatistics(BaseBlueprint $blueprint, Fluent $command): string
+    {
+        /** @var list<string> $names */
+        $names = (array)$command->get('statistics');
+
+        return StatisticsCompiler::drop($this, $names);
+    }
+
     public function compilePolicy(BaseBlueprint $blueprint, PolicyBuilder $command): string
     {
         return PolicyCompiler::create($this, $blueprint, $command);
