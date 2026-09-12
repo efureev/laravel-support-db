@@ -7,6 +7,20 @@ and this project adheres to [Semantic Versioning][semver].
 
 Check MD [online][check-online].
 
+## [unreleased]
+
+### Added
+
+- Types of your own, which Laravel can read back and drop en masse but never create:
+  `createEnumType()`, `createDomain()`, `createCompositeType()`, `addEnumValue()`,
+  `dropTypeIfExists()`, `dropDomainIfExists()` and `dropTypeIfExistsCascade()`
+- A domain's check is written with the predicate vocabulary the rest of the package uses —
+  PostgreSQL calls the thing being checked `VALUE` and resolves a quoted `"value"` to it, so
+  `->where('value', '>', 0)` reaches the catalogue as `CHECK ((VALUE > 0))` — verified against a
+  server rather than assumed, because the quoted form looks like it should be a column
+- `addEnumValue()` takes a `before` or an `after`, since PostgreSQL keeps labels in the order they
+  were added and comparisons follow that order rather than the alphabet
+
 ## [5.2.0] - 2026-09-13
 
 ### Added
@@ -586,9 +600,13 @@ Check MD [online][check-online].
 
 - Create the package
 
+[unreleased]: https://github.com/efureev/laravel-support-db/compare/v5.2.0...HEAD
+
 [5.2.0]: https://github.com/efureev/laravel-support-db/compare/v5.1.0...v5.2.0
 
 [5.1.0]: https://github.com/efureev/laravel-support-db/compare/v5.0.5...v5.1.0
+
+[unreleased]: https://github.com/efureev/laravel-support-db/compare/v5.2.0...HEAD
 
 [5.2.0]: https://github.com/efureev/laravel-support-db/compare/v5.1.0...v5.2.0
 

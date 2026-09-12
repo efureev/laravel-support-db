@@ -10,9 +10,10 @@ listed too, so none of it gets built twice.
 
 ## The shape of the work
 
-The package exists to say the PostgreSQL things Laravel's builder cannot. The first two groups are
-done: the missing halves of what had already shipped, and then the constraint that `tsrange` and
-`daterange` exist for. What remains is new ground.
+The package exists to say the PostgreSQL things Laravel's builder cannot. Three groups are done:
+the missing halves of what had already shipped, the constraint that `tsrange` and `daterange`
+exist for, and types of one's own. What remains is the physical layout of a table, which is
+larger and more opinionated than any of them.
 
 ## v5.1 — shipped
 
@@ -31,18 +32,10 @@ sort direction and a per-column operator class were all expressible before this 
 undocumented. This list said "nothing, anywhere" for them, and that was wrong. Only `INCLUDE`
 was genuinely missing.
 
-## v5.3 — objects beyond tables
+## v5.3 — shipped
 
-Views and extensions are already here. Types are the neighbouring subject Laravel can only read and
-bulk-drop — `compileTypes()` and `compileDropAllTypes()` exist, `CREATE TYPE` does not:
-
-```php
-Schema::createEnumType('order_state', ['new', 'paid', 'shipped']);
-Schema::createDomain('positive_int', 'integer', fn ($c) => $c->where('value', '>', 0));
-Schema::dropTypeIfExists('order_state');
-```
-
-An enum type pairs naturally with the `BackedEnum` support the index predicates already have.
+Enum types, domains and composite types are under [Schema operations](schema.md), together with
+adding a label to an existing enum and dropping either kind.
 
 ## v6 — physical layout and operations
 
@@ -79,7 +72,7 @@ ordinary SQL rather than a PostgreSQL extension, so it belongs to a cross-databa
 |---|---|---|
 | v5.1 | shipped — `ON CONFLICT` with a predicate, `insertAndReturn()`, `check()` | nothing |
 | v5.2 | shipped — exclusion constraints, covering indexes | nothing |
-| v5.3 | enum types, domains, composite types | nothing |
+| v5.3 | shipped — enum types, domains, composite types | nothing |
 | v6 | partitioning, RLS, storage parameters, statistics | possibly |
 
 Everything before v6 is additive, so a minor release carries it.

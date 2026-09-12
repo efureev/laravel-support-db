@@ -8,6 +8,8 @@ use Closure;
 use Illuminate\Container\Container;
 use Illuminate\Database\Connection as BaseConnection;
 use Illuminate\Database\Schema\PostgresBuilder;
+use Php\Support\Laravel\Database\Schema\Postgres\Builders\Indexes\PartialBuilder;
+use Php\Support\Laravel\Database\Schema\Postgres\Compilers\UserTypeCompiler;
 use InvalidArgumentException;
 
 /**
@@ -159,6 +161,101 @@ class Builder extends PostgresBuilder
             $schema,
             $name,
         ];
+    }
+
+    /**
+     * A type of one's own. Laravel can read these back and drop them all at once, but has no way
+     * to create one.
+     *
+     * ```php
+     * Schema::createEnumType('order_state', ['new', 'paid', 'shipped']);
+     * ```
+     *
+     * @param list<string> $values
+     */
+    public function createEnumType(string $name, array $values): void
+    {
+        $this->getConnection()->statement(
+            UserTypeCompiler::enumType($this->grammar, $name, $values)
+        );
+    }
+
+    /**
+     * Add a value to an existing enum type, optionally positioned relative to another.
+     *
+     * PostgreSQL 12 and later allow this inside a transaction, so an ordinary migration can do it
+     * — as long as the new value is not also used in that transaction.
+     */
+    public function addEnumValue(
+        string $type,
+        string $value,
+        ?string $before = null,
+        ?string $after = null
+    ): void {
+        $this->getConnection()->statement(
+            UserTypeCompiler::addEnumValue($this->grammar, $type, $value, $before, $after)
+        );
+    }
+
+    /**
+     * A composite type: several fields under one name.
+     *
+     * @param array<string, string> $fields field name => type
+     */
+    public function createCompositeType(string $name, array $fields): void
+    {
+        $this->getConnection()->statement(
+            UserTypeCompiler::compositeType($this->grammar, $name, $fields)
+        );
+    }
+
+    /**
+     * A domain: a base type with a constraint attached, so the rule lives with the type rather
+     * than being repeated on every column that uses it.
+     *
+     * ```php
+     * Schema::createDomain('positive_int', 'integer', fn (PartialBuilder $c) => $c->where('value', '>', 0));
+     * ```
+     *
+     * The predicate names `value`, which is how PostgreSQL refers to what is being checked.
+     *
+     * @param (callable(PartialBuilder): mixed)|null $check
+     */
+    public function createDomain(string $name, string $type, ?callable $check = null): void
+    {
+        $predicate = null;
+
+        if ($check !== null) {
+            $check($predicate = new PartialBuilder());
+        }
+
+        $this->getConnection()->statement(
+            UserTypeCompiler::domain($this->grammar, $name, $type, $predicate)
+        );
+    }
+
+    /** Drop one or more types — enum or composite. */
+    public function dropTypeIfExists(string ...$name): void
+    {
+        $this->getConnection()->statement(
+            UserTypeCompiler::dropIfExists($this->grammar, 'type', $name, false)
+        );
+    }
+
+    /** Drop one or more domains. */
+    public function dropDomainIfExists(string ...$name): void
+    {
+        $this->getConnection()->statement(
+            UserTypeCompiler::dropIfExists($this->grammar, 'domain', $name, false)
+        );
+    }
+
+    /** Drop types and everything using them — columns included. */
+    public function dropTypeIfExistsCascade(string ...$name): void
+    {
+        $this->getConnection()->statement(
+            UserTypeCompiler::dropIfExists($this->grammar, 'type', $name, true)
+        );
     }
 
     public function createExtension(string $name): void

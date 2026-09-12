@@ -87,6 +87,76 @@ drop extension if exists "tablefunc", "fuzzystrmatch"
 
 Creating an extension usually needs a superuser or an explicitly trusted extension.
 
+## Types of your own
+
+Laravel can read a user-defined type back and drop every one at once, but has no way to create a
+single one.
+
+**Enums.** A label set the database itself enforces, ordered the way you declare it:
+
+```php
+Schema::createEnumType('order_state', ['new', 'paid', 'shipped']);
+```
+
+```sql
+create type "order_state" as enum ('new', 'paid', 'shipped')
+```
+
+The type is then an ordinary column type — `$table->rawColumn('state', 'order_state')` — and
+PostgreSQL refuses any label it does not know.
+
+Labels are added to an existing type, optionally positioned. The order matters: comparisons and
+`ORDER BY` follow it, not the alphabet.
+
+```php
+Schema::addEnumValue('order_state', 'refunded');            // at the end
+Schema::addEnumValue('order_state', 'pending', 'new');      // before 'new'
+Schema::addEnumValue('order_state', 'in_transit', after: 'paid');
+```
+
+> PostgreSQL 12 and later allow this inside a transaction, so an ordinary migration can do it — as
+> long as the new label is not also *used* in that same transaction.
+
+**Domains.** A base type with a rule attached, so the rule lives with the type instead of being
+repeated on every column that uses it:
+
+```php
+use Php\Support\Laravel\Database\Schema\Postgres\Builders\Indexes\PartialBuilder;
+
+Schema::createDomain('positive_int', 'integer', fn (PartialBuilder $c) => $c->where('value', '>', 0));
+Schema::createDomain('score', 'integer', fn (PartialBuilder $c) => $c->where('value', '>=', 0)->where('value', '<=', 100));
+```
+
+```sql
+create domain "positive_int" as integer check (("value" > 0))
+```
+
+The predicate names `value` — PostgreSQL calls the thing being checked `VALUE`, and resolves a
+quoted `"value"` to it, so the vocabulary from [Index predicates](indexes.md) reaches here
+unchanged. The catalogue stores it as `CHECK ((VALUE > 0))`.
+
+**Composites.** Several fields under one name:
+
+```php
+Schema::createCompositeType('full_name', ['first' => 'text', 'last' => 'varchar(30)']);
+```
+
+```sql
+create type "full_name" as ("first" text, "last" varchar(30))
+```
+
+**Dropping.** Types and domains are dropped separately, several at a time, and a name may be
+schema-qualified:
+
+```php
+Schema::dropTypeIfExists('order_state', 'full_name');
+Schema::dropDomainIfExists('positive_int');
+Schema::dropTypeIfExistsCascade('order_state');   // and every column using it
+```
+
+> Values and base type names are interpolated into DDL — PostgreSQL takes no parameter there — so
+> a value is escaped and a type name is checked against what a type name may look like.
+
 ## Exclusion constraints
 
 A unique index says two rows must not be equal. An exclusion constraint says they must not
