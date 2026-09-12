@@ -7,7 +7,7 @@ and this project adheres to [Semantic Versioning][semver].
 
 Check MD [online][check-online].
 
-## [unreleased]
+## [5.0.1] - 2026-09-12
 
 ### Changed
 
@@ -23,6 +23,10 @@ Check MD [online][check-online].
   else maps straight across. Porting the page's own additions back into `docs/` turned up an
   example whose emitted SQL was wrong in two ways — the timestamp type and the order of the
   statements — which is what running it against a server rather than writing it from memory is for
+- A `Documentation site` workflow renders `docs/` and publishes it to GitHub Pages at
+  <https://efureev.github.io/laravel-support-db/>. It runs only when `docs/`, the generator or its
+  stylesheet change, keeps nothing generated in the repository, and refuses to deploy a page that
+  lost a code block on the way
 
 ## [5.0.0] - 2026-09-12
 
@@ -429,7 +433,7 @@ Check MD [online][check-online].
 
 - Create the package
 
-[unreleased]: https://github.com/efureev/laravel-support-db/compare/v5.0.0...HEAD
+[5.0.1]: https://github.com/efureev/laravel-support-db/compare/v5.0.0...v5.0.1
 
 [5.0.0]: https://github.com/efureev/laravel-support-db/compare/v4.0.0...v5.0.0
 
