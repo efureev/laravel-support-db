@@ -33,12 +33,18 @@
         </include>
     </source>
     <php>
-        <server name="DB_CONNECTION" value="pgsql"/>
-        <server name="APP_ENV" value="testing"/>
-        <server name="APP_KEY" value="base64:VM+W1TpjK5cVtw1wHOPcu+e8mHiVYDuvgUJSLf+1QLA="/>
-        <!-- DB connection defaults (forge / forge / forge). Real environment variables
-             (docker-compose for local runs, the job env in GitHub Actions) take precedence,
-             because force="false" keeps any value already present in the environment. -->
+        <!-- All of these are `env`, never `server`: Laravel reads both, so mixing the two only
+             hides which of them a given name is set through. `force` is what carries the meaning
+             here — true pins the value, false yields to the real environment. -->
+
+        <!-- Fixed by the suite; an ambient value must not change what is under test. -->
+        <env name="DB_CONNECTION" value="pgsql" force="true"/>
+        <env name="APP_ENV" value="testing" force="true"/>
+        <env name="APP_KEY" value="base64:VM+W1TpjK5cVtw1wHOPcu+e8mHiVYDuvgUJSLf+1QLA=" force="true"/>
+
+        <!-- Connection defaults (forge / forge / forge). The real environment wins, which is how
+             docker-compose points the suite at its own container and how the GitHub Actions job
+             reaches its service. -->
         <env name="DB_HOST" value="localhost" force="false"/>
         <env name="DB_PORT" value="5432" force="false"/>
         <env name="DB_DATABASE" value="forge" force="false"/>

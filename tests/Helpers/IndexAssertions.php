@@ -60,9 +60,15 @@ trait IndexAssertions
         static::assertTrue($this->existConstraintOnTable($table, $index));
     }
 
+    /** The `pg_indexes` row, or null when no index by that name exists in any schema. */
+    protected function getIndexRow(string $index): ?object
+    {
+        return DB::selectOne('SELECT * FROM pg_indexes WHERE indexname = ?', [$index]);
+    }
+
     private function getIndexListing(string $index): ?string
     {
-        $definition = DB::selectOne('SELECT * FROM pg_indexes WHERE indexname = ?', [$index]);
+        $definition = $this->getIndexRow($index);
 
         return $definition ? $definition->indexdef : null;
     }

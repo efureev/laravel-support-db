@@ -77,6 +77,21 @@ Check MD [online][check-online].
 - `createViewOrReplace(..., materialize: true)` throws a `LogicException`: PostgreSQL has no `CREATE
   OR REPLACE` for materialized views. It previously emitted invalid SQL
 - Generated SQL is lowercase throughout, matching the rest of the framework
+- The PHPCS ruleset drops two rules that are in neither PSR-12 nor PER-CS 2.0 and that IDE
+  formatters undo on save: vertical alignment of `=` and one-argument-per-line in every multi-line
+  call. `Generic.ControlStructures.InlineControlStructure` was declared twice, and the replacement
+  suggested for `is_null` was the meaningless `null` rather than `=== null`. It gains `basepath`,
+  so reported paths are no longer truncated absolute ones, plus `cache`, `parallel`, `colors` and
+  a `php_version` target
+- `Squiz.Arrays.ArrayDeclaration.ValueNoNewline` is silenced. The sniff predates arrow functions
+  and reads `fn(...) =>` inside an array as a key separator; phpcbf then breaks the line between
+  `fn` and its parameter list and converges on that shape, so running it twice keeps the mangling
+  and PHPCS calls the result correct
+- The PHPUnit config is `phpunit.xml.dist` and `phpunit.xml` is ignored, which is the usual way
+  round and is what makes a local override possible without dirtying the tree. Its `<server>` and
+  `<env>` entries are now all `<env>`: Laravel reads both, so mixing them only obscured which one
+  a name came through. `force` carries the meaning instead — pinned for `DB_CONNECTION`, `APP_ENV`
+  and `APP_KEY`, yielding to the environment for the connection details
 
 ### Removed
 
@@ -106,6 +121,11 @@ Check MD [online][check-online].
 - `partial([])` and `uniquePartial([])` compiled to `on "t" ()`, which PostgreSQL rejects; they now
   refuse an empty column list
 - `dropExtensionIfExists()` with no arguments emitted `drop extension if exists` and nothing else
+- `CreateIndexTest` carried two tests with byte-identical bodies under the group names `WithSchema`
+  and `WithoutSchema`, promising a difference in `search_path` that neither body made. The
+  difference is real now: one asserts the index lands in the default schema, the other creates a
+  schema and asserts the index follows the session's `search_path` rather than the one in the
+  connection config
 
 - `CompressionTest` asserted only that the table exists, so the compression modifier was effectively
   untested. It now reads `pg_attribute.attcompression` back, covers `lz4` as well as `pglz`, and

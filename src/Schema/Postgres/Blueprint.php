@@ -49,9 +49,9 @@ class Blueprint extends BaseBlueprint
 
         $defaultExpression = match (true) {
             // Native, extension-less UUID generation (PostgreSQL >= 13).
-            $default === true          => new Expression('gen_random_uuid()'),
+            $default === true => new Expression('gen_random_uuid()'),
             $default instanceof Expression => $default,
-            default                    => new Expression($default($column)),
+            default => new Expression($default($column)),
         };
 
         return $defCol->default($defaultExpression);

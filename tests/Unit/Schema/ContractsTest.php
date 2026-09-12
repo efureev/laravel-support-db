@@ -61,20 +61,20 @@ final class ContractsTest extends UnitTestCase
     public static function extensionCommands(): iterable
     {
         yield 'like' => [
-            static fn
-        (Blueprint $t) => $t->like('src'), '(like "src")',
+            static fn(Blueprint $t) => $t->like('src'),
+            '(like "src")',
         ];
         yield 'fromTable' => [
-            static fn
-        (Blueprint $t) => $t->fromTable('src'), 'as table "src"',
+            static fn(Blueprint $t) => $t->fromTable('src'),
+            'as table "src"',
         ];
         yield 'fromSelect' => [
-            static fn
-        (Blueprint $t) => $t->fromSelect('select 1'), 'as (select 1)',
+            static fn(Blueprint $t) => $t->fromSelect('select 1'),
+            'as (select 1)',
         ];
         yield 'ifNotExists' => [
-            static fn
-        (Blueprint $t) => $t->ifNotExists(), 'if not exists',
+            static fn(Blueprint $t) => $t->ifNotExists(),
+            'if not exists',
         ];
     }
 
@@ -143,28 +143,23 @@ final class ContractsTest extends UnitTestCase
     public static function prefixedStatements(): iterable
     {
         yield 'createView' => [
-            static fn
-        (Blueprint $t) => $t->createView('v', 'select 1'),
+            static fn(Blueprint $t) => $t->createView('v', 'select 1'),
             'create view "pref_v" as select 1',
         ];
         yield 'createViewOrReplace' => [
-            static fn
-        (Blueprint $t) => $t->createViewOrReplace('v', 'select 1'),
+            static fn(Blueprint $t) => $t->createViewOrReplace('v', 'select 1'),
             'create or replace view "pref_v" as select 1',
         ];
         yield 'createView materialized' => [
-            static fn
-        (Blueprint $t) => $t->createView('v', 'select 1', true),
+            static fn(Blueprint $t) => $t->createView('v', 'select 1', true),
             'create materialized view "pref_v" as select 1',
         ];
         yield 'dropView' => [
-            static fn
-        (Blueprint $t) => $t->dropView('v'),
+            static fn(Blueprint $t) => $t->dropView('v'),
             'drop view "pref_v"',
         ];
         yield 'dropViewIfExists materialized' => [
-            static fn
-        (Blueprint $t) => $t->dropViewIfExists('v', true),
+            static fn(Blueprint $t) => $t->dropViewIfExists('v', true),
             'drop materialized view if exists "pref_v"',
         ];
     }
@@ -232,8 +227,7 @@ final class ContractsTest extends UnitTestCase
             'default gen_random_uuid()',
         ];
         yield 'callable builds the expression' => [
-            static fn
-        (string $column): string => "some_fn('$column')",
+            static fn(string $column): string => "some_fn('$column')",
             "default some_fn('c')",
         ];
         yield 'expression passes through' => [
@@ -287,33 +281,27 @@ final class ContractsTest extends UnitTestCase
     public static function rejectedInput(): iterable
     {
         yield 'between with no values' => [
-            static fn
-        (Blueprint $t) => $t->partial('a')->whereBetween('a', []),
+            static fn(Blueprint $t) => $t->partial('a')->whereBetween('a', []),
             'exactly two values, 0 given',
         ];
         yield 'between with one value' => [
-            static fn
-        (Blueprint $t) => $t->partial('a')->whereBetween('a', [1]),
+            static fn(Blueprint $t) => $t->partial('a')->whereBetween('a', [1]),
             'exactly two values, 1 given',
         ];
         yield 'between with three values' => [
-            static fn
-        (Blueprint $t) => $t->partial('a')->whereBetween('a', [1, 2, 3]),
+            static fn(Blueprint $t) => $t->partial('a')->whereBetween('a', [1, 2, 3]),
             'exactly two values, 3 given',
         ];
         yield 'partial without columns' => [
-            static fn
-        (Blueprint $t) => $t->partial([]),
+            static fn(Blueprint $t) => $t->partial([]),
             'at least one column',
         ];
         yield 'unique partial without columns' => [
-            static fn
-        (Blueprint $t) => $t->uniquePartial([]),
+            static fn(Blueprint $t) => $t->uniquePartial([]),
             'at least one column',
         ];
         yield 'unique partial with a bogus algorithm' => [
-            static fn
-        (Blueprint $t) => $t->uniquePartial('e', null, 'gin; drop table x')->whereTrue('a'),
+            static fn(Blueprint $t) => $t->uniquePartial('e', null, 'gin; drop table x')->whereTrue('a'),
             'Invalid index algorithm',
         ];
     }

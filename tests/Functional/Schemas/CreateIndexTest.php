@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Php\Support\Laravel\Database\Tests\Functional\Schemas;
 
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 use Php\Support\Laravel\Database\Schema\Postgres\Blueprint;
 use Php\Support\Laravel\Database\Tests\AbstractTestCase;
@@ -46,26 +47,54 @@ class CreateIndexTest extends AbstractTestCase
         $this->seeIndex('test_table_name_unique');
     }
 
-    #[Group('WithSchema')]
-    #[Test]
-    public function createIndexWithSchema(): void
-    {
-        $this->createIndexDefinition();
-        $this->assertRegExpIndex(
-            'test_table_name_unique',
-            '/CREATE UNIQUE INDEX test_table_name_unique ON (public\.)?test_table USING btree \(name\)/'
-        );
-    }
-
+    /**
+     * These two used to have byte-identical bodies under group names promising a difference in
+     * `search_path` that the bodies never made. The difference is real, so make it.
+     */
     #[Test]
     #[Group('WithoutSchema')]
-    public function createIndexWithoutSchema(): void
+    public function anIndexLandsInTheDefaultSchema(): void
     {
         $this->createIndexDefinition();
+
         $this->assertRegExpIndex(
             'test_table_name_unique',
             '/CREATE UNIQUE INDEX test_table_name_unique ON (public\.)?test_table USING btree \(name\)/'
         );
+
+        $index = $this->getIndexRow('test_table_name_unique');
+
+        self::assertNotNull($index);
+        self::assertSame('public', $index->schemaname);
+    }
+
+    /**
+     * The index follows the session's `search_path`, not the `search_path` in the connection
+     * config — the two can disagree, and PostgreSQL obeys the session.
+     */
+    #[Test]
+    #[Group('WithSchema')]
+    public function anIndexFollowsTheSessionSearchPath(): void
+    {
+        self::assertSame('public', config('database.connections.pgsql.search_path'));
+
+        DB::statement('create schema test_schema');
+        DB::statement('set search_path to test_schema');
+
+        Schema::create(
+            'test_table',
+            static function (Blueprint $table) {
+                $table->increments('id');
+                $table->string('name');
+                $table->unique(['name']);
+            }
+        );
+
+        $index = $this->getIndexRow('test_table_name_unique');
+
+        self::assertNotNull($index, 'the index exists, in whichever schema it landed');
+        self::assertSame('test_schema', $index->schemaname);
+        self::assertStringContainsString('ON test_schema.test_table', $index->indexdef);
     }
 
     #[Test]
