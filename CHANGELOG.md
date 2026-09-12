@@ -7,6 +7,15 @@ and this project adheres to [Semantic Versioning][semver].
 
 Check MD [online][check-online].
 
+## [5.0.2] - 2026-09-12
+
+### Fixed
+
+- The version in the documentation site's header was hardcoded in the generator, so the published
+  page kept claiming 5.0.0 after 5.0.1 shipped. It is read from the newest version heading in this
+  file instead — the release record, and unlike a git tag it survives the shallow checkout CI does.
+  An `unreleased` heading is skipped, not being a version yet
+
 ## [5.0.1] - 2026-09-12
 
 ### Changed
@@ -432,6 +441,8 @@ Check MD [online][check-online].
 ### Added
 
 - Create the package
+
+[5.0.2]: https://github.com/efureev/laravel-support-db/compare/v5.0.1...v5.0.2
 
 [5.0.1]: https://github.com/efureev/laravel-support-db/compare/v5.0.0...v5.0.1
 
